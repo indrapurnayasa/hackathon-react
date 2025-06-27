@@ -1,24 +1,19 @@
-// import TestComponent from './TestComponent'; // Import the TestComponent
+import React, { useState } from "react";
+import SplashScreen from "./SplashScreen";
+import ExportCo from "./ExportCo";
 
-// const App = () => {
-//   return (
-//     <div>
-//       <TestComponent /> {/* Use the TestComponent here */}
-//     </div>
-//   );
-// };
+function App() {
+  const [showSplash, setShowSplash] = useState(true);
 
-// export default App;
+  const handleContinue = () => {
+    setShowSplash(false);
+  };
 
-import React from 'react';
-import ExportCo from './ExportCo'; // Ensure this path is correct
-
-const App = () => {
   return (
-    <div>
-      <ExportCo />
+    <div className="App">
+      {showSplash ? <SplashScreen onContinue={handleContinue} /> : <ExportCo />}
     </div>
   );
-};
+}
 
 export default App;
