@@ -1,35 +1,37 @@
 // src/App.js
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import DashboardLayout from "./layout/DashboardLayout";
-import UserDashboard from "./pages/UserDashboard";
-import ChatPage from "./pages/ChatPage";
-import UploadDocumentsPage from "./pages/UploadDocumentsPage";
-import MarketInsightsPage from "./pages/MarketInsightPage.js";
-// import UploadPage, InsightsPage, HelpPage (next kalau udah)
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import SplashScreen from "./components/SplashScreen";
+import Dashboard from "./pages/Dashboard";
+import AIAssistantPage from "./pages/AIAssistantPage";
+import ShippingPage from "./pages/ShippingPage";
+import TrendPage from "./pages/TrendPage";
+import "./App.css";
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
   return (
     <Router>
-      <Routes>
-        {/* layout + nested routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="home" />} />
-          <Route path="home" element={<UserDashboard />} />
-          <Route path="chat" element={<ChatPage />} />
-          <Route path="upload" element={<UploadDocumentsPage />} />
-          <Route path="insights" element={<MarketInsightsPage />} />
-
-          {/* Tambahin route lain nanti */}
-        </Route>
-
-        {/* fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
-      </Routes>
+      {showSplash ? (
+        <SplashScreen onContinue={handleSplashComplete} />
+      ) : (
+        <div className="animate-fadeIn">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard/ai-assistant" replace />} />
+            <Route path="/dashboard" element={<Dashboard />}>
+              <Route index element={<Navigate to="ai-assistant" replace />} />
+              <Route path="ai-assistant" element={<AIAssistantPage />} />
+              <Route path="shipping" element={<ShippingPage />} />
+              <Route path="trend" element={<TrendPage />} />
+            </Route>
+          </Routes>
+        </div>
+      )}
     </Router>
   );
 }

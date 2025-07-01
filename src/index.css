@@ -1,3 +1,20 @@
+/* src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles here */
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --accent-blue: #00d4ff;
+  --accent-cyan: #00ffff;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Rest of your custom CSS */
