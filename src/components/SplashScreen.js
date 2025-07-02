@@ -15,7 +15,7 @@ const SplashScreen = ({ onContinue }) => {
       id: 'ai-assistant',
       title: 'AI Assistant',
       category: 'AI-POWERED',
-      icon: <Bot className="w-8 h-8" />,
+      icon: <Bot className="w-8 h-8" />, 
       route: '/dashboard/ai-assistant',
       description: 'Generate dokumen ekspor, email bisnis profesional, dan estimasi biaya secara otomatis dengan teknologi AI terdepan',
       previewVideo: '/assets/Fitur1.mp4',
@@ -25,7 +25,7 @@ const SplashScreen = ({ onContinue }) => {
       id: 'shipping',
       title: 'Shipping Manager', 
       category: 'LOGISTICS',
-      icon: <Truck className="w-8 h-8" />,
+      icon: <Truck className="w-8 h-8" />, 
       route: '/dashboard/shipping',
       description: 'Kelola alur pengiriman, tracking real-time, dan manajemen dokumen ekspor dengan sistem terintegrasi',
       previewVideo: '/assets/Fitur2.mp4',
@@ -35,7 +35,7 @@ const SplashScreen = ({ onContinue }) => {
       id: 'trend',
       title: 'Market Analytics',
       category: 'ANALYTICS', 
-      icon: <TrendingUp className="w-8 h-8" />,
+      icon: <TrendingUp className="w-8 h-8" />, 
       route: '/dashboard/trend',
       description: 'Analisis tren pasar global, permintaan produk, dan insight bisnis untuk strategi ekspor yang tepat',
       previewVideo: '/assets/Fitur3.mp4',
@@ -73,27 +73,37 @@ const SplashScreen = ({ onContinue }) => {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-200 transition-all duration-600 ${
-      isTransitioning ? 'scale-110 opacity-0' : 'scale-100 opacity-100'
-    }`}>
-
+    <div 
+      className={`min-h-screen transition-all duration-600 font-sans ${
+        isTransitioning ? 'scale-110 opacity-0' : 'scale-100 opacity-100'
+      }`}
+      style={{ backgroundColor: '#E5E7EB' }}
+    >
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-8 pt-16 pb-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-9xl font-light text-black tracking-tight">ExportCo</h1>
+          <h1 
+            className="text-9xl font-bold tracking-tight leading-none m-0"
+            style={{ color: '#000000' }}
+          >
+            ExportCo
+          </h1>
         </div>
 
-        {/* Feature List dengan Hover Expand */}
-        <div className="space-y-0">
+        {/* Feature List */}
+        <div className="mb-0">
           {/* Top border line */}
-          <div className="w-32 h-px bg-gray-400 mx-auto mb-0"></div>
+          <div 
+            className="w-32 h-px mx-auto mb-0"
+            style={{ backgroundColor: '#D1D5DB' }}
+          ></div>
           
           {features.map((feature, index) => (
             <div
               key={feature.id}
               ref={el => featureRefs.current[feature.id] = el}
-              className={`group cursor-pointer transition-all duration-500 ease-in-out ${
+              className={`cursor-pointer transition-all duration-500 ease-in-out ${
                 selectedFeature?.id === feature.id && isTransitioning 
                   ? 'transform scale-110 z-10' 
                   : ''
@@ -103,25 +113,39 @@ const SplashScreen = ({ onContinue }) => {
               onClick={() => handleFeatureClick(feature)}
             >
               {/* Main Row */}
-              <div className={`py-8 transition-all duration-300 ${
-                hoveredFeature === feature.id ? 'bg-gray-100' : 'hover:bg-gray-100'
-              }`}>
+              <div 
+                className={`py-8 transition-all duration-300 ${
+                  hoveredFeature === feature.id ? '' : ''
+                }`}
+                style={{ 
+                  backgroundColor: hoveredFeature === feature.id ? '#F3F4F6' : 'transparent' 
+                }}
+              >
                 <div className="text-center">
                   {/* Category */}
-                  <span className="text-sm font-medium text-gray-500 uppercase tracking-wider block mb-2">
+                  <span 
+                    className="block text-sm font-bold uppercase tracking-wider mb-2"
+                    style={{ color: '#6B7280' }}
+                  >
                     {feature.category}
                   </span>
                   
                   {/* Title with Arrow */}
                   <div className="flex items-center justify-center space-x-4">
-                    <h2 className={`text-4xl font-light text-black transition-transform duration-300 ${
-                      hoveredFeature === feature.id ? 'scale-105' : 'group-hover:scale-105'
-                    }`}>
+                    <h2 
+                      className={`text-4xl font-bold m-0 leading-tight transition-transform duration-300 ${
+                        hoveredFeature === feature.id ? 'scale-105' : ''
+                      }`}
+                      style={{ color: '#000000' }}
+                    >
                       {feature.title}
                     </h2>
-                    <ArrowUpRight className={`w-6 h-6 text-black transition-transform duration-300 ${
-                      hoveredFeature === feature.id ? 'translate-x-1 -translate-y-1' : 'group-hover:translate-x-1 group-hover:-translate-y-1'
-                    }`} />
+                    <ArrowUpRight 
+                      className={`w-6 h-6 transition-transform duration-300 ${
+                        hoveredFeature === feature.id ? 'translate-x-1 -translate-y-1' : ''
+                      }`}
+                      style={{ color: '#000000' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -129,31 +153,76 @@ const SplashScreen = ({ onContinue }) => {
               {/* Expanded Content on Hover */}
               <div 
                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                  hoveredFeature === feature.id ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'
+                  hoveredFeature === feature.id ? 'opacity-100' : 'opacity-0'
                 }`}
+                style={{
+                  maxHeight: hoveredFeature === feature.id ? '16rem' : '0'
+                }}
               >
-                <div className="pb-8 px-4 bg-gray-100">
+                <div 
+                  className="pb-8 px-4"
+                  style={{ backgroundColor: '#F3F4F6' }}
+                >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                     
                     {/* Left - Description */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium text-black text-center lg:text-left">{feature.title}</h3>
-                      <p className="text-gray-600 leading-relaxed text-sm text-center lg:text-left">
+                      <h3 
+                        className="text-lg font-bold text-center lg:text-left m-0"
+                        style={{ color: '#000000' }}
+                      >
+                        {feature.title}
+                      </h3>
+                      <p 
+                        className="text-sm leading-relaxed text-center lg:text-left m-0"
+                        style={{ color: '#6B7280' }}
+                      >
                         {feature.description}
                       </p>
                     </div>
 
                     {/* Right - Preview Video/Image */}
                     <div className="relative">
-                      <div className="aspect-video bg-gray-50 rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                      <div 
+                        className="aspect-video rounded-lg border overflow-hidden shadow-sm relative"
+                        style={{ 
+                          backgroundColor: '#FFFFFF',
+                          borderColor: '#D1D5DB'
+                        }}
+                      >
                         {/* Default placeholder */}
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                        <div 
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ 
+                            background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)' 
+                          }}
+                        >
                           <div className="text-center">
-                            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            <div 
+                              className="w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
+                              style={{ 
+                                backgroundColor: '#FFFFFF',
+                                color: '#6B7280'
+                              }}
+                            >
                               {feature.icon}
                             </div>
-                            <h4 className="text-lg font-medium text-gray-800 mb-2">{feature.title}</h4>
-                            <p className="text-sm text-gray-500">Dashboard Preview</p>
+                            <h4 
+                              className="text-lg font-medium mb-2 m-0"
+                              style={{ 
+                                color: '#374151'
+                              }}
+                            >
+                              {feature.title}
+                            </h4>
+                            <p 
+                              className="text-sm m-0"
+                              style={{ 
+                                color: '#6B7280'
+                              }}
+                            >
+                              Dashboard Preview
+                            </p>
                           </div>
                         </div>
                         
@@ -180,13 +249,19 @@ const SplashScreen = ({ onContinue }) => {
 
               {/* Border line after each item */}
               {index < features.length - 1 && (
-                <div className="w-32 h-px bg-gray-400 mx-auto"></div>
+                <div 
+                  className="w-32 h-px mx-auto"
+                  style={{ backgroundColor: '#D1D5DB' }}
+                ></div>
               )}
             </div>
           ))}
           
           {/* Bottom border line */}
-          <div className="w-32 h-px bg-gray-400 mx-auto"></div>
+          <div 
+            className="w-32 h-px mx-auto"
+            style={{ backgroundColor: '#D1D5DB' }}
+          ></div>
         </div>
       </div>
     </div>

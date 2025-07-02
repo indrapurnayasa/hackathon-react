@@ -1,3 +1,4 @@
+// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -5,12 +6,10 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
-        'bg-primary': '#0a0a0a',
-        'bg-secondary': '#1a1a1a',
-        'accent-blue': '#00d4ff',
-        'accent-cyan': '#00ffff',
-      }
+      fontFamily: {
+        'inter': ['Inter', 'sans-serif'],
+        'sans': ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+      },
     },
   },
   plugins: [],

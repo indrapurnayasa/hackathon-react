@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import AIAssistantPage from "./pages/AIAssistantPage";
 import ShippingPage from "./pages/ShippingPage";
 import TrendPage from "./pages/TrendPage";
-import "./App.css";
+import "./App.css"; // Updated App.css
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
