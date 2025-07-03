@@ -107,7 +107,7 @@ export default function AIAssistantPage() {
     </div>
   );
 
-  // Data dokumen ekspor
+  // Data dokumen ekspor (REDUCED to 2 documents)
   const exportDocuments = [
     {
       id: 'peb',
@@ -129,7 +129,7 @@ export default function AIAssistantPage() {
     }
   ];
 
-  // Data template email ekspor profesional
+  // Data template email ekspor profesional (REDUCED to 2 templates)
   const exportEmailTemplates = [
     {
       id: 'product-inquiry',
@@ -204,6 +204,7 @@ export default function AIAssistantPage() {
     setInput(suggestion);
   };
 
+  // Updated to fill input instead of sending directly
   const handleFeatureSelect = (feature) => {
     setInput(feature.prompt);
   };
@@ -1074,182 +1075,192 @@ This invoice is true and correct.`;
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden p-6 gap-6">
-      {/* Sidebar - AI Assistant */}
-      <div className="flex-none w-full lg:w-80 h-48 lg:h-full overflow-hidden">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 h-full flex flex-col">
-          <div className="flex items-center space-x-3 mb-4 lg:mb-6">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-            </div>
-            <h1 
-              className="text-lg lg:text-xl font-bold text-gray-900"
-              style={{ 
-                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                fontWeight: 500
-              }}
-            >
-              AI Assistant
-            </h1>
-          </div>
-          
-          {/* Quick Actions */}
-          <div className="flex-1 flex flex-col">
-            <h3 
-              className="text-sm font-semibold text-gray-700 mb-3"
-              style={{ 
-                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                fontWeight: 500
-              }}
-            >
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-3">
-              {featureSuggestions.map((feature) => (
-                <button
-                  key={feature.id}
-                  onClick={() => handleFeatureSelect(feature)}
-                  className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full p-3 lg:p-4 transition-all text-left group"
-                >
-                  <div className="flex items-center space-x-2 lg:space-x-3">
-                    <div className="text-gray-600 flex-shrink-0">
-                      {feature.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div 
-                        className="font-bold text-gray-900 text-xs lg:text-sm truncate"
-                        style={{ 
-                          fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                          fontWeight: 500
-                        }}
-                      >
-                        {feature.title}
-                      </div>
-                      <div 
-                        className="text-xs text-gray-600 mt-1 hidden lg:block"
-                        style={{ 
-                          fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                          fontWeight: 400
-                        }}
-                      >
-                        {feature.description}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-            
-          <div className="pt-4 border-t border-gray-100 mt-4 lg:mt-6 hidden lg:block">
-            <p 
-              className="text-xs text-gray-500"
-              style={{ 
-                fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                fontWeight: 400
-              }}
-            >
-              💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung di chat
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Chat Container */}
-      <div className="flex-1 overflow-hidden">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col relative overflow-hidden">
-          
-          {/* Chat Messages - Only this area can scroll */}
-          <div 
-            ref={chatContainerRef}
-            className="flex-1 overflow-y-auto p-6 space-y-4"
-            style={{ 
-              background: '#f2f2f7',
-              overflowX: 'hidden'
-            }}
-            data-scroll-container
-          >
-            {messages.map((message, index) => renderMessage(message, index))}
-            {isTyping && <TypingIndicator />}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Suggestions Bar */}
-          <div className="border-t border-gray-100 bg-gray-50 p-3">
-            <div className="flex items-center space-x-2 mb-2">
-              <Lightbulb className="w-4 h-4 text-orange-500" />
-              <span 
-                className="text-sm font-medium text-gray-700"
+    <div 
+      className="h-screen flex flex-col overflow-hidden"
+      style={{ 
+        background: '#f2f2f7',
+        fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif"
+      }}
+    >
+      {/* Container dengan margin yang tepat seperti gambar */}
+      <div className="flex flex-col lg:flex-row h-full overflow-hidden px-4 lg:px-6 pt-4 pb-4 gap-4 lg:gap-6">
+        
+        {/* Sidebar - AI Assistant - Fixed height, no scroll */}
+        <div className="flex-none w-full lg:w-80 h-48 lg:h-full overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 h-full flex flex-col">
+            <div className="flex items-center space-x-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+              </div>
+              <h1 
+                className="text-lg lg:text-xl font-bold text-gray-900"
                 style={{ 
                   fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
                   fontWeight: 500
                 }}
               >
-                Pertanyaan Umum:
-              </span>
+                AI Assistant
+              </h1>
             </div>
-            <div className="overflow-x-auto">
-              <div className="flex space-x-2">
-                {generalSuggestions.map((suggestion, index) => (
+            
+            {/* Quick Actions - No scroll, fixed content */}
+            <div className="flex-1 flex flex-col">
+              <h3 
+                className="text-sm font-semibold text-gray-700 mb-3"
+                style={{ 
+                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                  fontWeight: 500
+                }}
+              >
+                Quick Actions
+              </h3>
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-3">
+                {featureSuggestions.map((feature) => (
                   <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-3 py-2 transition-all whitespace-nowrap"
-                    style={{ 
-                      fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                      fontWeight: 400
-                    }}
+                    key={feature.id}
+                    onClick={() => handleFeatureSelect(feature)}
+                    className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full p-3 lg:p-4 transition-all text-left group"
                   >
-                    {suggestion}
+                    <div className="flex items-center space-x-2 lg:space-x-3">
+                      <div className="text-gray-600 flex-shrink-0">
+                        {feature.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div 
+                          className="font-bold text-gray-900 text-xs lg:text-sm truncate"
+                          style={{ 
+                            fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 500
+                          }}
+                        >
+                          {feature.title}
+                        </div>
+                        <div 
+                          className="text-xs text-gray-600 mt-1 hidden lg:block"
+                          style={{ 
+                            fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                            fontWeight: 400
+                          }}
+                        >
+                          {feature.description}
+                        </div>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
+              
+            <div className="pt-4 border-t border-gray-100 mt-4 lg:mt-6 hidden lg:block">
+              <p 
+                className="text-xs text-gray-500"
+                style={{ 
+                  fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                  fontWeight: 400
+                }}
+              >
+                💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung di chat
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Input Section - Fixed at bottom */}
-          <div className="border-t border-gray-100 p-4 bg-white">
-            <div className="flex space-x-3">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
+        {/* Chat Container - Fixed margins, no horizontal scroll */}
+        <div className="flex-1 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col relative overflow-hidden">
+            
+            {/* Chat Messages - Only this area can scroll, starts from top */}
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4"
+              style={{ 
+                background: '#f2f2f7',
+                overflowX: 'hidden'
+              }}
+              data-scroll-container
+            >
+              {messages.map((message, index) => renderMessage(message, index))}
+              {isTyping && <TypingIndicator />}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Suggestions Bar */}
+            <div className="border-t border-gray-100 bg-gray-50 p-3">
+              <div className="flex items-center space-x-2 mb-2">
+                <Lightbulb className="w-4 h-4 text-orange-500" />
+                <span 
+                  className="text-sm font-medium text-gray-700"
+                  style={{ 
+                    fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                    fontWeight: 500
+                  }}
+                >
+                  Pertanyaan Umum:
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="flex space-x-2">
+                  {generalSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-3 py-2 transition-all whitespace-nowrap"
+                      style={{ 
+                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                        fontWeight: 400
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Input Section - Fixed at bottom */}
+            <div className="border-t border-gray-100 p-4 bg-white">
+              <div className="flex space-x-3">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      if (currentFlow === 'document-form' || currentFlow === 'email-form') {
+                        handleFormSubmit();
+                      } else {
+                        handleSend();
+                      }
+                    }
+                  }}
+                  placeholder="Tulis pesan..."
+                  className="flex-1 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  style={{
+                    fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                    fontSize: '16px',
+                    fontWeight: 400
+                  }}
+                  disabled={isGenerating || isTyping}
+                />
+                <button
+                  onClick={() => {
                     if (currentFlow === 'document-form' || currentFlow === 'email-form') {
                       handleFormSubmit();
                     } else {
                       handleSend();
                     }
-                  }
-                }}
-                placeholder="Tulis pesan..."
-                className="flex-1 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                style={{
-                  fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                  fontSize: '16px',
-                  fontWeight: 400
-                }}
-                disabled={isGenerating || isTyping}
-              />
-              <button
-                onClick={() => {
-                  if (currentFlow === 'document-form' || currentFlow === 'email-form') {
-                    handleFormSubmit();
-                  } else {
-                    handleSend();
-                  }
-                }}
-                disabled={!input.trim() || isGenerating || isTyping}
-                className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ 
-                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                  fontWeight: 500
-                }}
-              >
-                <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">Kirim</span>
-              </button>
+                  }}
+                  disabled={!input.trim() || isGenerating || isTyping}
+                  className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ 
+                    fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                    fontWeight: 500
+                  }}
+                >
+                  <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">Kirim</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
