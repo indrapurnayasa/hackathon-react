@@ -63,43 +63,42 @@ const SplashScreen = ({ onContinue }) => {
     setHoveredFeature(null);
   };
 
-  // HAPUS useEffect yang menyebabkan scroll/movement
-  // useEffect(() => {
-  //   if (hoveredFeature && featureRefs.current[hoveredFeature]) {
-  //     featureRefs.current[hoveredFeature].scrollIntoView({
-  //       behavior: 'smooth',
-  //       block: 'center'
-  //     });
-  //   }
-  // }, [hoveredFeature]);
-
   return (
     <>
-      {/* ExportCo Fixed - DILUAR container utama agar tidak terpengaruh layout */}
+      {/* ExportCo - COMPLETELY ISOLATED FIXED CONTAINER */}
       <div 
         style={{ 
           position: 'fixed', 
           left: '10%', 
           top: '50%', 
-          transform: 'translateY(-50%)', 
-          zIndex: 9999, // Z-index lebih tinggi
+          marginTop: '-3rem',
+          zIndex: 1000, 
           textAlign: 'center',
-          pointerEvents: 'none' // Tidak mengganggu interaksi
+          pointerEvents: 'none',
+          isolation: 'isolate' // ISOLATE FROM PARENT TRANSFORMS
         }}
       >
         <h1 
+          className={`transition-opacity duration-600 ease-in-out ${
+            isTransitioning ? 'opacity-0' : 'opacity-100'
+          }`}
           style={{
             fontFamily: "'Product Sans', 'Google Sans Text', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-            fontWeight: 500,
+            fontWeight: 700,
             fontSize: '6rem',
             margin: 0,
             letterSpacing: '-0.02em',
-            color: '#000000'
+            color: '#000000',
+            transform: 'none',
+            position: 'relative'
           }}
         >
           ExportCo
         </h1>
         <div 
+          className={`transition-opacity duration-600 ease-in-out ${
+            isTransitioning ? 'opacity-0' : 'opacity-100'
+          }`}
           style={{
             marginTop: '0.5rem',
             fontSize: '1rem',
@@ -109,136 +108,145 @@ const SplashScreen = ({ onContinue }) => {
             padding: '0.25rem 1rem',
             display: 'inline-block',
             fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-            fontWeight: 500
+            fontWeight: 400,
+            transform: 'none',
+            position: 'relative'
           }}
         >
-          P1ONEERS
+          2025
         </div>
       </div>
 
-      {/* Main Content Container */}
+      {/* MAIN CONTENT CONTAINER - COMPLETELY SEPARATE */}
       <div 
         className={`min-h-screen transition-all duration-600 bg-[var(--bg-secondary)] ${
           isTransitioning ? 'scale-110 opacity-0' : 'scale-100 opacity-100'
         }`}
         style={{ 
-          fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+          fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
+          isolation: 'isolate' // ISOLATE FROM EXPORTCO
         }}
       >
         <div className="max-w-7xl mx-auto px-8 pt-24">
-          {/* Features List - Tanpa flex yang mempengaruhi ExportCo */}
-          <div className="ml-auto max-w-3xl" style={{ marginLeft: '40%' }}>
-            <div className="space-y-0">
-              {features.map((feature, index) => (
-                <div key={feature.id}>
-                  <div
-                    ref={el => featureRefs.current[feature.id] = el}
-                    className={`group cursor-pointer transition-all duration-500 ease-in-out`}
-                    onMouseEnter={() => handleFeatureHover(feature.id)}
-                    onMouseLeave={handleFeatureLeave}
-                    onClick={() => handleFeatureClick(feature)}
-                  >
-                    <div className={`py-8 transition-colors duration-300 ${
-                      hoveredFeature === feature.id ? 'bg-[var(--bg-tertiary)]' : 'hover:bg-[var(--bg-tertiary)]'
-                    }`}>
-                      <div className="text-left">
-                        {/* Category dengan border hitam no fill - ukuran sama */}
-                        <span 
-                          className="text-sm font-medium uppercase tracking-wider block mb-2 px-4 py-2 border-2 border-black bg-transparent text-black inline-block"
-                          style={{ 
-                            fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                            fontWeight: 500,
-                            letterSpacing: '0.1em',
-                            borderRadius: '40px',
-                            minWidth: '140px'
-                          }}
-                        >
-                          {feature.category}
-                        </span>
-                        <div className="flex items-center space-x-4">
-                          <h2 
-                            className={`text-4xl font-light transition-transform duration-300 text-[var(--text-primary)]`}
+          <div className="flex justify-end">
+            {/* Right Side - Features List */}
+            <div className="flex-1 max-w-3xl">
+              <div 
+                className={`space-y-0 transition-all duration-600 ease-in-out ${
+                  isTransitioning ? 'opacity-0 transform scale-110' : 'opacity-100 transform scale-100'
+                }`}
+              >
+                {features.map((feature, index) => (
+                  <div key={feature.id}>
+                    <div
+                      ref={el => featureRefs.current[feature.id] = el}
+                      className={`group cursor-pointer transition-all duration-500 ease-in-out`}
+                      onMouseEnter={() => handleFeatureHover(feature.id)}
+                      onMouseLeave={handleFeatureLeave}
+                      onClick={() => handleFeatureClick(feature)}
+                    >
+                      <div className={`py-8 transition-colors duration-300 ${
+                        hoveredFeature === feature.id ? 'bg-[var(--bg-tertiary)]' : 'hover:bg-[var(--bg-tertiary)]'
+                      }`}>
+                        <div className="text-left">
+                          {/* Category dengan border hitam no fill */}
+                          <span 
+                            className="text-sm font-medium uppercase tracking-wider block mb-2 px-4 py-2 border-2 border-black bg-transparent text-black inline-block"
                             style={{ 
-                              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                              fontWeight: 400,
-                              letterSpacing: '-0.01em'
+                              fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                              fontWeight: 500,
+                              letterSpacing: '0.1em',
+                              borderRadius: '18px',
+                              minWidth: '140px'
                             }}
                           >
-                            {feature.title}
-                          </h2>
-                          <ArrowUpRight className="w-6 h-6 transition-transform duration-300 text-[var(--text-primary)]" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div 
-                      className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                        hoveredFeature === feature.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                      }`}
-                    >
-                      <div className="pb-8 px-4 bg-[var(--bg-tertiary)]">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                          <div className="space-y-4">
-                            <h3 
-                              className="text-lg font-medium text-left text-[var(--text-primary)]"
+                            {feature.category}
+                          </span>
+                          <div className="flex items-center space-x-4">
+                            <h2 
+                              className={`text-4xl font-light transition-transform duration-300 text-[var(--text-primary)]`}
                               style={{ 
                                 fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                                fontWeight: 500
+                                fontWeight: 400,
+                                letterSpacing: '-0.01em'
                               }}
                             >
                               {feature.title}
-                            </h3>
-                            <p 
-                              className="leading-relaxed text-sm text-left text-[var(--text-secondary)]"
-                              style={{ 
-                                fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                                fontWeight: 400,
-                                lineHeight: '1.6'
-                              }}
-                            >
-                              {feature.description}
-                            </p>
+                            </h2>
+                            <ArrowUpRight className="w-6 h-6 transition-transform duration-300 text-[var(--text-primary)]" />
                           </div>
-                          <div className="relative">
-                            <div className="aspect-video rounded-lg border overflow-hidden shadow-sm bg-[var(--bg-primary)] border-[var(--border-light)]">
-                              {/* Video Preview */}
-                              <video 
-                                src={feature.previewVideo}
-                                className="w-full h-full object-cover"
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.nextElementSibling.style.display = 'flex';
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                          hoveredFeature === feature.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                        }`}
+                      >
+                        <div className="pb-8 px-4 bg-[var(--bg-tertiary)]">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                            <div className="space-y-4">
+                              <h3 
+                                className="text-lg font-medium text-left text-[var(--text-primary)]"
+                                style={{ 
+                                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                                  fontWeight: 500
                                 }}
-                              />
-                              {/* Fallback placeholder */}
-                              <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
-                                <div className="text-center">
-                                  <div className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 bg-[var(--bg-tertiary)]">
-                                    <div style={{ color: 'var(--text-secondary)' }}>
-                                      {feature.icon}
+                              >
+                                {feature.title}
+                              </h3>
+                              <p 
+                                className="leading-relaxed text-sm text-left text-[var(--text-secondary)]"
+                                style={{ 
+                                  fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                                  fontWeight: 400,
+                                  lineHeight: '1.6'
+                                }}
+                              >
+                                {feature.description}
+                              </p>
+                            </div>
+                            <div className="relative">
+                              <div className="aspect-video rounded-lg border overflow-hidden shadow-sm bg-[var(--bg-primary)] border-[var(--border-light)]">
+                                {/* Video Preview */}
+                                <video 
+                                  src={feature.previewVideo}
+                                  className="w-full h-full object-cover"
+                                  autoPlay
+                                  muted
+                                  loop
+                                  playsInline
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextElementSibling.style.display = 'flex';
+                                  }}
+                                />
+                                {/* Fallback placeholder */}
+                                <div className="w-full h-full flex items-center justify-center" style={{ display: 'none' }}>
+                                  <div className="text-center">
+                                    <div className="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 bg-[var(--bg-tertiary)]">
+                                      <div style={{ color: 'var(--text-secondary)' }}>
+                                        {feature.icon}
+                                      </div>
                                     </div>
+                                    <h4 
+                                      className="text-sm font-medium mb-1 text-[var(--text-primary)]"
+                                      style={{ 
+                                        fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                                        fontWeight: 500
+                                      }}
+                                    >
+                                      {feature.title}
+                                    </h4>
+                                    <p 
+                                      className="text-xs text-[var(--text-tertiary)]"
+                                      style={{ 
+                                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif"
+                                      }}
+                                    >
+                                      Preview Dashboard
+                                    </p>
                                   </div>
-                                  <h4 
-                                    className="text-sm font-medium mb-1 text-[var(--text-primary)]"
-                                    style={{ 
-                                      fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                                      fontWeight: 500
-                                    }}
-                                  >
-                                    {feature.title}
-                                  </h4>
-                                  <p 
-                                    className="text-xs text-[var(--text-tertiary)]"
-                                    style={{ 
-                                      fontFamily: "'Google Sans Text', 'Roboto', sans-serif"
-                                    }}
-                                  >
-                                    Preview Dashboard
-                                  </p>
                                 </div>
                               </div>
                             </div>
@@ -246,28 +254,32 @@ const SplashScreen = ({ onContinue }) => {
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Garis Pembatas Customizable antar fitur */}
-                  {index < features.length - 1 && (
-                    <div className="flex justify-center py-4">
-                      <div 
-                        style={{ 
-                          width: '50%',
-                          height: '2px',
-                          backgroundColor: 'var(--border-dark)',
-                          opacity: 0.3
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {/* Garis Pembatas antar fitur */}
+                    {index < features.length - 1 && (
+                      <div className="flex justify-center py-4">
+                        <div 
+                          style={{ 
+                            width: '50%',
+                            height: '2px',
+                            backgroundColor: 'var(--border-dark)',
+                            opacity: 0.3
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Bottom line */}
-          <div className="flex justify-center mt-16">
+          <div 
+            className={`flex justify-center mt-16 transition-all duration-600 ease-in-out ${
+              isTransitioning ? 'opacity-0 transform scale-110' : 'opacity-100 transform scale-100'
+            }`}
+          >
             <div 
               style={{ 
                 width: '30%',
