@@ -70,163 +70,327 @@ export default function TrendPage() {
   ];
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">Market Trend Analysis</h1>
-        <p className="text-gray-600 max-w-2xl">
-          Analisis mendalam tentang tren pasar ekspor berdasarkan musim dan permintaan negara. 
-          Temukan peluang terbaik untuk produk Anda di pasar internasional.
-        </p>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="mb-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab("seasonal")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "seasonal"
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4" />
-                <span>Seasonal Trends</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab("country")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "country"
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Globe className="w-4 h-4" />
-                <span>Country Demand</span>
-              </div>
-            </button>
-          </nav>
+    <div className="h-full overflow-y-auto">
+      <div className="p-8 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 
+            className="text-3xl font-bold text-gray-900 mb-3"
+            style={{ 
+              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+              fontWeight: 500
+            }}
+          >
+            Market Trend Analysis
+          </h1>
+          <p 
+            className="text-gray-600 max-w-2xl"
+            style={{ 
+              fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+              fontWeight: 400
+            }}
+          >
+            Analisis mendalam tentang tren pasar ekspor berdasarkan musim dan permintaan negara. 
+            Temukan peluang terbaik untuk produk Anda di pasar internasional.
+          </p>
         </div>
-      </div>
 
-      {/* Seasonal Trends Tab */}
-      {activeTab === "seasonal" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {seasonalTrends.map((item, index) => (
-              <div key={index} className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">{item.product}</h3>
-                    <p className="text-sm text-gray-500">{item.season}</p>
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("seasonal")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "seasonal"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                style={{ 
+                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                  fontWeight: 500
+                }}
+              >
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>Seasonal Trends</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab("country")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "country"
+                    ? "border-gray-900 text-gray-900"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+                style={{ 
+                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                  fontWeight: 500
+                }}
+              >
+                <div className="flex items-center space-x-2">
+                  <Globe className="w-4 h-4" />
+                  <span>Country Demand</span>
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Seasonal Trends Tab */}
+        {activeTab === "seasonal" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {seasonalTrends.map((item, index) => (
+                <div key={index} className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 
+                        className="font-semibold text-gray-900 text-lg"
+                        style={{ 
+                          fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 500
+                        }}
+                      >
+                        {item.product}
+                      </h3>
+                      <p 
+                        className="text-sm text-gray-500"
+                        style={{ 
+                          fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                          fontWeight: 400
+                        }}
+                      >
+                        {item.season}
+                      </p>
+                    </div>
+                    <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${
+                      item.trend === "up" 
+                        ? "bg-green-100 text-green-800" 
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {item.trend === "up" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+                      <span 
+                        style={{ 
+                          fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 500
+                        }}
+                      >
+                        {item.percentage}
+                      </span>
+                    </div>
                   </div>
-                  <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${
-                    item.trend === "up" 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-red-100 text-red-800"
-                  }`}>
-                    {item.trend === "up" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                    <span>{item.percentage}</span>
+
+                  <p 
+                    className="text-gray-600 text-sm mb-4"
+                    style={{ 
+                      fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                      fontWeight: 400
+                    }}
+                  >
+                    {item.description}
+                  </p>
+
+                  <div className="space-y-3">
+                    <div>
+                      <span 
+                        className="text-xs font-medium text-gray-500 uppercase tracking-wide"
+                        style={{ 
+                          fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                          fontWeight: 500
+                        }}
+                      >
+                        Target Countries
+                      </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {item.countries.map((country, idx) => (
+                          <span 
+                            key={idx} 
+                            className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs"
+                            style={{ 
+                              fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                              fontWeight: 400
+                            }}
+                          >
+                            {country}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <span 
+                        className="text-sm text-gray-600"
+                        style={{ 
+                          fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                          fontWeight: 400
+                        }}
+                      >
+                        Harga Rata-rata:
+                      </span>
+                      <span 
+                        className="font-semibold text-gray-900"
+                        style={{ 
+                          fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 500
+                        }}
+                      >
+                        {item.price}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Country Demand Tab */}
+        {activeTab === "country" && (
+          <div className="space-y-8">
+            {countryDemands.map((country, index) => (
+              <div key={index} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                {/* Country Header */}
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{country.flag}</span>
+                      <div>
+                        <h3 
+                          className="font-semibold text-gray-900 text-lg"
+                          style={{ 
+                            fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 500
+                          }}
+                        >
+                          {country.country}
+                        </h3>
+                        <p 
+                          className="text-sm text-gray-600"
+                          style={{ 
+                            fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                            fontWeight: 400
+                          }}
+                        >
+                          Total Nilai Ekspor: {country.totalValue}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <TrendingUp className="w-3 h-3" />
+                      <span 
+                        style={{ 
+                          fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 500
+                        }}
+                      >
+                        {country.growth}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Target Countries</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {item.countries.map((country, idx) => (
-                        <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                          {country}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <span className="text-sm text-gray-600">Harga Rata-rata:</span>
-                    <span className="font-semibold text-gray-900">{item.price}</span>
+                {/* Products List */}
+                <div className="p-6">
+                  <h4 
+                    className="font-medium text-gray-900 mb-4"
+                    style={{ 
+                      fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                      fontWeight: 500
+                    }}
+                  >
+                    Produk dengan Permintaan Tertinggi
+                  </h4>
+                  <div className="space-y-4">
+                    {country.topProducts.map((product, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <h5 
+                            className="font-medium text-gray-900"
+                            style={{ 
+                              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                              fontWeight: 500
+                            }}
+                          >
+                            {product.name}
+                          </h5>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              product.demand === "Sangat Tinggi" 
+                                ? "bg-red-100 text-red-800"
+                                : product.demand === "Tinggi"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                            style={{ 
+                              fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                              fontWeight: 500
+                            }}
+                            >
+                              {product.demand}
+                            </span>
+                            <span 
+                              className="text-xs text-gray-500"
+                              style={{ 
+                                fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                                fontWeight: 400
+                              }}
+                            >
+                              Growth: {product.growth}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span 
+                            className="font-semibold text-gray-900"
+                            style={{ 
+                              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                              fontWeight: 500
+                            }}
+                          >
+                            {product.value}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             ))}
           </div>
+        )}
+
+        {/* CTA Section */}
+        <div className="mt-12 bg-gray-900 rounded-xl p-8 text-center">
+          <h3 
+            className="text-xl font-semibold text-white mb-3"
+            style={{ 
+              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+              fontWeight: 500
+            }}
+          >
+            Butuh Analisis Lebih Detail?
+          </h3>
+          <p 
+            className="text-gray-300 mb-6 max-w-2xl mx-auto"
+            style={{ 
+              fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+              fontWeight: 400
+            }}
+          >
+            Dapatkan laporan analisis pasar yang lebih mendalam dan rekomendasi strategi ekspor 
+            yang disesuaikan dengan produk Anda.
+          </p>
+          <button 
+            className="bg-white text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            style={{ 
+              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+              fontWeight: 500
+            }}
+          >
+            Request Custom Analysis
+          </button>
         </div>
-      )}
-
-      {/* Country Demand Tab */}
-      {activeTab === "country" && (
-        <div className="space-y-8">
-          {countryDemands.map((country, index) => (
-            <div key={index} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              {/* Country Header */}
-              <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{country.flag}</span>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 text-lg">{country.country}</h3>
-                      <p className="text-sm text-gray-600">Total Nilai Ekspor: {country.totalValue}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                    <TrendingUp className="w-3 h-3" />
-                    <span>{country.growth}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Products List */}
-              <div className="p-6">
-                <h4 className="font-medium text-gray-900 mb-4">Produk dengan Permintaan Tertinggi</h4>
-                <div className="space-y-4">
-                  {country.topProducts.map((product, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <h5 className="font-medium text-gray-900">{product.name}</h5>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            product.demand === "Sangat Tinggi" 
-                              ? "bg-red-100 text-red-800"
-                              : product.demand === "Tinggi"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}>
-                            {product.demand}
-                          </span>
-                          <span className="text-xs text-gray-500">Growth: {product.growth}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-semibold text-gray-900">{product.value}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* CTA Section */}
-      <div className="mt-12 bg-gray-900 rounded-xl p-8 text-center">
-        <h3 className="text-xl font-semibold text-white mb-3">
-          Butuh Analisis Lebih Detail?
-        </h3>
-        <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-          Dapatkan laporan analisis pasar yang lebih mendalam dan rekomendasi strategi ekspor 
-          yang disesuaikan dengan produk Anda.
-        </p>
-        <button className="bg-white text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-          Request Custom Analysis
-        </button>
       </div>
     </div>
   );

@@ -7,21 +7,9 @@ export default function Sidebar() {
   const [activeTab, setActiveTab] = useState(getActiveTabFromPath(location.pathname));
 
   const menus = [
-    { 
-      id: "ai-assistant",
-      name: "Chat", 
-      path: "/dashboard/ai-assistant"
-    },
-    { 
-      id: "shipping",
-      name: "Shipping", 
-      path: "/dashboard/shipping"
-    },
-    { 
-      id: "trend",
-      name: "Analytics", 
-      path: "/dashboard/trend"
-    }
+    { id: "ai-assistant", name: "Chat", path: "/dashboard/ai-assistant" },
+    { id: "shipping", name: "Shipping", path: "/dashboard/shipping" },
+    { id: "trend", name: "Analytics", path: "/dashboard/trend" }
   ];
 
   function getActiveTabFromPath(pathname) {
@@ -47,95 +35,54 @@ export default function Sidebar() {
   };
 
   return (
-    <div 
-      className="w-full px-6 py-6"
-      style={{ 
-        fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
-        background: 'transparent' // Changed back to transparent
-      }}
-    >
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Logo/Brand (Kiri) - With white pill border, aligned baseline */}
-        <div 
-          className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200"
-          style={{ height: '48px' }}
-        >
-          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-            <span 
-              className="text-white font-bold text-lg"
-              style={{ 
-                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                fontWeight: 300
-              }}
-            >
-              ⚡
-            </span>
+    <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+      {/* Header Section with improved spacing */}
+      <div className="flex items-center justify-between px-8 py-4">
+        {/* Logo Section - adjusted padding */}
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">E</span>
           </div>
-          <span 
-            className="font-light text-gray-900 hidden sm:block text-lg leading-none"
-            style={{ 
-              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-              fontWeight: 300
-            }}
-          >
-            ExportHub
-          </span>
+          <span className="text-xl font-semibold text-gray-900 tracking-tight">ExportHub</span>
         </div>
 
-        {/* Pills Navigation (Tengah) - White background with same height */}
-        <div 
-          className="relative flex items-center bg-white rounded-full p-1 shadow-sm border border-gray-200"
-          style={{ height: '48px' }}
-        >
-          {/* Sliding Background */}
+        {/* User Section - adjusted padding */}
+        <div className="flex items-center space-x-3">
+          <span className="text-gray-700 font-medium">Hi</span>
+          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+            <span className="text-gray-600 font-medium text-sm">V</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Pills */}
+      <div className="px-8 pb-4">
+        <div className="relative bg-gray-100 rounded-full p-1 max-w-md">
+          {/* Sliding background */}
           <div 
             className="absolute top-1 bottom-1 bg-black rounded-full transition-transform duration-300 ease-in-out"
             style={{
-              width: `calc(${100 / menus.length}% - 4px)`,
-              left: '2px',
+              width: `${100 / menus.length}%`,
               transform: getSliderPosition()
             }}
           />
           
-          {/* Menu Items */}
-          {menus.map((menu) => (
-            <NavLink
-              key={menu.id}
-              to={menu.path}
-              onClick={() => handleTabClick(menu.id)}
-              className={`relative flex items-center justify-center px-6 py-2 rounded-full text-sm font-medium transition-colors duration-300 min-w-[100px] z-10 ${
-                activeTab === menu.id
-                  ? "text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-              style={{
-                fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', sans-serif",
-                fontWeight: 300,
-                letterSpacing: '0.01em',
-                lineHeight: '1'
-              }}
-            >
-              <span>{menu.name}</span>
-            </NavLink>
-          ))}
-        </div>
-
-        {/* Profile (Kanan) - With white pill border, aligned baseline */}
-        <div 
-          className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200"
-          style={{ height: '48px' }}
-        >
-          <span 
-            className="text-base font-light text-gray-700 hidden md:block leading-none"
-            style={{ 
-              fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-              fontWeight: 300
-            }}
-          >
-            Hi, Versa
-          </span>
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center">
-            <span style={{ fontSize: '20px' }}>🐴</span>
+          {/* Menu items */}
+          <div className="relative flex">
+            {menus.map((menu) => (
+              <NavLink
+                key={menu.id}
+                to={menu.path}
+                className={`flex-1 px-6 py-2 text-sm font-medium text-center rounded-full transition-colors duration-300 relative z-10 ${
+                  activeTab === menu.id 
+                    ? 'text-white' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                onClick={() => handleTabClick(menu.id)}
+              >
+                {menu.name}
+              </NavLink>
+            ))}
           </div>
         </div>
       </div>

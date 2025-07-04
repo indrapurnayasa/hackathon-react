@@ -1077,7 +1077,7 @@ This invoice is true and correct.`;
     <div className="h-full flex flex-col lg:flex-row overflow-hidden p-6 gap-6">
       {/* Sidebar - AI Assistant */}
       <div className="flex-none w-full lg:w-80 h-48 lg:h-full overflow-hidden">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 h-full flex flex-col">
+        <div classNameac="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 h-full flex flex-col">
           <div className="flex items-center space-x-3 mb-4 lg:mb-6">
             <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
@@ -1246,7 +1246,7 @@ This invoice is true and correct.`;
                   fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
                   fontWeight: 500
                 }}
-              >
+              > 
                 <Send className="w-4 h-4" />
                 <span className="hidden sm:inline">Kirim</span>
               </button>

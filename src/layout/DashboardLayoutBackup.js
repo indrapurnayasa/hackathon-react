@@ -31,6 +31,7 @@ export default function DashboardLayout() {
   }
 
   const activeTab = getActiveTabFromPath(location.pathname);
+  const isShippingPage = location.pathname.includes('shipping');
 
   // Get transform position for sliding animation
   const getSliderPosition = () => {
@@ -53,16 +54,19 @@ export default function DashboardLayout() {
     <div 
       className="h-screen flex flex-col overflow-hidden"
       style={{ 
-        background: '#f2f2f7',
+        background: isShippingPage ? 'transparent' : '#f2f2f7', // Transparent untuk shipping
         fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
       }}
     >
-      {/* Fixed Header - Transparent Background, No Border */}
+      {/* Fixed Header - Completely transparent untuk shipping */}
       <div 
-        className="flex-none w-full px-6 py-6 backdrop-blur-sm z-50"
+        className="flex-none w-full px-6 py-6 z-50"
         style={{ 
-          background: 'transparent', // Changed to transparent
-          // Removed border-bottom
+          background: 'transparent', // Completely transparent
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0
         }}
       >
         <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -149,8 +153,14 @@ export default function DashboardLayout() {
         </div>
       </div>
       
-      {/* Main Content Area - Lower z-index */}
-      <main className="flex-1 overflow-hidden relative z-10" style={{ background: '#f2f2f7' }}>
+      {/* Main Content Area - Adjust padding untuk shipping */}
+      <main 
+        className="flex-1 overflow-hidden relative"
+        style={{ 
+          background: isShippingPage ? 'transparent' : '#f2f2f7',
+          paddingTop: isShippingPage ? '0' : '96px' // No padding untuk shipping
+        }}
+      >
         <Outlet />
       </main>
     </div>

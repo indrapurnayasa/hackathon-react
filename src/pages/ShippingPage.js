@@ -1,8 +1,9 @@
 // src/pages/ShippingPage.js
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MapPin, Clock, Star, Plane, Ship, HelpCircle, Package, DollarSign, CheckCircle, Circle } from "lucide-react";
+import { MapPin, Clock, Star, Plane, Ship, HelpCircle, Package, DollarSign, CheckCircle, Circle, TrendingUp, ChevronRight } from "lucide-react";
 import Globe from 'react-globe.gl';
+import { useNavigate } from "react-router-dom";
 
 export default function ShippingPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -16,6 +17,7 @@ export default function ShippingPage() {
   const helpIconRef = useRef(null);
   const globeEl = useRef();
   const [isGlobeReady, setIsGlobeReady] = useState(false);
+  const navigate = useNavigate();
 
   // UPDATE NEGARA TUJUAN - Spain, Malaysia, Kenya, Singapore
   const countries = [
@@ -198,6 +200,11 @@ export default function ShippingPage() {
       }
     ];
   });
+
+  // Handle navigation to Analytics page with Country Demand tab
+  const handleNavigateToAnalytics = () => {
+    navigate('/dashboard/trend', { state: { activeTab: 'country-demand' } });
+  };
 
   // Calculate tooltip position
   const updateTooltipPosition = () => {
@@ -584,7 +591,7 @@ export default function ShippingPage() {
           </div>
 
           {/* Country Selection */}
-          <div className="mb-6">
+          <div className="mb-3">
             <h2 
               className="text-lg font-semibold text-gray-900 mb-3"
               style={{ 
@@ -658,45 +665,60 @@ export default function ShippingPage() {
             </div>
           </div>
 
-          {/* Selected Country Info */}
+          {/* Hot Komoditas Section - Enhanced dengan ukuran yang disesuaikan */}
           {selectedCountry && (
-            <div className="mb-6">
-              <div className="bg-gray-50 rounded-lg border border-gray-100 p-4">
+            <div className="mb-6 relative">
+              {/* Label Hot Komoditas di atas border - ukuran sama dengan Pilih Negara Tujuan */}
+              <div className="flex items-center space-x-1 mb-1">
                 <h3 
-                  className="font-medium text-gray-900 text-sm mb-2"
+                  className="text-lg font-semibold text-gray-900"
                   style={{ 
                     fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
                     fontWeight: 500
                   }}
                 >
-                  Negara Terpilih
+                  Hot Komoditas
                 </h3>
+                <span className="text-lg">🔥</span>
+              </div>
+              
+              {/* Border container dengan ukuran sama dengan list negara - clickable untuk navigasi */}
+              <button
+                onClick={handleNavigateToAnalytics}
+                className="w-full bg-gray-50 rounded-lg border-2 border-gray-200 p-3 relative hover:border-gray-300 hover:bg-gray-50 transition-all text-left"
+              >
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">
-                    {countries.find(c => c.code === selectedCountry)?.flag}
-                  </span>
-                  <div>
-                    <h4 
-                      className="font-medium text-gray-900"
-                      style={{ 
-                        fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                        fontWeight: 500
-                      }}
-                    >
-                      {countries.find(c => c.code === selectedCountry)?.name}
-                    </h4>
-                    <p 
-                      className="text-xs text-gray-500"
+                  <span className="text-xl">🦐</span>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span 
+                        className="font-medium text-gray-900 text-sm"
+                        style={{ 
+                          fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                          fontWeight: 500
+                        }}
+                      >
+                        Udang Beku
+                      </span>
+                      <TrendingUp size={16} className="text-green-500" />
+                    </div>
+                    <div 
+                      className="text-xs text-green-600 font-medium"
                       style={{ 
                         fontFamily: "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
                         fontWeight: 400
                       }}
                     >
-                      Jarak: {countries.find(c => c.code === selectedCountry)?.distance}
-                    </p>
+                      Growth: 22%
+                    </div>
                   </div>
                 </div>
-              </div>
+                
+                {/* Chevron di dalam border, posisi tengah kanan */}
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <ChevronRight size={16} className="text-gray-600" />
+                </div>
+              </button>
             </div>
           )}
         </div>
@@ -705,7 +727,7 @@ export default function ShippingPage() {
       {/* Informasi Pengiriman Panel - ANIMASI BERSAMAAN */}
       {selectedCountry && (
         <div 
-          className={`absolute top-24 right-6 w-96 max-h-[calc(100vh-120px)] overflow-y-auto z-20 bg-white backdrop-blur-lg rounded-xl shadow-xl border border-gray-300 ${
+          className={`absolute top-24 right-6 w-96 max-h-[calc(100vh-120px)] overflow-y-auto z-20 bg-white backdrop-blur-lg rounded-xl shadow-xl border-2 border-gray-200 ${
             isExiting ? 'info-panel-exit' : 'info-panel-enter'
           }`}
         >
