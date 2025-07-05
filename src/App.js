@@ -1,43 +1,45 @@
 // src/App.js
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import SplashScreen from "./components/SplashScreen";
-import DashboardLayout from "./layout/DashboardLayout.js";
-import AIAssistantPage from "./pages/AIAssistantPage";
-import ShippingPage from "./pages/ShippingPage";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import DashboardLayout from "./layout/DashboardLayout";
 import TrendPage from "./pages/TrendPage";
-import CustomCursor from "./components/CustomCursor";
+import ShippingPage from "./pages/ShippingPage";
+import AIAssistantPage from "./pages/AIAssistantPage";
+import SplashScreen from "./components/SplashScreen";
 import "./App.css";
-import "./styles/cursor.css"; // Import cursor styles
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
 
+  // Function to handle splash screen completion
   const handleSplashComplete = () => {
-    setShowSplash(false);
+    setShowSplashScreen(false);
   };
 
   return (
-    <div className="App">
-      {/* Custom Cursor Component - Global untuk seluruh aplikasi */}
-      <CustomCursor />
-      
-      <Router>
-        {showSplash ? (
+    <Router>
+      <div className="App">
+        {/* Render SplashScreen INSIDE Router context */}
+        {showSplashScreen ? (
           <SplashScreen onContinue={handleSplashComplete} />
         ) : (
           <Routes>
+            {/* Dashboard routes with layout */}
             <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<AIAssistantPage />} />
               <Route path="ai-assistant" element={<AIAssistantPage />} />
-              <Route path="shipping" element={<ShippingPage />} />
               <Route path="trend" element={<TrendPage />} />
+              <Route path="shipping" element={<ShippingPage />} />
             </Route>
-            <Route path="/" element={<Navigate to="/dashboard/ai-assistant" />} />
-            <Route path="*" element={<Navigate to="/dashboard/ai-assistant" />} />
+
+            {/* Root redirect to dashboard */}
+            <Route path="/" element={<DashboardLayout />}>
+              <Route index element={<AIAssistantPage />} />
+            </Route>
           </Routes>
         )}
-      </Router>
-    </div>
+      </div>
+    </Router>
   );
 }
 

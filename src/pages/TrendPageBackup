@@ -8,6 +8,7 @@ import {
   ArrowDown,
   ChevronLeft,
   ChevronRight,
+  Leaf,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 // Import vector image (jika menggunakan src/assets)
@@ -17,6 +18,7 @@ export default function TrendPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("seasonal");
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const seasonalScrollRef = useRef(null);
   const countryProductsRefs = useRef({});
 
@@ -36,6 +38,19 @@ export default function TrendPage() {
     navigate("/dashboard/shipping", {
       state: { selectedCountry: countryCode },
     });
+  };
+
+  // Handle tab change with simple fade animation
+  const handleTabChange = (tab) => {
+    if (tab !== activeTab && !isTransitioning) {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setActiveTab(tab);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 100);
+      }, 200);
+    }
   };
 
   // Scroll functions for carousel
@@ -326,180 +341,330 @@ export default function TrendPage() {
 
   return (
     <div className="h-full overflow-y-auto">
-      {/* Container utama dengan full width dan padding responsive */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 sm:py-8">
-        {/* Hero Section dengan warna #A0D4CE */}
+      {/* Container utama dengan max-width yang dibatasi */}
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-6 sm:py-8">
+        {/* Hero Section dengan simple fade animation */}
         <div
-          className="relative rounded-3xl overflow-hidden mb-6 sm:mb-8 w-full"
+          className={`relative rounded-3xl overflow-hidden mb-6 sm:mb-8 w-full transition-opacity duration-300 ${
+            isTransitioning ? "opacity-50" : "opacity-100"
+          }`}
           style={{
-            background: "#A0D4CE",
+            background: activeTab === "seasonal" ? "#A0D4CE" : "#C7DB9C",
             minHeight: "400px",
           }}
         >
           {/* Background Pattern/Texture */}
           <div
-            className="absolute inset-0 opacity-10"
+            className="absolute inset-0"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 25% 25%, white 2px, transparent 2px)",
+                activeTab === "seasonal"
+                  ? "radial-gradient(circle at 25% 25%, white 2px, transparent 2px)"
+                  : "radial-gradient(circle at 75% 75%, rgba(255,255,255,0.3) 2px, transparent 2px)",
               backgroundSize: "50px 50px",
+              opacity: 0.1,
             }}
           />
 
           <div className="relative z-10 p-6 sm:p-8 lg:p-12 xl:p-16 h-full flex items-center">
-            <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-stretch">
-              {/* Left Content - Responsive text sizing */}
-              <div className="text-gray-800 flex flex-col justify-center">
-                {/* Main Title dalam satu baris */}
-                <h1
-                  className="text-3xl sm:text-4xl lg:text-5xl xl:text-5xl 2xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight"
-                  style={{
-                    fontFamily:
-                      "'Product Sans', 'Google Sans Text', sans-serif",
-                    fontWeight: 700,
-                    color: "#2D3748",
-                  }}
-                >
-                  Market Trend Analysis
-                </h1>
-
-                {/* Description dengan responsive text */}
-                <p
-                  className="text-base sm:text-lg lg:text-xl xl:text-2xl mb-6 sm:mb-8 leading-relaxed"
-                  style={{
-                    fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                    fontWeight: 400,
-                    color: "#4A5568",
-                  }}
-                >
-                  Analisis mendalam tentang tren pasar ekspor berdasarkan musim
-                  dan permintaan negara. Temukan peluang terbaik untuk produk
-                  Anda di pasar internasional.
-                </p>
-
-                {/* Navigation Buttons - Responsive layout */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <button
-                    onClick={() => setActiveTab("seasonal")}
-                    className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
-                      activeTab === "seasonal"
-                        ? "bg-gray-800 text-white shadow-lg"
-                        : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
-                    }`}
-                    style={{
-                      fontFamily:
-                        "'Product Sans', 'Google Sans Text', sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Seasonal Trends ⚡
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab("country")}
-                    className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
-                      activeTab === "country"
-                        ? "bg-gray-800 text-white shadow-lg"
-                        : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
-                    }`}
-                    style={{
-                      fontFamily:
-                        "'Product Sans', 'Google Sans Text', sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Globe className="w-4 h-4" />
-                    Country Demand
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Content - Top Trend Section */}
-              <div className="flex flex-col justify-center">
-                {/* Top Trend Bulan Ini Container */}
-                <div
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 sm:p-12 shadow-lg w-full h-full flex flex-col relative"
-                  style={{ borderRadius: "20px", minHeight: "350px" }}
-                >
-                  {/* Title dengan border melengkung dan posisi mendekati margin atas */}
-                  <div
-                    className="border-2 border-gray-800 px-8 py-4 mb-16 mt-4 self-center"
-                    style={{ borderRadius: "30px" }}
-                  >
-                    <h3
-                      className="font-bold text-gray-900 text-center"
+            <div
+              className={`w-full grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-stretch ${
+                activeTab === "country" ? "xl:grid-cols-2" : ""
+              }`}
+            >
+              {/* Conditional Layout based on activeTab */}
+              {activeTab === "seasonal" ? (
+                <>
+                  {/* Left Content - Market Trend Analysis */}
+                  <div className="text-gray-800 flex flex-col justify-center">
+                    <h1
+                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-5xl 2xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight"
                       style={{
                         fontFamily:
                           "'Product Sans', 'Google Sans Text', sans-serif",
                         fontWeight: 700,
-                        fontSize: "32px",
+                        color: "#2D3748",
                       }}
                     >
-                      Top Trend Bulan Ini
-                    </h3>
-                  </div>
+                      Market Trend Analysis
+                    </h1>
 
-                  {/* Content lebih ke kiri dengan simbol naik */}
-                  <div className="flex items-center justify-start space-x-6 ml-8">
-                    {/* Simbol naik di sebelah kiri 25% */}
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp className="w-8 h-8 text-green-500" />
-                      <div
-                        className="text-5xl sm:text-6xl font-bold text-gray-900"
+                    <p
+                      className="text-base sm:text-lg lg:text-xl xl:text-2xl mb-6 sm:mb-8 leading-relaxed"
+                      style={{
+                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        color: "#4A5568",
+                      }}
+                    >
+                      Analisis mendalam tentang tren pasar ekspor berdasarkan
+                      musim dan permintaan negara. Temukan peluang terbaik untuk
+                      produk Anda di pasar internasional.
+                    </p>
+
+                    {/* Navigation Buttons dengan simbol di kanan */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <button
+                        onClick={() => handleTabChange("seasonal")}
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                          activeTab === "seasonal"
+                            ? "bg-gray-800 text-white shadow-lg"
+                            : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
+                        }`}
                         style={{
                           fontFamily:
                             "'Product Sans', 'Google Sans Text', sans-serif",
-                          fontWeight: 700,
+                          fontWeight: 600,
                         }}
                       >
-                        25%
+                        <span>Seasonal Trends</span>
+                        <Leaf className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("country")}
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                          activeTab === "country"
+                            ? "bg-gray-800 text-white shadow-lg"
+                            : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
+                        }`}
+                        style={{
+                          fontFamily:
+                            "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 600,
+                        }}
+                      >
+                        <span>Country Demand</span>
+                        <Globe className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right Content - Top Trend Section */}
+                  <div className="flex flex-col justify-center">
+                    <div
+                      className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-lg w-full h-full flex flex-col relative overflow-hidden"
+                      style={{ borderRadius: "20px", minHeight: "350px" }}
+                    >
+                      {/* Title dengan margin yang diperkecil */}
+                      <div
+                        className="border-2 border-gray-800 px-8 py-4 mb-8 mt-2 self-center"
+                        style={{ borderRadius: "30px" }}
+                      >
+                        <h3
+                          className="font-bold text-gray-900 text-center"
+                          style={{
+                            fontFamily:
+                              "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 700,
+                            fontSize: "32px",
+                          }}
+                        >
+                          Top Trend Bulan Ini
+                        </h3>
+                      </div>
+
+                      {/* Content rata kiri dengan vector yang dibatasi */}
+                      <div className="flex items-center justify-start space-x-4 ml-4 pr-4">
+                        <div className="flex items-center space-x-2">
+                          <TrendingUp className="w-8 h-8 text-green-500" />
+                          <div
+                            className="text-5xl sm:text-6xl font-bold text-gray-900"
+                            style={{
+                              fontFamily:
+                                "'Product Sans', 'Google Sans Text', sans-serif",
+                              fontWeight: 700,
+                            }}
+                          >
+                            25%
+                          </div>
+                        </div>
+
+                        <div
+                          className="text-xl sm:text-2xl font-medium text-gray-900"
+                          style={{
+                            fontFamily:
+                              "'Google Sans Text', 'Roboto', sans-serif",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Kopi Arabika
+                        </div>
+
+                        {/* Vector dengan batasan margin yang ketat */}
+                        <div className="flex-shrink-0 max-w-[140px]">
+                          <img
+                            src={vectorImage}
+                            alt="Market Trend Vector"
+                            className="object-contain w-full h-auto"
+                            style={{
+                              maxWidth: "140px",
+                              maxHeight: "140px",
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-
-                    {/* Kopi Arabika Text */}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Country Demand Layout - Flipped */}
+                  {/* Left Content - Top Negara Section dengan ukuran container yang sama */}
+                  <div className="flex flex-col justify-center">
                     <div
-                      className="text-xl sm:text-2xl font-medium text-gray-900"
-                      style={{
-                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                        fontWeight: 500,
-                      }}
+                      className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-lg w-full h-full flex flex-col relative overflow-hidden"
+                      style={{ borderRadius: "20px", minHeight: "350px" }}
                     >
-                      Kopi Arabika
+                      {/* Title dengan margin yang diperkecil */}
+                      <div
+                        className="border-2 border-gray-800 px-8 py-4 mb-8 mt-2 self-center"
+                        style={{ borderRadius: "30px" }}
+                      >
+                        <h3
+                          className="font-bold text-gray-900 text-center"
+                          style={{
+                            fontFamily:
+                              "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 700,
+                            fontSize: "32px",
+                          }}
+                        >
+                          Top Negara Bulan Ini
+                        </h3>
+                      </div>
+
+                      {/* Content Malaysia rata kiri dengan vector sebaris */}
+                      <div className="flex items-center justify-start space-x-4 ml-4 pr-4">
+                        <div className="flex flex-col items-start space-y-2">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-3xl">🇲🇾</span>
+                            <div
+                              className="text-2xl sm:text-3xl font-bold text-gray-900"
+                              style={{
+                                fontFamily:
+                                  "'Product Sans', 'Google Sans Text', sans-serif",
+                                fontWeight: 700,
+                              }}
+                            >
+                              Malaysia
+                            </div>
+                          </div>
+
+                          <div
+                            className="text-lg text-gray-700"
+                            style={{
+                              fontFamily:
+                                "'Google Sans Text', 'Roboto', sans-serif",
+                              fontWeight: 500,
+                            }}
+                          >
+                            Total Nilai Ekspor: Rp 3.2 Triliun
+                          </div>
+                        </div>
+
+                        {/* Vector dengan batasan margin yang ketat - sebaris */}
+                        <div className="flex-shrink-0 max-w-[140px] ml-auto">
+                          <img
+                            src={vectorImage}
+                            alt="Market Trend Vector"
+                            className="object-contain w-full h-auto"
+                            style={{
+                              maxWidth: "140px",
+                              maxHeight: "140px",
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Vector Image di pojok kanan bawah dengan ukuran 220x220px */}
-                  <div className="absolute bottom-6 right-6">
-                    <img
-                      src={vectorImage}
-                      alt="Market Trend Vector"
-                      className="object-contain"
+                  {/* Right Content - Market Trend Analysis */}
+                  <div className="text-gray-800 flex flex-col justify-center">
+                    <h1
+                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-5xl 2xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight"
                       style={{
-                        maxWidth: "220px",
-                        maxHeight: "220px",
-                        width: "auto",
-                        height: "auto",
+                        fontFamily:
+                          "'Product Sans', 'Google Sans Text', sans-serif",
+                        fontWeight: 700,
+                        color: "#2D3748",
                       }}
-                    />
+                    >
+                      Market Trend Analysis
+                    </h1>
+
+                    <p
+                      className="text-base sm:text-lg lg:text-xl xl:text-2xl mb-6 sm:mb-8 leading-relaxed"
+                      style={{
+                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                        fontWeight: 400,
+                        color: "#4A5568",
+                      }}
+                    >
+                      Analisis mendalam tentang tren pasar ekspor berdasarkan
+                      musim dan permintaan negara. Temukan peluang terbaik untuk
+                      produk Anda di pasar internasional.
+                    </p>
+
+                    {/* Navigation Buttons dengan simbol di kanan */}
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <button
+                        onClick={() => handleTabChange("seasonal")}
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                          activeTab === "seasonal"
+                            ? "bg-gray-800 text-white shadow-lg"
+                            : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
+                        }`}
+                        style={{
+                          fontFamily:
+                            "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 600,
+                        }}
+                      >
+                        <span>Seasonal Trends</span>
+                        <Leaf className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("country")}
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                          activeTab === "country"
+                            ? "bg-gray-800 text-white shadow-lg"
+                            : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
+                        }`}
+                        style={{
+                          fontFamily:
+                            "'Product Sans', 'Google Sans Text', sans-serif",
+                          fontWeight: 600,
+                        }}
+                      >
+                        <span>Country Demand</span>
+                        <Globe className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Dynamic Title dengan full width */}
+        {/* Dynamic Title dengan full width dan border melengkung hitam */}
         <div className="mb-4 sm:mb-6 w-full">
-          <h2
-            className="text-xl sm:text-2xl font-bold text-gray-900"
-            style={{
-              fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-              fontWeight: 500,
-            }}
+          <div
+            className="inline-block px-8 py-3 border-4 border-black"
+            style={{ borderRadius: "50px" }}
           >
-            {activeTab === "seasonal" ? "Seasonal Trends" : "Country Demand"}
-          </h2>
+            <h2
+              className="text-xl sm:text-2xl font-bold text-gray-900"
+              style={{
+                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                fontWeight: 500,
+              }}
+            >
+              {activeTab === "seasonal" ? "Seasonal Trends" : "Country Demand"}
+            </h2>
+          </div>
         </div>
 
         {/* Content Area dengan full width */}
@@ -809,7 +974,7 @@ export default function TrendPage() {
         </div>
       </div>
 
-      {/* CSS untuk hide scrollbar */}
+      {/* CSS untuk hide scrollbar dan simple fade animation */}
       <style jsx>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
