@@ -1,4 +1,3 @@
-// src/pages/TrendPage.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar,
@@ -19,7 +18,8 @@ export default function TrendPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("seasonal");
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const seasonalScrollRef = useRef(null);
+  const [seasonalCurrentPage, setSeasonalCurrentPage] = useState(0);
+  const [countryCurrentPage, setCountryCurrentPage] = useState(0);
   const countryProductsRefs = useRef({});
 
   // Check if navigated from ShippingPage with specific tab
@@ -53,19 +53,7 @@ export default function TrendPage() {
     }
   };
 
-  // Scroll functions for carousel
-  const scrollSeasonalLeft = () => {
-    if (seasonalScrollRef.current) {
-      seasonalScrollRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollSeasonalRight = () => {
-    if (seasonalScrollRef.current) {
-      seasonalScrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
-
+  // Scroll functions for country products
   const scrollProductsLeft = (countryIndex) => {
     if (countryProductsRefs.current[countryIndex]) {
       countryProductsRefs.current[countryIndex].scrollBy({
@@ -84,79 +72,476 @@ export default function TrendPage() {
     }
   };
 
+  // Data seasonal trends dengan produk baru
   const seasonalTrends = [
     {
-      product: "Kopi Arabika",
+      id: "cpo",
+      product: "Minyak Kelapa Sawit Mentah (CPO)",
       season: "Q1 2025",
       trend: "up",
-      percentage: "+25%",
+      percentage: "+28%",
       countries: [
-        { name: "Malaysia", code: "MY", flag: "🇲🇾" },
-        { name: "Singapore", code: "SG", flag: "🇸🇬" },
+        { name: "India", code: "IN", flag: "🇮🇳" },
+        { name: "China", code: "CN", flag: "🇨🇳" },
+        { name: "Pakistan", code: "PK", flag: "🇵🇰" },
       ],
-      price: "Rp 85,000/kg",
+      price: "Rp 12,500/kg",
     },
     {
-      product: "Rempah-rempah",
-      season: "Q2 2025",
-      trend: "up",
-      percentage: "+18%",
-      countries: [
-        { name: "Spain", code: "ES", flag: "🇪🇸" },
-        { name: "Kenya", code: "KE", flag: "🇰🇪" },
-        { name: "Malaysia", code: "MY", flag: "🇲🇾" },
-      ],
-      price: "Rp 120,000/kg",
-    },
-    {
-      product: "Produk Kelapa",
-      season: "Q3 2025",
-      trend: "down",
-      percentage: "-8%",
-      countries: [
-        { name: "Singapore", code: "SG", flag: "🇸🇬" },
-        { name: "Spain", code: "ES", flag: "🇪🇸" },
-      ],
-      price: "Rp 45,000/kg",
-    },
-    {
-      product: "Tekstil Batik",
-      season: "Q4 2025",
-      trend: "up",
-      percentage: "+35%",
-      countries: [
-        { name: "Kenya", code: "KE", flag: "🇰🇪" },
-        { name: "Malaysia", code: "MY", flag: "🇲🇾" },
-        { name: "Singapore", code: "SG", flag: "🇸🇬" },
-      ],
-      price: "Rp 250,000/pcs",
-    },
-    {
-      product: "Udang Beku",
+      id: "ole",
+      product: "Minyak Kelapa Sawit Olahan (OLE)",
       season: "Q1 2025",
       trend: "up",
       percentage: "+22%",
       countries: [
-        { name: "Spain", code: "ES", flag: "🇪🇸" },
-        { name: "Kenya", code: "KE", flag: "🇰🇪" },
+        { name: "Egypt", code: "EG", flag: "🇪🇬" },
+        { name: "Bangladesh", code: "BD", flag: "🇧🇩" },
+        { name: "Myanmar", code: "MM", flag: "🇲🇲" },
       ],
-      price: "Rp 180,000/kg",
+      price: "Rp 14,200/kg",
     },
     {
-      product: "Minyak Kelapa",
+      id: "cil",
+      product: "Minyak Kelapa (CIL)",
       season: "Q2 2025",
       trend: "up",
-      percentage: "+28%",
+      percentage: "+18%",
+      countries: [
+        { name: "United States", code: "US", flag: "🇺🇸" },
+        { name: "Germany", code: "DE", flag: "🇩🇪" },
+        { name: "Japan", code: "JP", flag: "🇯🇵" },
+      ],
+      price: "Rp 28,000/kg",
+    },
+    {
+      id: "coa",
+      product: "Kakao (COA)",
+      season: "Q2 2025",
+      trend: "up",
+      percentage: "+15%",
       countries: [
         { name: "Malaysia", code: "MY", flag: "🇲🇾" },
         { name: "Singapore", code: "SG", flag: "🇸🇬" },
-        { name: "Spain", code: "ES", flag: "🇪🇸" },
+        { name: "Philippines", code: "PH", flag: "🇵🇭" },
       ],
-      price: "Rp 65,000/L",
+      price: "Rp 35,000/kg",
+    },
+    {
+      id: "ara",
+      product: "Kopi Arabika (ARA)",
+      season: "Q3 2025",
+      trend: "up",
+      percentage: "+25%",
+      countries: [
+        { name: "United States", code: "US", flag: "🇺🇸" },
+        { name: "Japan", code: "JP", flag: "🇯🇵" },
+        { name: "Germany", code: "DE", flag: "🇩🇪" },
+      ],
+      price: "Rp 85,000/kg",
+    },
+    {
+      id: "rob",
+      product: "Kopi Robusta (ROB)",
+      season: "Q3 2025",
+      trend: "up",
+      percentage: "+20%",
+      countries: [
+        { name: "Vietnam", code: "VN", flag: "🇻🇳" },
+        { name: "India", code: "IN", flag: "🇮🇳" },
+        { name: "France", code: "FR", flag: "🇫🇷" },
+      ],
+      price: "Rp 45,000/kg",
+    },
+    {
+      id: "rub",
+      product: "Karet Alam (RUB)",
+      season: "Q4 2025",
+      trend: "down",
+      percentage: "-8%",
+      countries: [
+        { name: "China", code: "CN", flag: "🇨🇳" },
+        { name: "Malaysia", code: "MY", flag: "🇲🇾" },
+        { name: "Thailand", code: "TH", flag: "🇹🇭" },
+      ],
+      price: "Rp 22,000/kg",
+    },
+    {
+      id: "crn",
+      product: "Jagung (CRN)",
+      season: "Q4 2025",
+      trend: "up",
+      percentage: "+12%",
+      countries: [
+        { name: "Philippines", code: "PH", flag: "🇵🇭" },
+        { name: "Malaysia", code: "MY", flag: "🇲🇾" },
+        { name: "Vietnam", code: "VN", flag: "🇻🇳" },
+      ],
+      price: "Rp 8,500/kg",
     },
   ];
 
+  // Data country demands dengan negara baru
   const countryDemands = [
+    {
+      country: "Bangladesh",
+      flag: "🇧🇩",
+      code: "BD",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Sangat Tinggi",
+          growth: "+32%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sangat Tinggi",
+          growth: "+28%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+15%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sedang",
+          growth: "+5%",
+          value: "Rp 28,000/kg",
+        },
+      ],
+      totalValue: "Rp 2.8 Triliun",
+      growth: "+22%",
+    },
+    {
+      country: "Canada",
+      flag: "🇨🇦",
+      code: "CA",
+      topProducts: [
+        {
+          name: "Kopi Arabika",
+          demand: "Sangat Tinggi",
+          growth: "+25%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sangat Tinggi",
+          growth: "+22%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+15%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sedang",
+          growth: "+10%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 8,500/kg",
+        },
+      ],
+      totalValue: "Rp 1.9 Triliun",
+      growth: "+18%",
+    },
+    {
+      country: "China",
+      flag: "🇨🇳",
+      code: "CN",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Sangat Tinggi",
+          growth: "+35%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sangat Tinggi",
+          growth: "+30%",
+          value: "Rp 22,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 35,000/kg",
+        },
+      ],
+      totalValue: "Rp 8.5 Triliun",
+      growth: "+25%",
+    },
+    {
+      country: "Egypt",
+      flag: "🇪🇬",
+      code: "EG",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sangat Tinggi",
+          growth: "+28%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Tinggi",
+          growth: "+22%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Rendah",
+          growth: "+5%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 1.2 Triliun",
+      growth: "+19%",
+    },
+    {
+      country: "France",
+      flag: "🇫🇷",
+      code: "FR",
+      topProducts: [
+        {
+          name: "Kopi Arabika",
+          demand: "Sangat Tinggi",
+          growth: "+30%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Sangat Tinggi",
+          growth: "+25%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+15%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sedang",
+          growth: "+10%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 2.1 Triliun",
+      growth: "+21%",
+    },
+    {
+      country: "Germany",
+      flag: "🇩🇪",
+      code: "DE",
+      topProducts: [
+        {
+          name: "Kopi Arabika",
+          demand: "Sangat Tinggi",
+          growth: "+28%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sangat Tinggi",
+          growth: "+25%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Tinggi",
+          growth: "+22%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 3.2 Triliun",
+      growth: "+23%",
+    },
+    {
+      country: "India",
+      flag: "🇮🇳",
+      code: "IN",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Sangat Tinggi",
+          growth: "+40%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sangat Tinggi",
+          growth: "+35%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Tinggi",
+          growth: "+25%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+10%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 6.8 Triliun",
+      growth: "+28%",
+    },
+    {
+      country: "Japan",
+      flag: "🇯🇵",
+      code: "JP",
+      topProducts: [
+        {
+          name: "Kopi Arabika",
+          demand: "Sangat Tinggi",
+          growth: "+32%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sangat Tinggi",
+          growth: "+28%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Tinggi",
+          growth: "+22%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 22,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 14,200/kg",
+        },
+      ],
+      totalValue: "Rp 4.5 Triliun",
+      growth: "+24%",
+    },
     {
       country: "Malaysia",
       flag: "🇲🇾",
@@ -169,83 +554,308 @@ export default function TrendPage() {
           value: "Rp 85,000/kg",
         },
         {
-          name: "Minyak Kelapa",
-          demand: "Sangat Tinggi",
-          growth: "+28%",
-          value: "Rp 65,000/L",
-        },
-        {
-          name: "Rempah Organik",
+          name: "Kakao",
           demand: "Tinggi",
           growth: "+20%",
-          value: "Rp 150,000/kg",
+          value: "Rp 35,000/kg",
         },
         {
-          name: "Udang Beku",
+          name: "Kopi Robusta",
           demand: "Tinggi",
           growth: "+18%",
-          value: "Rp 170,000/kg",
+          value: "Rp 45,000/kg",
         },
         {
-          name: "Tekstil Batik",
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+15%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Karet Alam",
           demand: "Sedang",
           growth: "+12%",
-          value: "Rp 250,000/pcs",
+          value: "Rp 22,000/kg",
         },
         {
-          name: "Furniture Kayu",
+          name: "Minyak Kelapa",
           demand: "Sedang",
           growth: "+8%",
-          value: "Rp 2,200,000/unit",
+          value: "Rp 28,000/kg",
         },
       ],
-      totalValue: "Rp 3.2 Triliun",
-      growth: "+15%",
+      totalValue: "Rp 2.3 Triliun",
+      growth: "+18%",
     },
     {
-      country: "Singapore",
-      flag: "🇸🇬",
-      code: "SG",
+      country: "Mexico",
+      flag: "🇲🇽",
+      code: "MX",
       topProducts: [
         {
-          name: "Produk Kelapa",
+          name: "Kopi Arabika",
           demand: "Sangat Tinggi",
-          growth: "+30%",
-          value: "Rp 48,000/kg",
-        },
-        {
-          name: "Kopi Premium",
-          demand: "Sangat Tinggi",
-          growth: "+24%",
-          value: "Rp 95,000/kg",
+          growth: "+22%",
+          value: "Rp 85,000/kg",
         },
         {
           name: "Minyak Kelapa",
           demand: "Tinggi",
-          growth: "+22%",
-          value: "Rp 68,000/L",
+          growth: "+18%",
+          value: "Rp 28,000/kg",
         },
         {
-          name: "Tekstil Batik",
+          name: "Kakao",
           demand: "Tinggi",
-          growth: "+19%",
-          value: "Rp 280,000/pcs",
+          growth: "+15%",
+          value: "Rp 35,000/kg",
         },
         {
-          name: "Rempah-rempah",
+          name: "Kopi Robusta",
           demand: "Sedang",
-          growth: "+14%",
-          value: "Rp 125,000/kg",
+          growth: "+12%",
+          value: "Rp 45,000/kg",
         },
         {
-          name: "Kerajinan Tangan",
+          name: "Jagung",
           demand: "Sedang",
           growth: "+10%",
-          value: "Rp 450,000/pcs",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 14,200/kg",
         },
       ],
-      totalValue: "Rp 2.8 Triliun",
-      growth: "+18%",
+      totalValue: "Rp 1.8 Triliun",
+      growth: "+16%",
+    },
+    {
+      country: "Myanmar",
+      flag: "🇲🇲",
+      code: "MM",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sangat Tinggi",
+          growth: "+30%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Tinggi",
+          growth: "+25%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 22,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 28,000/kg",
+        },
+      ],
+      totalValue: "Rp 0.9 Triliun",
+      growth: "+20%",
+    },
+    {
+      country: "Pakistan",
+      flag: "🇵🇰",
+      code: "PK",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Sangat Tinggi",
+          growth: "+35%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Tinggi",
+          growth: "+28%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+22%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 1.5 Triliun",
+      growth: "+22%",
+    },
+    {
+      country: "Philippines",
+      flag: "🇵🇭",
+      code: "PH",
+      topProducts: [
+        {
+          name: "Jagung",
+          demand: "Sangat Tinggi",
+          growth: "+30%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sangat Tinggi",
+          growth: "+25%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Arabika",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 1.3 Triliun",
+      growth: "+19%",
+    },
+    {
+      country: "Russia",
+      flag: "🇷🇺",
+      code: "RU",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Sangat Tinggi",
+          growth: "+25%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Kopi Arabika",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 2.0 Triliun",
+      growth: "+17%",
+    },
+    {
+      country: "Saudi Arabia",
+      flag: "🇸🇦",
+      code: "SA",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sangat Tinggi",
+          growth: "+32%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Tinggi",
+          growth: "+25%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kopi Arabika",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 1.7 Triliun",
+      growth: "+20%",
     },
     {
       country: "Spain",
@@ -253,91 +863,246 @@ export default function TrendPage() {
       code: "ES",
       topProducts: [
         {
-          name: "Udang Beku",
+          name: "Kopi Arabika",
           demand: "Sangat Tinggi",
-          growth: "+26%",
-          value: "Rp 185,000/kg",
-        },
-        {
-          name: "Rempah-rempah",
-          demand: "Sangat Tinggi",
-          growth: "+23%",
-          value: "Rp 130,000/kg",
-        },
-        {
-          name: "Produk Kelapa",
-          demand: "Tinggi",
-          growth: "+20%",
-          value: "Rp 50,000/kg",
+          growth: "+28%",
+          value: "Rp 85,000/kg",
         },
         {
           name: "Minyak Kelapa",
           demand: "Tinggi",
-          growth: "+17%",
-          value: "Rp 70,000/L",
+          growth: "+22%",
+          value: "Rp 28,000/kg",
         },
         {
-          name: "Kopi Arabika",
+          name: "Kakao",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
           demand: "Sedang",
           growth: "+15%",
-          value: "Rp 88,000/kg",
+          value: "Rp 45,000/kg",
         },
         {
-          name: "Furniture Kayu",
+          name: "Minyak Kelapa Sawit Olahan",
           demand: "Sedang",
-          growth: "+11%",
-          value: "Rp 2,800,000/unit",
+          growth: "+12%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
         },
       ],
-      totalValue: "Rp 2.1 Triliun",
+      totalValue: "Rp 2.4 Triliun",
+      growth: "+19%",
+    },
+    {
+      country: "Tanzania",
+      flag: "🇹🇿",
+      code: "TZ",
+      topProducts: [
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Tinggi",
+          growth: "+22%",
+          value: "Rp 12,500/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Tinggi",
+          growth: "+18%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Tinggi",
+          growth: "+15%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sedang",
+          growth: "+10%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 0.7 Triliun",
       growth: "+16%",
     },
     {
-      country: "Kenya",
-      flag: "🇰🇪",
-      code: "KE",
+      country: "United Arab Emirates",
+      flag: "🇦🇪",
+      code: "AE",
       topProducts: [
         {
-          name: "Tekstil Batik",
+          name: "Minyak Kelapa Sawit Olahan",
           demand: "Sangat Tinggi",
-          growth: "+32%",
-          value: "Rp 260,000/pcs",
+          growth: "+30%",
+          value: "Rp 14,200/kg",
         },
         {
-          name: "Udang Beku",
+          name: "Minyak Kelapa",
+          demand: "Tinggi",
+          growth: "+25%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kopi Arabika",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Jagung",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 8,500/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Sedang",
+          growth: "+12%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+8%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 1.9 Triliun",
+      growth: "+21%",
+    },
+    {
+      country: "United States",
+      flag: "🇺🇸",
+      code: "US",
+      topProducts: [
+        {
+          name: "Kopi Arabika",
+          demand: "Sangat Tinggi",
+          growth: "+35%",
+          value: "Rp 85,000/kg",
+        },
+        {
+          name: "Minyak Kelapa",
+          demand: "Sangat Tinggi",
+          growth: "+30%",
+          value: "Rp 28,000/kg",
+        },
+        {
+          name: "Kakao",
+          demand: "Tinggi",
+          growth: "+25%",
+          value: "Rp 35,000/kg",
+        },
+        {
+          name: "Kopi Robusta",
+          demand: "Tinggi",
+          growth: "+20%",
+          value: "Rp 45,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Olahan",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 14,200/kg",
+        },
+        {
+          name: "Karet Alam",
+          demand: "Sedang",
+          growth: "+10%",
+          value: "Rp 22,000/kg",
+        },
+      ],
+      totalValue: "Rp 7.2 Triliun",
+      growth: "+26%",
+    },
+    {
+      country: "Vietnam",
+      flag: "🇻🇳",
+      code: "VN",
+      topProducts: [
+        {
+          name: "Kopi Robusta",
           demand: "Sangat Tinggi",
           growth: "+28%",
-          value: "Rp 175,000/kg",
+          value: "Rp 45,000/kg",
         },
         {
-          name: "Rempah-rempah",
+          name: "Jagung",
           demand: "Tinggi",
-          growth: "+21%",
-          value: "Rp 115,000/kg",
+          growth: "+22%",
+          value: "Rp 8,500/kg",
         },
         {
-          name: "Kerajinan Tangan",
+          name: "Karet Alam",
           demand: "Tinggi",
           growth: "+18%",
-          value: "Rp 520,000/pcs",
+          value: "Rp 22,000/kg",
+        },
+        {
+          name: "Minyak Kelapa Sawit Mentah",
+          demand: "Sedang",
+          growth: "+15%",
+          value: "Rp 12,500/kg",
         },
         {
           name: "Minyak Kelapa",
           demand: "Sedang",
-          growth: "+13%",
-          value: "Rp 62,000/L",
+          growth: "+12%",
+          value: "Rp 28,000/kg",
         },
         {
-          name: "Furniture Kayu",
+          name: "Kakao",
           demand: "Sedang",
-          growth: "+9%",
-          value: "Rp 2,100,000/unit",
+          growth: "+8%",
+          value: "Rp 35,000/kg",
         },
       ],
-      totalValue: "Rp 1.8 Triliun",
-      growth: "+19%",
+      totalValue: "Rp 1.6 Triliun",
+      growth: "+18%",
     },
   ];
+
+  // Pagination untuk seasonal trends (4 items per page, layout 2x2)
+  const itemsPerSeasonalPage = 4;
+  const totalSeasonalPages = Math.ceil(
+    seasonalTrends.length / itemsPerSeasonalPage
+  );
+  const currentSeasonalItems = seasonalTrends.slice(
+    seasonalCurrentPage * itemsPerSeasonalPage,
+    (seasonalCurrentPage + 1) * itemsPerSeasonalPage
+  );
+
+  // Pagination untuk country demands (4 countries per page)
+  const itemsPerCountryPage = 4;
+  const totalCountryPages = Math.ceil(
+    countryDemands.length / itemsPerCountryPage
+  );
+  const currentCountryItems = countryDemands.slice(
+    countryCurrentPage * itemsPerCountryPage,
+    (countryCurrentPage + 1) * itemsPerCountryPage
+  );
 
   return (
     <div className="h-full overflow-y-auto">
@@ -464,8 +1229,8 @@ export default function TrendPage() {
                         </h3>
                       </div>
 
-                      {/* Content rata kiri dengan vector yang dibatasi */}
-                      <div className="flex items-center justify-start space-x-4 ml-4 pr-4">
+                      {/* Content rata kiri dengan vector di sebelah kanan Kopi Arabika */}
+                      <div className="flex items-center justify-start space-x-6 ml-4 pr-4">
                         <div className="flex items-center space-x-2">
                           <TrendingUp className="w-8 h-8 text-green-500" />
                           <div
@@ -491,15 +1256,17 @@ export default function TrendPage() {
                           Kopi Arabika
                         </div>
 
-                        {/* Vector dengan batasan margin yang ketat */}
-                        <div className="flex-shrink-0 max-w-[140px]">
+                        {/* Vector di sebelah kanan Kopi Arabika dengan ukuran 180px */}
+                        <div className="ml-4">
                           <img
                             src={vectorImage}
                             alt="Market Trend Vector"
-                            className="object-contain w-full h-auto"
+                            className="object-contain"
                             style={{
-                              maxWidth: "140px",
-                              maxHeight: "140px",
+                              maxWidth: "180px",
+                              maxHeight: "180px",
+                              width: "auto",
+                              height: "auto",
                             }}
                           />
                         </div>
@@ -669,154 +1436,168 @@ export default function TrendPage() {
 
         {/* Content Area dengan full width */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 w-full">
-          {/* Seasonal Trends Tab - Carousel */}
+          {/* Seasonal Trends Tab - Grid 2x2 dengan Pagination */}
           {activeTab === "seasonal" && (
             <div className="space-y-6">
-              <div className="relative">
-                {/* Carousel Navigation Buttons */}
-                <button
-                  onClick={scrollSeasonalLeft}
-                  className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
-                  style={{ marginLeft: "-20px" }}
-                >
-                  <ChevronLeft className="w-5 h-5 text-gray-600" />
-                </button>
-
-                <button
-                  onClick={scrollSeasonalRight}
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
-                  style={{ marginRight: "-20px" }}
-                >
-                  <ChevronRight className="w-5 h-5 text-gray-600" />
-                </button>
-
-                {/* Scrollable Container */}
-                <div
-                  ref={seasonalScrollRef}
-                  className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-4"
-                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                >
-                  {seasonalTrends.map((item, index) => (
-                    <div
-                      key={index}
-                      className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow flex-shrink-0"
-                      style={{ minWidth: "300px" }}
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3
-                            className="font-semibold text-gray-900 text-base sm:text-lg"
-                            style={{
-                              fontFamily:
-                                "'Product Sans', 'Google Sans Text', sans-serif",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {item.product}
-                          </h3>
-                          <p
-                            className="text-sm text-gray-500"
-                            style={{
-                              fontFamily:
-                                "'Google Sans Text', 'Roboto', sans-serif",
-                              fontWeight: 400,
-                            }}
-                          >
-                            {item.season}
-                          </p>
-                        </div>
-                        <div
-                          className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                            item.trend === "up"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+              {/* Grid 2x2 Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                {currentSeasonalItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3
+                          className="font-semibold text-gray-900 text-base sm:text-lg"
+                          style={{
+                            fontFamily:
+                              "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 500,
+                          }}
                         >
-                          {item.trend === "up" ? (
-                            <ArrowUp className="w-3 h-3" />
-                          ) : (
-                            <ArrowDown className="w-3 h-3" />
-                          )}
-                          <span
-                            style={{
-                              fontFamily:
-                                "'Product Sans', 'Google Sans Text', sans-serif",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {item.percentage}
-                          </span>
-                        </div>
+                          {item.product}
+                        </h3>
+                        <p
+                          className="text-sm text-gray-500"
+                          style={{
+                            fontFamily:
+                              "'Google Sans Text', 'Roboto', sans-serif",
+                            fontWeight: 400,
+                          }}
+                        >
+                          {item.season}
+                        </p>
                       </div>
-
-                      <div className="space-y-3">
-                        <div>
-                          <span
-                            className="text-xs font-medium text-gray-500 uppercase tracking-wide"
-                            style={{
-                              fontFamily:
-                                "'Google Sans Text', 'Roboto', sans-serif",
-                              fontWeight: 500,
-                            }}
-                          >
-                            Target Countries
-                          </span>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {item.countries.map((country, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => handleCountryClick(country.code)}
-                                className="bg-gray-100 text-gray-700 px-3 py-1 text-xs hover:bg-gray-200 transition-colors cursor-pointer flex items-center space-x-1"
-                                style={{
-                                  fontFamily:
-                                    "'Google Sans Text', 'Roboto', sans-serif",
-                                  fontWeight: 400,
-                                  borderRadius: "15px",
-                                }}
-                              >
-                                <span>{country.name}</span>
-                                <span>{country.flag}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                          <span
-                            className="text-sm text-gray-600"
-                            style={{
-                              fontFamily:
-                                "'Google Sans Text', 'Roboto', sans-serif",
-                              fontWeight: 400,
-                            }}
-                          >
-                            Harga Rata-rata:
-                          </span>
-                          <span
-                            className="font-semibold text-gray-900 text-sm"
-                            style={{
-                              fontFamily:
-                                "'Product Sans', 'Google Sans Text', sans-serif",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {item.price}
-                          </span>
-                        </div>
+                      <div
+                        className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                          item.trend === "up"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {item.trend === "up" ? (
+                          <ArrowUp className="w-3 h-3" />
+                        ) : (
+                          <ArrowDown className="w-3 h-3" />
+                        )}
+                        <span
+                          style={{
+                            fontFamily:
+                              "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {item.percentage}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <span
+                          className="text-xs font-medium text-gray-500 uppercase tracking-wide"
+                          style={{
+                            fontFamily:
+                              "'Google Sans Text', 'Roboto', sans-serif",
+                            fontWeight: 500,
+                          }}
+                        >
+                          Target Countries
+                        </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.countries.map((country, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleCountryClick(country.code)}
+                              className="bg-gray-100 text-gray-700 px-3 py-1 text-xs hover:bg-gray-200 transition-colors cursor-pointer flex items-center space-x-1"
+                              style={{
+                                fontFamily:
+                                  "'Google Sans Text', 'Roboto', sans-serif",
+                                fontWeight: 400,
+                                borderRadius: "15px",
+                              }}
+                            >
+                              <span>{country.name}</span>
+                              <span>{country.flag}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <span
+                          className="text-sm text-gray-600"
+                          style={{
+                            fontFamily:
+                              "'Google Sans Text', 'Roboto', sans-serif",
+                            fontWeight: 400,
+                          }}
+                        >
+                          Harga Rata-rata:
+                        </span>
+                        <span
+                          className="font-semibold text-gray-900 text-sm"
+                          style={{
+                            fontFamily:
+                              "'Product Sans', 'Google Sans Text', sans-serif",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {item.price}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+
+              {/* Pagination Controls for Seasonal */}
+              {totalSeasonalPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 mt-6">
+                  <button
+                    onClick={() =>
+                      setSeasonalCurrentPage(
+                        Math.max(0, seasonalCurrentPage - 1)
+                      )
+                    }
+                    disabled={seasonalCurrentPage === 0}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Previous</span>
+                  </button>
+
+                  <span className="text-sm text-gray-600">
+                    Page {seasonalCurrentPage + 1} of {totalSeasonalPages}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      setSeasonalCurrentPage(
+                        Math.min(
+                          totalSeasonalPages - 1,
+                          seasonalCurrentPage + 1
+                        )
+                      )
+                    }
+                    disabled={seasonalCurrentPage === totalSeasonalPages - 1}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Country Demand Tab */}
+          {/* Country Demand Tab - Vertical List dengan Pagination */}
           {activeTab === "country" && (
             <div className="space-y-6 sm:space-y-8">
-              {countryDemands.map((country, index) => (
+              {currentCountryItems.map((country, index) => (
                 <div
-                  key={index}
+                  key={country.code}
                   className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full"
                 >
                   {/* Country Header */}
@@ -864,7 +1645,7 @@ export default function TrendPage() {
                     </div>
                   </div>
 
-                  {/* Products List - Scrollable */}
+                  {/* Products List - Horizontal Scrollable dengan Arrow Navigation */}
                   <div className="p-4 sm:p-6">
                     <h4
                       className="font-medium text-gray-900 mb-4 text-base sm:text-lg"
@@ -928,7 +1709,9 @@ export default function TrendPage() {
                                       ? "bg-red-100 text-red-800"
                                       : product.demand === "Tinggi"
                                       ? "bg-orange-100 text-orange-800"
-                                      : "bg-yellow-100 text-yellow-800"
+                                      : product.demand === "Sedang"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
                                   }`}
                                   style={{
                                     fontFamily:
@@ -969,12 +1752,45 @@ export default function TrendPage() {
                   </div>
                 </div>
               ))}
+
+              {/* Pagination Controls for Country */}
+              {totalCountryPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 mt-6">
+                  <button
+                    onClick={() =>
+                      setCountryCurrentPage(Math.max(0, countryCurrentPage - 1))
+                    }
+                    disabled={countryCurrentPage === 0}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Previous</span>
+                  </button>
+
+                  <span className="text-sm text-gray-600">
+                    Page {countryCurrentPage + 1} of {totalCountryPages}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      setCountryCurrentPage(
+                        Math.min(totalCountryPages - 1, countryCurrentPage + 1)
+                      )
+                    }
+                    disabled={countryCurrentPage === totalCountryPages - 1}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* CSS untuk hide scrollbar dan simple fade animation */}
+      {/* CSS untuk hide scrollbar */}
       <style jsx>{`
         .scrollbar-hide {
           -ms-overflow-style: none;

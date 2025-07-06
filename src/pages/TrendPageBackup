@@ -564,7 +564,7 @@ export default function TrendPage() {
                         </div>
 
                         {/* Vector dengan batasan margin yang ketat - sebaris */}
-                        <div className="flex-shrink-0 max-w-[140px] ml-auto">
+                        <div className="fzlex-shrink-0 max-w-[140px] ml-auto">
                           <img
                             src={vectorImage}
                             alt="Market Trend Vector"
