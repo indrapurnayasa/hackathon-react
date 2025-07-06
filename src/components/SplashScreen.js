@@ -99,7 +99,7 @@ const SplashScreen = ({ onContinue }) => {
             position: "relative",
           }}
         >
-          ExportCo
+          ExportIn
         </h1>
         <div
           className={`transition-opacity duration-600 ease-in-out ${

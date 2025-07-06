@@ -4,19 +4,21 @@ import { NavLink, useLocation } from "react-router-dom";
 
 export default function Sidebar() {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(getActiveTabFromPath(location.pathname));
+  const [activeTab, setActiveTab] = useState(
+    getActiveTabFromPath(location.pathname)
+  );
 
   const menus = [
     { id: "ai-assistant", name: "Chat", path: "/dashboard/ai-assistant" },
     { id: "shipping", name: "Shipping", path: "/dashboard/shipping" },
-    { id: "trend", name: "Analytics", path: "/dashboard/trend" }
+    { id: "trend", name: "Analytics", path: "/dashboard/trend" },
   ];
 
   function getActiveTabFromPath(pathname) {
-    if (pathname.includes('ai-assistant')) return 'ai-assistant';
-    if (pathname.includes('shipping')) return 'shipping';
-    if (pathname.includes('trend')) return 'trend';
-    return 'ai-assistant';
+    if (pathname.includes("ai-assistant")) return "ai-assistant";
+    if (pathname.includes("shipping")) return "shipping";
+    if (pathname.includes("trend")) return "trend";
+    return "ai-assistant";
   }
 
   // Update active tab when location changes
@@ -30,7 +32,7 @@ export default function Sidebar() {
 
   // Get transform position for sliding animation
   const getSliderPosition = () => {
-    const index = menus.findIndex(menu => menu.id === activeTab);
+    const index = menus.findIndex((menu) => menu.id === activeTab);
     return `translateX(${index * 100}%)`;
   };
 
@@ -43,7 +45,9 @@ export default function Sidebar() {
           <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">E</span>
           </div>
-          <span className="text-xl font-semibold text-gray-900 tracking-tight">ExportHub</span>
+          <span className="text-xl font-semibold text-gray-900 tracking-tight">
+            Export2Explore
+          </span>
         </div>
 
         {/* User Section - adjusted padding */}
@@ -59,14 +63,14 @@ export default function Sidebar() {
       <div className="px-8 pb-4">
         <div className="relative bg-gray-100 rounded-full p-1 max-w-md">
           {/* Sliding background */}
-          <div 
+          <div
             className="absolute top-1 bottom-1 bg-black rounded-full transition-transform duration-300 ease-in-out"
             style={{
               width: `${100 / menus.length}%`,
-              transform: getSliderPosition()
+              transform: getSliderPosition(),
             }}
           />
-          
+
           {/* Menu items */}
           <div className="relative flex">
             {menus.map((menu) => (
@@ -74,9 +78,9 @@ export default function Sidebar() {
                 key={menu.id}
                 to={menu.path}
                 className={`flex-1 px-6 py-2 text-sm font-medium text-center rounded-full transition-colors duration-300 relative z-10 ${
-                  activeTab === menu.id 
-                    ? 'text-white' 
-                    : 'text-gray-600 hover:text-gray-900'
+                  activeTab === menu.id
+                    ? "text-white"
+                    : "text-gray-600 hover:text-gray-900"
                 }`}
                 onClick={() => handleTabClick(menu.id)}
               >
