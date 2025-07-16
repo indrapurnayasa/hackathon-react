@@ -6,7 +6,7 @@
 /* Font Face Definitions for Inter */
 /* cyrillic-ext */
 @font-face {
-  font-family: 'Inter';
+  font-family: 'Inter'; 
   font-style: normal;
   font-weight: 300;
   src: url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuOKfAZJhiI2B.woff2) format('woff2');
@@ -682,5 +682,157 @@ h3 {
 .splash-bg-hover { background-color: var(--splash-bg-hover); }
 
 .splash-border-color { border-color: var(--splash-border); }
+
+/* Enhanced Modal Personalization Styles */
+.personalization-modal {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.personalization-modal .modal-content {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced Dietary Option Styles */
+.dietary-option {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.dietary-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dietary-option.selected {
+  animation: selectedPulse 0.3s ease-out;
+}
+
+@keyframes selectedPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Enhanced Scrollable Content - FIXED */
+.modal-scrollable-content {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+.modal-scrollable-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-scrollable-content::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.modal-scrollable-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  border: 1px solid #f8fafc;
+}
+
+.modal-scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+
+.animate-progress {
+  animation: progress 3s ease-out;
+}
+
+/* Full Green Circle Selection Indicator */
+.dietary-option .selection-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dietary-option .selection-indicator.selected {
+  background: #10b981;
+  border: none;
+}
+
+.dietary-option .selection-indicator:not(.selected) {
+  background: white;
+  border: 2px solid #d1d5db;
+}
+
+/* Developer Vector Styling */
+.developer-vector {
+  width: 128px;
+  height: 128px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.developer-vector svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 8px rgba(16, 185, 129, 0.2));
+}
+
+/* Enhanced Modal Layout */
+.modal-content {
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-content .flex-1 {
+  min-height: 0; /* Important for flexbox scrolling */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .personalization-modal .modal-content {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .dietary-option {
+    padding: 1rem;
+  }
+  
+  .dietary-option .text-3xl {
+    font-size: 2rem;
+  }
+  
+  .developer-vector {
+    width: 96px;
+    height: 96px;
+  }
+} 
 
 

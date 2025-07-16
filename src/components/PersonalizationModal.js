@@ -1,0 +1,385 @@
+// src/components/PersonalizationModal.js
+import React, { useState } from 'react';
+import { Plus, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-react';
+
+const PersonalizationModal = ({ isOpen, onClose }) => {
+  const [currentPage, setCurrentPage] = useState(-1); // Start at -1 for welcome screen
+  const [selectedCommodity, setSelectedCommodity] = useState(''); // For commodity selection
+  const [selectedCountry, setSelectedCountry] = useState(''); // For country selection
+  const [showThankYouPage, setShowThankYouPage] = useState(false);
+
+  const totalPages = 3; // 1 welcome + 2 content pages (menghilangkan dietary preferences)
+
+  // Data untuk halaman pertama - Commodity Options
+  const commodityOptions = [
+    { id: 'cpo', label: 'Minyak Kelapa Sawit Mentah', icon: '🌴' },
+    { id: 'ole', label: 'Minyak Kelapa Sawit Olahan', icon: '🥥' },
+    { id: 'cil', label: 'Minyak Kelapa', icon: '🥥' },
+    { id: 'coa', label: 'Kakao', icon: '🍫' },
+    { id: 'ara', label: 'Kopi Arabika', icon: '☕' },
+    { id: 'rob', label: 'Kopi Robusta', icon: '☕' },
+    { id: 'rub', label: 'Karet Alam', icon: '🌱' },
+    { id: 'crn', label: 'Jagung', icon: '🌽' }
+  ];
+
+  // Data untuk halaman kedua - Country Options
+  const countryOptions = [
+    { id: 'bd', label: 'Bangladesh', icon: '🇧🇩' },
+    { id: 'ca', label: 'Canada', icon: '🇨🇦' },
+    { id: 'cn', label: 'China', icon: '🇨🇳' },
+    { id: 'eg', label: 'Egypt', icon: '🇪🇬' },
+    { id: 'fr', label: 'France', icon: '🇫🇷' },
+    { id: 'de', label: 'Germany', icon: '🇩🇪' },
+    { id: 'in', label: 'India', icon: '🇮🇳' },
+    { id: 'jp', label: 'Japan', icon: '🇯🇵' },
+    { id: 'my', label: 'Malaysia', icon: '🇲🇾' },
+    { id: 'mx', label: 'Mexico', icon: '🇲🇽' },
+    { id: 'mm', label: 'Myanmar', icon: '🇲🇲' },
+    { id: 'pk', label: 'Pakistan', icon: '🇵🇰' },
+    { id: 'ph', label: 'Philippines', icon: '🇵🇭' },
+    { id: 'ru', label: 'Russia', icon: '🇷🇺' },
+    { id: 'sa', label: 'Saudi Arabia', icon: '🇸🇦' },
+    { id: 'es', label: 'Spain', icon: '🇪🇸' },
+    { id: 'tz', label: 'Tanzania', icon: '🇹🇿' },
+    { id: 'ae', label: 'United Arab Emirates', icon: '🇦🇪' },
+    { id: 'us', label: 'United States', icon: '🇺🇸' },
+    { id: 'vn', label: 'Vietnam', icon: '🇻🇳' }
+  ];
+
+  // Selection handlers
+  const handleCommoditySelect = (commodityId) => {
+    setSelectedCommodity(selectedCommodity === commodityId ? '' : commodityId);
+  };
+
+  const handleCountrySelect = (countryId) => {
+    setSelectedCountry(selectedCountry === countryId ? '' : countryId);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages - 2) { // Adjusted for 2 content pages
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentPage > -1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleGetStarted = () => {
+    setCurrentPage(0); // Start from commodity page (index 0)
+  };
+
+  const handleContinue = () => {
+    console.log('Selected preferences:', {
+      commodity: selectedCommodity,
+      country: selectedCountry
+    });
+    setShowThankYouPage(true);
+    
+    // Save to localStorage that profile is completed
+    localStorage.setItem('profileCompleted', 'true');
+  };
+
+  const handleSkip = () => {
+    // Save to localStorage that profile was skipped
+    localStorage.setItem('profileSkipped', 'true');
+    localStorage.setItem('profileCompleted', 'false');
+    onClose();
+  };
+
+  // Enhanced handleCloseThankYou function
+  const handleCloseThankYou = () => {
+    setShowThankYouPage(false);
+    onClose();
+  };
+
+  // Helper function to get selected item with emoji
+  const getSelectedItemWithEmoji = (selectedId, options) => {
+    const selectedOption = options.find(option => option.id === selectedId);
+    return selectedOption ? `${selectedOption.icon} ${selectedOption.label}` : null;
+  };
+
+  const getPageData = () => {
+    switch (currentPage) {
+      case 0:
+        return {
+          title: "Referensi Komoditas Kamu",
+          subtitle: "Pilih satu komoditas yang akan kamu ekspor / yang pernah kamu ekspor.",
+          options: commodityOptions,
+          selectedItem: selectedCommodity,
+          onSelect: handleCommoditySelect,
+          showSelected: true
+        };
+      case 1:
+        return {
+          title: "Referensi Negara Tujuan Ekspor Kamu",
+          subtitle: "Pilih satu negara tujuan yang akan kamu ekspor / yang pernah kamu ekspor.",
+          options: countryOptions,
+          selectedItem: selectedCountry,
+          onSelect: handleCountrySelect,
+          showSelected: true
+        };
+      default:
+        return null;
+    }
+  };
+
+  if (!isOpen) return null;
+
+  // Thank You Page - Enhanced with Close Button
+  if (showThankYouPage) {
+    return (
+      <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="modal-content bg-white rounded-2xl w-full max-w-md flex flex-col">
+          {/* Header with Close Button */}
+          <div className="flex items-center justify-end p-4 border-b border-gray-100">
+            <button
+              onClick={handleCloseThankYou}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="flex-1 p-8 text-center">
+            {/* Success Icon */}
+            <div className="mb-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">✅</span>
+              </div>
+            </div>
+
+            {/* Thank You Title */}
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Terima Kasih!
+            </h1>
+
+            {/* Thank You Message */}
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              Terima kasih karena sudah membantu kami mengenalmu lebih dalam. Kami akan memberikan rekomendasi yang lebih personal untukmu.
+            </p>
+
+            {/* Close Button */}
+            <button
+              onClick={handleCloseThankYou}
+              className="w-full bg-green-600 text-white py-4 rounded-full font-medium hover:bg-green-700 transition-colors text-lg"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Welcome Screen (currentPage === -1)
+  if (currentPage === -1) {
+    return (
+      <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="modal-content bg-white rounded-2xl w-full max-w-md flex flex-col">
+          {/* Welcome Screen Content */}
+          <div className="flex-1 p-8 text-center">
+            {/* Developer Vector Image */}
+            <div className="mb-6">
+              <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  width="128"
+                  height="128"
+                  viewBox="0 0 128 128"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-full"
+                >
+                  <circle cx="64" cy="64" r="60" fill="#10B981" fillOpacity="0.1" />
+                  <circle cx="64" cy="64" r="40" fill="#10B981" fillOpacity="0.2" />
+                  <circle cx="64" cy="64" r="20" fill="#10B981" />
+                  <path
+                    d="M64 44L74 54H54L64 44Z"
+                    fill="white"
+                  />
+                  <path
+                    d="M64 84L54 74H74L64 84Z"
+                    fill="white"
+                  />
+                  <path
+                    d="M44 64L54 54V74L44 64Z"
+                    fill="white"
+                  />
+                  <path
+                    d="M84 64L74 74V54L84 64Z"
+                    fill="white"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Welcome Title */}
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Welcome to Your Personalized Journey
+            </h1>
+
+            {/* Welcome Subtitle */}
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              Let's create a customized experience tailored just for you. We'll ask you a few quick questions to get started.
+            </p>
+
+            {/* Features Preview */}
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center justify-center gap-3 text-gray-700">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm">Personalized export recommendations</span>
+              </div>
+              <div className="flex items-center justify-center gap-3 text-gray-700">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm">Tailored market insights</span>
+              </div>
+              <div className="flex items-center justify-center gap-3 text-gray-700">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm">Custom business preferences</span>
+              </div>
+            </div>
+
+            {/* Get Started Button */}
+            <button
+              onClick={handleGetStarted}
+              className="w-full bg-green-600 text-white py-4 rounded-full font-medium hover:bg-green-700 transition-colors text-lg"
+            >
+              Get Started
+            </button>
+
+            {/* Skip Option */}
+            <button
+              onClick={handleSkip}
+              className="w-full text-gray-500 py-3 font-medium hover:text-gray-700 transition-colors mt-4"
+            >
+              Skip for Now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Content Pages (currentPage >= 0)
+  const pageData = getPageData();
+
+  return (
+    <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="modal-content bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+        {/* Progress Bar - Updated for 2 pages */}
+        <div className="px-6 py-4 flex-shrink-0">
+          <div className="flex gap-2">
+            {Array.from({ length: 2 }, (_, index) => (
+              <div key={index} className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-300 ease-out ${
+                    index < currentPage ? 'bg-green-600 w-full' : 
+                    index === currentPage ? 'bg-green-600 animate-progress' : 
+                    'bg-gray-200 w-0'
+                  }`}
+                  style={index === currentPage ? { width: '100%' } : {}}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Content - Scrollable with Fixed Height */}
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto modal-scrollable-content">
+            <div className="p-6 pb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {pageData.title}
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {pageData.subtitle}
+              </p>
+
+              {/* Options Grid with Fixed Height */}
+              <div className="h-64 overflow-y-auto modal-items-container mb-4">
+                <div className="grid grid-cols-2 gap-4 pr-2">
+                  {pageData.options.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => pageData.onSelect(option.id)}
+                      className={`dietary-option relative p-4 rounded-2xl border-2 transition-all duration-200 ${
+                        pageData.selectedItem === option.id
+                          ? 'border-green-500 bg-green-50 selected'
+                          : 'border-gray-200 bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{option.icon}</div>
+                      <div className="text-sm font-medium text-gray-900">{option.label}</div>
+                      
+                      {/* Full Green Circle Indicator */}
+                      <div className={`absolute top-2 right-2 w-6 h-6 rounded-full transition-all duration-200 ${
+                        pageData.selectedItem === option.id
+                          ? 'bg-green-500'
+                          : 'border-2 border-gray-300 bg-white'
+                      }`}>
+                        {pageData.selectedItem === option.id && (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Navigation - Fixed Position */}
+        <div className="flex-shrink-0 border-t border-gray-100 bg-white">
+          {/* Selected Item Display - Above Footer */}
+          {pageData.showSelected && pageData.selectedItem && (
+            <div className="px-6 py-4 bg-green-50 border-b border-green-200">
+              <p className="text-sm font-medium text-green-800 text-center">
+                Selected: {getSelectedItemWithEmoji(pageData.selectedItem, pageData.options)}
+              </p>
+            </div>
+          )}
+          
+          <div className="p-6">
+            <div className="flex gap-3">
+              {/* Back Button - Only show for page 1 (country selection) */}
+              {currentPage > 0 && (
+                <button
+                  onClick={handleBack}
+                  className="flex items-center justify-center px-4 py-4 border-2 border-gray-300 rounded-full text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              )}
+
+              {/* Main Action Button */}
+              <button
+                onClick={currentPage === 1 ? handleContinue : handleNext}
+                className="flex-1 bg-green-600 text-white py-4 rounded-full font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              >
+                {currentPage === 1 ? 'Complete Setup' : 'Next'}
+                {currentPage < 1 && <ChevronRight size={20} />}
+              </button>
+            </div>
+
+            {/* Skip Button */}
+            <button
+              onClick={handleSkip}
+              className="w-full text-gray-500 py-2 font-medium hover:text-gray-700 transition-colors mt-3"
+            >
+              Skip for Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PersonalizationModal;
