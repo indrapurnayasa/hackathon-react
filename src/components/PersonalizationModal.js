@@ -8,7 +8,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
   const [selectedCountry, setSelectedCountry] = useState(''); // For country selection
   const [showThankYouPage, setShowThankYouPage] = useState(false);
 
-  const totalPages = 3; // 1 welcome + 2 content pages (menghilangkan dietary preferences)
+  const totalPages = 3; // 1 welcome + 2 content pages
 
   // Data untuk halaman pertama - Commodity Options
   const commodityOptions = [
@@ -56,7 +56,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages - 2) { // Adjusted for 2 content pages
+    if (currentPage < totalPages - 2) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -68,7 +68,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
   };
 
   const handleGetStarted = () => {
-    setCurrentPage(0); // Start from commodity page (index 0)
+    setCurrentPage(0);
   };
 
   const handleContinue = () => {
@@ -128,43 +128,43 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  // Thank You Page - Enhanced with Close Button
+  // Thank You Page - Enhanced with Responsive Design
   if (showThankYouPage) {
     return (
-      <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="modal-content bg-white rounded-2xl w-full max-w-md flex flex-col">
+      <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+        <div className="modal-content bg-white rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl flex flex-col max-h-[95vh] sm:max-h-[90vh]">
           {/* Header with Close Button */}
-          <div className="flex items-center justify-end p-4 border-b border-gray-100">
+          <div className="flex items-center justify-end p-3 sm:p-4 border-b border-gray-100">
             <button
               onClick={handleCloseThankYou}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1 sm:p-2 rounded-full hover:bg-gray-100"
             >
-              <X size={20} />
+              <X size={16} className="sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          <div className="flex-1 p-8 text-center">
+          <div className="flex-1 p-4 sm:p-6 md:p-8 text-center">
             {/* Success Icon */}
-            <div className="mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">✅</span>
+            <div className="mb-4 sm:mb-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-2xl sm:text-3xl">✅</span>
               </div>
             </div>
 
             {/* Thank You Title */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
               Terima Kasih!
             </h1>
 
             {/* Thank You Message */}
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-6 sm:mb-8 leading-relaxed">
               Terima kasih karena sudah membantu kami mengenalmu lebih dalam. Kami akan memberikan rekomendasi yang lebih personal untukmu.
             </p>
 
             {/* Close Button */}
             <button
               onClick={handleCloseThankYou}
-              className="w-full bg-green-600 text-white py-4 rounded-full font-medium hover:bg-green-700 transition-colors text-lg"
+              className="w-full bg-green-600 text-white py-3 sm:py-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm sm:text-base lg:text-lg"
             >
               Tutup
             </button>
@@ -174,19 +174,19 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
     );
   }
 
-  // Welcome Screen (currentPage === -1)
+  // Welcome Screen - Enhanced Responsive
   if (currentPage === -1) {
     return (
-      <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="modal-content bg-white rounded-2xl w-full max-w-md flex flex-col">
+      <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+        <div className="modal-content bg-white rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl flex flex-col max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
           {/* Welcome Screen Content */}
-          <div className="flex-1 p-8 text-center">
+          <div className="flex-1 p-4 sm:p-6 md:p-8 text-center overflow-y-auto">
             {/* Developer Vector Image */}
-            <div className="mb-6">
-              <div className="w-32 h-32 mx-auto mb-4 flex items-center justify-center">
+            <div className="mb-4 sm:mb-6">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-3 sm:mb-4 flex items-center justify-center">
                 <svg
-                  width="128"
-                  height="128"
+                  width="100%"
+                  height="100%"
                   viewBox="0 0 128 128"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -195,56 +195,52 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
                   <circle cx="64" cy="64" r="60" fill="#10B981" fillOpacity="0.1" />
                   <circle cx="64" cy="64" r="40" fill="#10B981" fillOpacity="0.2" />
                   <circle cx="64" cy="64" r="20" fill="#10B981" />
-                  <path
-                    d="M64 44L74 54H54L64 44Z"
-                    fill="white"
-                  />
-                  <path
-                    d="M64 84L54 74H74L64 84Z"
-                    fill="white"
-                  />
-                  <path
-                    d="M44 64L54 54V74L44 64Z"
-                    fill="white"
-                  />
-                  <path
-                    d="M84 64L74 74V54L84 64Z"
-                    fill="white"
-                  />
+                  <path d="M64 44L74 54H54L64 44Z" fill="white" />
+                  <path d="M64 84L54 74H74L64 84Z" fill="white" />
+                  <path d="M44 64L54 54V74L44 64Z" fill="white" />
+                  <path d="M84 64L74 74V54L84 64Z" fill="white" />
                 </svg>
               </div>
             </div>
 
             {/* Welcome Title */}
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Welcome to Your Personalized Journey
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+              Halo Versa! Welcome to ExportIn 😜
             </h1>
 
-            {/* Welcome Subtitle */}
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              Let's create a customized experience tailored just for you. We'll ask you a few quick questions to get started.
+            {/* Welcome Message */}
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-2 leading-relaxed">
+              Kita ingin mengenalmu lebih personal. Boleh bantu kami menjawab beberapa pertanyaan?
             </p>
 
-            {/* Features Preview */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center justify-center gap-3 text-gray-700">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Personalized export recommendations</span>
+            {/* Questions Preview */}
+            <div className="mb-6 sm:mb-8">
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 font-medium">
+                Pertanyaan akan mengenai:
+              </p>
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex items-center justify-start gap-2 sm:gap-3 text-gray-700">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm">Referensi Komoditas Ekspor</span>
+                </div>
+                <div className="flex items-center justify-start gap-2 sm:gap-3 text-gray-700">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <span className="text-xs sm:text-sm">Referensi Negara Tujuan Ekspor</span>
+                </div>
               </div>
-              <div className="flex items-center justify-center gap-3 text-gray-700">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Tailored market insights</span>
-              </div>
-              <div className="flex items-center justify-center gap-3 text-gray-700">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Custom business preferences</span>
-              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
+                Kamu bisa mengisi semua atau salah satu dari pertanyaan based on experience yang kamu miliki. Jika kamu merasa belum ingin dan belum tahu untuk mengisi personalisasi ini, bisa pilih "Skip for now" ya!
+              </p>
             </div>
 
             {/* Get Started Button */}
             <button
               onClick={handleGetStarted}
-              className="w-full bg-green-600 text-white py-4 rounded-full font-medium hover:bg-green-700 transition-colors text-lg"
+              className="w-full bg-green-600 text-white py-3 sm:py-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm sm:text-base lg:text-lg"
             >
               Get Started
             </button>
@@ -252,7 +248,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
             {/* Skip Option */}
             <button
               onClick={handleSkip}
-              className="w-full text-gray-500 py-3 font-medium hover:text-gray-700 transition-colors mt-4"
+              className="w-full text-gray-500 py-2 sm:py-3 font-medium hover:text-gray-700 transition-colors mt-3 sm:mt-4 text-sm sm:text-base"
             >
               Skip for Now
             </button>
@@ -262,15 +258,15 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
     );
   }
 
-  // Content Pages (currentPage >= 0)
+  // Content Pages - Enhanced Responsive
   const pageData = getPageData();
 
   return (
-    <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="modal-content bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col">
+    <div className="personalization-modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="modal-content bg-white rounded-2xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Progress Bar - Updated for 2 pages */}
-        <div className="px-6 py-4 flex-shrink-0">
-          <div className="flex gap-2">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+          <div className="flex gap-1 sm:gap-2">
             {Array.from({ length: 2 }, (_, index) => (
               <div key={index} className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
                 <div 
@@ -286,42 +282,44 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Content - Scrollable with Fixed Height */}
+        {/* Content - Scrollable with Responsive Height */}
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto modal-scrollable-content">
-            <div className="p-6 pb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="p-4 sm:p-6 pb-6 sm:pb-8">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2">
                 {pageData.title}
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                 {pageData.subtitle}
               </p>
 
-              {/* Options Grid with Fixed Height */}
-              <div className="h-64 overflow-y-auto modal-items-container mb-4">
-                <div className="grid grid-cols-2 gap-4 pr-2">
+              {/* Options Grid with Responsive Heights */}
+              <div className="h-48 sm:h-56 md:h-64 lg:h-72 overflow-y-auto modal-items-container mb-3 sm:mb-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 pr-1 sm:pr-2">
                   {pageData.options.map((option) => (
                     <button
                       key={option.id}
                       onClick={() => pageData.onSelect(option.id)}
-                      className={`dietary-option relative p-4 rounded-2xl border-2 transition-all duration-200 ${
+                      className={`dietary-option relative p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl border-2 transition-all duration-200 ${
                         pageData.selectedItem === option.id
                           ? 'border-green-500 bg-green-50 selected'
                           : 'border-gray-200 bg-white hover:bg-gray-50'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{option.icon}</div>
-                      <div className="text-sm font-medium text-gray-900">{option.label}</div>
+                      <div className="text-lg sm:text-2xl md:text-3xl mb-1 sm:mb-2">{option.icon}</div>
+                      <div className="text-xs sm:text-sm font-medium text-gray-900 leading-tight">
+                        {option.label}
+                      </div>
                       
                       {/* Full Green Circle Indicator */}
-                      <div className={`absolute top-2 right-2 w-6 h-6 rounded-full transition-all duration-200 ${
+                      <div className={`absolute top-1 right-1 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full transition-all duration-200 ${
                         pageData.selectedItem === option.id
                           ? 'bg-green-500'
                           : 'border-2 border-gray-300 bg-white'
                       }`}>
                         {pageData.selectedItem === option.id && (
                           <div className="w-full h-full flex items-center justify-center">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="sm:w-3 sm:h-3">
                               <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </div>
@@ -335,43 +333,43 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Footer Navigation - Fixed Position */}
+        {/* Footer Navigation - Enhanced Responsive */}
         <div className="flex-shrink-0 border-t border-gray-100 bg-white">
           {/* Selected Item Display - Above Footer */}
           {pageData.showSelected && pageData.selectedItem && (
-            <div className="px-6 py-4 bg-green-50 border-b border-green-200">
-              <p className="text-sm font-medium text-green-800 text-center">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-50 border-b border-green-200">
+              <p className="text-xs sm:text-sm font-medium text-green-800 text-center">
                 Selected: {getSelectedItemWithEmoji(pageData.selectedItem, pageData.options)}
               </p>
             </div>
           )}
           
-          <div className="p-6">
-            <div className="flex gap-3">
+          <div className="p-4 sm:p-6">
+            <div className="flex gap-2 sm:gap-3">
               {/* Back Button - Only show for page 1 (country selection) */}
               {currentPage > 0 && (
                 <button
                   onClick={handleBack}
-                  className="flex items-center justify-center px-4 py-4 border-2 border-gray-300 rounded-full text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-center px-3 py-3 sm:px-4 sm:py-4 border-2 border-gray-300 rounded-full text-gray-600 hover:bg-gray-50 transition-colors"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={16} className="sm:w-5 sm:h-5" />
                 </button>
               )}
 
               {/* Main Action Button */}
               <button
                 onClick={currentPage === 1 ? handleContinue : handleNext}
-                className="flex-1 bg-green-600 text-white py-4 rounded-full font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-green-600 text-white py-3 sm:py-4 rounded-full font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 {currentPage === 1 ? 'Complete Setup' : 'Next'}
-                {currentPage < 1 && <ChevronRight size={20} />}
+                {currentPage < 1 && <ChevronRight size={16} className="sm:w-5 sm:h-5" />}
               </button>
             </div>
 
             {/* Skip Button */}
             <button
               onClick={handleSkip}
-              className="w-full text-gray-500 py-2 font-medium hover:text-gray-700 transition-colors mt-3"
+              className="w-full text-gray-500 py-2 font-medium hover:text-gray-700 transition-colors mt-2 sm:mt-3 text-sm sm:text-base"
             >
               Skip for Now
             </button>
