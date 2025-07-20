@@ -1,13 +1,16 @@
 // Utility script to help update country data from API responses
 // This can be used to fetch and update the country data when needed
 
+import config from '../config';
+
 export const fetchAndUpdateCountryData = async () => {
   try {
-    const response = await fetch('http://0.0.0.0:8000/api/v1/export/country-demand?endDate=31-12-2024');
-    if (!response.ok) {
-      throw new Error('Failed to fetch country data');
-    }
+    const response = await fetch(`${config.API_BASE_URL}/api/v1/export/country-demand?endDate=31-12-2024`);
     const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch country data');
+    }
     
     // Extract unique countries from API response
     const apiCountries = data.data.map(item => ({
@@ -19,7 +22,7 @@ export const fetchAndUpdateCountryData = async () => {
     return apiCountries;
   } catch (error) {
     console.error('Error fetching country data:', error);
-    return [];
+    throw error; // Re-throw the error with the actual message
   }
 };
 

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, NavLink } from "react-router-dom";
 import { Settings, User, LogOut, AlertTriangle } from "lucide-react";
 import PersonalizationModal from "../components/PersonalizationModal";
+import config from '../config';
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -10,6 +11,33 @@ export default function DashboardLayout() {
   const [showPersonalizationModal, setShowPersonalizationModal] = useState(false);
   const [showProfileIncomplete, setShowProfileIncomplete] = useState(false);
   const [showProfileTooltip, setShowProfileTooltip] = useState(false);
+  const [userName, setUserName] = useState('User');
+  const [isGuest, setIsGuest] = useState(false);
+
+  // Fetch user info on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          const res = await fetch(`${config.API_BASE_URL}/api/v1/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'accept': 'application/json',
+            },
+          });
+          if (res.ok) {
+            const user = await res.json();
+            setUserName(user.name || user.username || 'User');
+            setIsGuest(false);
+            return;
+          }
+        } catch (err) {}
+      }
+      setIsGuest(true);
+    };
+    fetchUser();
+  }, []);
 
   // Check if profile is incomplete
   const isProfileSkipped = localStorage.getItem('profileSkipped') === 'true';
@@ -61,6 +89,21 @@ export default function DashboardLayout() {
     setShowPersonalizationModal(true);
   };
 
+  // Add logout handler
+  const handleLogout = async () => {
+    try {
+      await fetch(`${config.API_BASE_URL}/api/v1/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+        },
+        body: '',
+      });
+    } catch (err) {}
+    localStorage.removeItem('access_token');
+    window.location.href = '/';
+  };
+
   /* ---------- SETTINGS-DROPDOWN ITEMS ---------- */
   const settingsMenuItems = [
     {
@@ -77,8 +120,8 @@ export default function DashboardLayout() {
       label: "Logout",
       icon: <LogOut size={16} />,
       action: () => {
-        console.log("Logout clicked");
         setShowSettingsDropdown(false);
+        handleLogout();
       },
     },
   ];
@@ -237,9 +280,10 @@ export default function DashboardLayout() {
               >
                 <span
                   className="text-base font-light text-gray-700 hidden md:block"
-                  style={{ fontWeight: 300 }}
+                  style={{ fontWeight: 300, cursor: isGuest ? 'pointer' : 'default', textDecoration: isGuest ? 'underline' : 'none' }}
+                  onClick={() => { if (isGuest) window.location.href = '/'; }}
                 >
-                  Hi, Versa
+                  {isGuest ? 'Login' : `Hi, ${userName}`}
                 </span>
                 <div className="relative">
                   <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">

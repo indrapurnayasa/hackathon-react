@@ -15,6 +15,7 @@ import vectorImage from "../assets/images/vector.png";
 // Import country utilities
 import { getCountryFlag } from "../utils/countryFlags";
 import { getCountryName, capitalizeWords } from "../utils/countryNames";
+import config from '../config';
 
 export default function TrendPage() {
   const location = useLocation();
@@ -100,11 +101,12 @@ export default function TrendPage() {
   const fetchSeasonalTrends = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://0.0.0.0:8000/api/v1/export/seasonal-trend?endDate=31-12-2024');
-      if (!response.ok) {
-        throw new Error('Failed to fetch seasonal trends');
-      }
+      const response = await fetch(`${config.API_BASE_URL}/api/v1/export/seasonal-trend?endDate=31-12-2024`);
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch seasonal trends');
+      }
       
       // Transform API data to match the expected format
       const transformedData = data.data.map((item, index) => ({
@@ -125,7 +127,7 @@ export default function TrendPage() {
       setError(null);
     } catch (err) {
       console.error('Error fetching seasonal trends:', err);
-      setError('Failed to load seasonal trends data');
+      setError(err.message || 'Failed to load seasonal trends data');
       // Fallback to empty array
       setSeasonalTrends([]);
     } finally {
@@ -156,11 +158,12 @@ export default function TrendPage() {
   const fetchCountryDemands = async () => {
     try {
       setCountryLoading(true);
-      const response = await fetch('http://0.0.0.0:8000/api/v1/export/country-demand?endDate=31-12-2024');
-      if (!response.ok) {
-        throw new Error('Failed to fetch country demands');
-      }
+      const response = await fetch(`${config.API_BASE_URL}/api/v1/export/country-demand?endDate=31-12-2024`);
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch country demands');
+      }
       
       // Transform API data to match the expected format - filter out products with growth <= 0 and countries with no positive growth products
       const transformedData = data.data
@@ -192,7 +195,7 @@ export default function TrendPage() {
       setCountryError(null);
     } catch (err) {
       console.error('Error fetching country demands:', err);
-      setCountryError('Failed to load country demands data');
+      setCountryError(err.message || 'Failed to load country demands data');
       // Fallback to empty array
       setCountryDemands([]);
     } finally {

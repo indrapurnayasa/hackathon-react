@@ -1,14 +1,17 @@
 // Utility functions to fetch and handle commodity data from API
 
+import config from '../config';
+
 export const fetchCommodityData = async (countryCode = null) => {
   try {
     // If countryCode is provided, use the top commodity API
     if (countryCode) {
-      const response = await fetch(`http://0.0.0.0:8000/api/v1/export/top-commodity-by-country?endDate=31-12-2024&countryId=${countryCode}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch top commodity data');
-      }
+      const response = await fetch(`${config.API_BASE_URL}/api/v1/export/top-commodity-by-country?endDate=31-12-2024&countryId=${countryCode}`);
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch top commodity data');
+      }
       
       if (data.data && data.data.length > 0 && data.data[0].topCommodity) {
         const topCommodity = data.data[0].topCommodity;
@@ -27,11 +30,12 @@ export const fetchCommodityData = async (countryCode = null) => {
     }
     
     // If no country specified, use the original API to get first country's data
-    const response = await fetch('http://0.0.0.0:8000/api/v1/export/country-demand?endDate=31-12-2024');
-    if (!response.ok) {
-      throw new Error('Failed to fetch commodity data');
-    }
+    const response = await fetch(`${config.API_BASE_URL}/api/v1/export/country-demand?endDate=31-12-2024`);
     const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch commodity data');
+    }
     
     if (!data.data || data.data.length === 0) {
       return null;
@@ -52,7 +56,7 @@ export const fetchCommodityData = async (countryCode = null) => {
     return null;
   } catch (error) {
     console.error('Error fetching commodity data:', error);
-    return null;
+    throw error; // Re-throw the error with the actual message
   }
 };
 

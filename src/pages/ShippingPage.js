@@ -468,9 +468,9 @@ export default function ShippingPage() {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden relative">
+    <div className="h-screen w-full overflow-hidden relative" style={{ background: '#f2f2f7' }}>
       {/* CSS Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideInFromRight {
           0% {
             transform: translateX(100%);
