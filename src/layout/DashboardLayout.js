@@ -1,12 +1,13 @@
 // src/layout/DashboardLayout.js
 import React, { useEffect, useState } from "react";
-import { Outlet, useLocation, NavLink } from "react-router-dom";
+import { Outlet, useLocation, NavLink, useNavigate } from "react-router-dom";
 import { Settings, User, LogOut, AlertTriangle } from "lucide-react";
 import PersonalizationModal from "../components/PersonalizationModal";
 import config from '../config';
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const [showPersonalizationModal, setShowPersonalizationModal] = useState(false);
   const [showProfileIncomplete, setShowProfileIncomplete] = useState(false);
@@ -71,7 +72,7 @@ export default function DashboardLayout() {
     setShowPersonalizationModal(true);
   };
 
-  const handleCloseModal = () => {
+  const handleClosePersonalizationModal = () => {
     setShowPersonalizationModal(false);
     setShowProfileTooltip(false);
     // Recheck profile status after modal closes
@@ -281,7 +282,7 @@ export default function DashboardLayout() {
                 <span
                   className="text-base font-light text-gray-700 hidden md:block"
                   style={{ fontWeight: 300, cursor: isGuest ? 'pointer' : 'default', textDecoration: isGuest ? 'underline' : 'none' }}
-                  onClick={() => { if (isGuest) window.location.href = '/'; }}
+                  onClick={() => { if (isGuest) navigate('/login'); }}
                 >
                   {isGuest ? 'Login' : `Hi, ${userName}`}
                 </span>
@@ -338,7 +339,7 @@ export default function DashboardLayout() {
       {/* Personalization Modal */}
       <PersonalizationModal
         isOpen={showPersonalizationModal}
-        onClose={handleCloseModal}
+        onClose={handleClosePersonalizationModal}
       />
     </div>
   );

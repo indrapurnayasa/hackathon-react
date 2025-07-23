@@ -1,19 +1,83 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './layout/DashboardLayout';
 import AIAssistantPage from './pages/AIAssistantPage';
 import ShippingPage from './pages/ShippingPage';
 import TrendPage from './pages/TrendPage';
+import LandingPage from './layout/LandingPage';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import LoginRequiredModal from './components/LoginRequiredModal';
+
+function RequireAuth({ children }) {
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      setShowModal(true);
+      setIsAuthenticated(false);
+    } else {
+      setShowModal(false);
+      setIsAuthenticated(true);
+    }
+    // eslint-disable-next-line
+  }, []);
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    navigate('/dashboard/trend', { replace: true });
+  };
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        {children}
+        {/* Full-screen blur overlay */}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9998,
+          pointerEvents: 'auto',
+        }} />
+        {showModal && (
+          <LoginRequiredModal onLogin={handleLogin} onClose={handleCloseModal} />
+        )}
+      </>
+    );
+  }
+  return children;
+}
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route path="ai-assistant" element={<AIAssistantPage />} />
-          <Route path="shipping" element={<ShippingPage />} />
+          <Route path="ai-assistant" element={
+            <RequireAuth>
+              <AIAssistantPage />
+            </RequireAuth>
+          } />
+          <Route path="shipping" element={
+            <RequireAuth>
+              <ShippingPage />
+            </RequireAuth>
+          } />
           <Route path="trend" element={<TrendPage />} />
           <Route index element={<AIAssistantPage />} />
         </Route>

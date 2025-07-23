@@ -56,7 +56,7 @@ const LoginPage = () => {
   // Handler for guest login
   const handleGuestLogin = (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    navigate('/landing');
   };
 
   // Handler for login submit
@@ -100,7 +100,7 @@ const LoginPage = () => {
           }
         } catch (err) {}
         setLoading(false);
-        navigate('/dashboard');
+        navigate('/landing');
         return;
       }
       setError('Login failed. Please check your credentials.');

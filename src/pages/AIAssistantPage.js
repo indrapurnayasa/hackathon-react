@@ -465,137 +465,16 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden p-6 gap-6">
-      <TooltipPortal />
-
-      {/* Sidebar - AI Assistant */}
-      <div className="flex-none w-full lg:w-80 h-48 lg:h-full overflow-hidden">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 h-full flex flex-col">
-          <div className="flex items-center space-x-3 mb-4 lg:mb-6">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-            </div>
-            <h1
-              className="text-lg lg:text-xl font-bold text-gray-900"
-              style={{
-                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                fontWeight: 500,
-              }}
-            >
-              AI Assistant
-            </h1>
-            {/* TAMBAH HELP ICON */}
-            <HelpCircle
-              ref={helpIconRef}
-              className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help transition-colors"
-              onMouseEnter={handleTooltipShow}
-              onMouseLeave={handleTooltipHide}
-            />
-          </div>
-
-          {/* Quick Actions */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h3
-                className="text-sm font-semibold text-gray-700"
-                style={{
-                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                Quick Actions
-              </h3>
-              <button
-                onClick={clearChatHistory}
-                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded-md transition-colors"
-                style={{
-                  fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                New Chat
-              </button>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-3">
-              {featureSuggestions.map((feature) => (
-                <button
-                  key={feature.id}
-                  onClick={() => handleFeatureSelect(feature)}
-                  className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full p-3 lg:p-4 transition-all text-left group"
-                >
-                  <div className="flex items-center space-x-2 lg:space-x-3">
-                    <div className="text-gray-600 flex-shrink-0">
-                      {feature.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div
-                        className="font-bold text-gray-900 text-xs lg:text-sm truncate"
-                        style={{
-                          fontFamily:
-                            "'Product Sans', 'Google Sans Text', sans-serif",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {feature.title}
-                      </div>
-                      <div
-                        className="text-xs text-gray-600 mt-1 hidden lg:block"
-                        style={{
-                          fontFamily:
-                            "'Google Sans Text', 'Roboto', sans-serif",
-                          fontWeight: 400,
-                        }}
-                      >
-                        {feature.description}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-gray-100 mt-4 lg:mt-6 hidden lg:block">
-            <p
-              className="text-xs text-gray-500"
-              style={{
-                fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                fontWeight: 400,
-              }}
-            >
-              💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung
-              di chat
-            </p>
-          </div>
+    <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {/* Your AI Assistant content here, e.g. chat UI, etc. */}
+      {/* Example placeholder: */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', margin: 0, padding: 0, minHeight: 0 }}>
+        {/* Replace this with your actual chat UI or assistant components */}
+        <h2 style={{ padding: 24, margin: 0 }}>AI Assistant Chat</h2>
+        <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
+          {/* Chat messages or assistant UI goes here */}
         </div>
       </div>
-
-      {/* Chat Container */}
-      <ChatInterface
-        messages={messages}
-        setMessages={setMessages}
-        isTyping={isTyping}
-        isTypingResponse={isTypingResponse}
-        input={input}
-        setInput={setInput}
-        handleSend={handleSend}
-        isGenerating={isGenerating}
-        currentFlow={currentFlow}
-        generalSuggestions={generalSuggestions}
-        handleSuggestionClick={handleSuggestionClick}
-        messagesEndRef={messagesEndRef}
-        chatContainerRef={chatContainerRef}
-        completedDocuments={completedDocuments}
-        setCompletedDocuments={setCompletedDocuments}
-        completedEmails={completedEmails}
-        setCompletedEmails={setCompletedEmails}
-        completedProposals={completedProposals}
-        setCompletedProposals={setCompletedProposals}
-        setCurrentFlow={setCurrentFlow}
-        setIsTyping={setIsTyping}
-        chatHistory={chatHistory} // Pass chat history to ChatInterface
-        setChatHistory={setChatHistory} // Pass setter for chat history
-      />
     </div>
   );
 }
