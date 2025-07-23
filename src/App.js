@@ -12,6 +12,7 @@ import LoginRequiredModal from './components/LoginRequiredModal';
 
 function RequireAuth({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showModal, setShowModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
@@ -32,7 +33,7 @@ function RequireAuth({ children }) {
     navigate('/dashboard/trend', { replace: true });
   };
   const handleLogin = () => {
-    navigate('/login');
+    navigate('/login', { state: { from: location.pathname } });
   };
 
   if (!isAuthenticated) {

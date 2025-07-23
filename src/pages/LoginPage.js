@@ -1,6 +1,6 @@
 // src/pages/LoginPage.js
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import cargoBg from '../assets/images/cargo-background.avif';
 import config from '../config';
 
@@ -24,8 +24,10 @@ const LoginPage = () => {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [redirectPath, setRedirectPath] = useState('/dashboard');
   
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Data fitur dengan GIF
   const features = [
@@ -62,18 +64,18 @@ useEffect(() => {
           setTimeout(() => {
             setIsFadingOut(true);
             setTimeout(() => {
-              navigate('/dashboard/ai-assistant');
-            }, 800); // Reduced timing
-          }, 300); // Reduced delay
+              navigate(redirectPath); // Use the stored path
+            }, 800);
+          }, 300);
           return 100;
         }
         const increment = Math.random() * 15 + 5;
         return Math.min(prev + increment, 100);
       });
-    }, 80); // Faster progress
+    }, 80);
     return () => clearInterval(interval);
   }
-}, [isLoadingAnimation, navigate]);
+}, [isLoadingAnimation, navigate, redirectPath]);
 
 
   // ResizeObserver to track left section height
@@ -156,7 +158,9 @@ useEffect(() => {
         } catch (err) {}
         
         setLoading(false);
-        // Start loading animation after successful login
+        // Store redirect path and start loading animation
+        const from = location.state?.from || '/dashboard';
+        setRedirectPath(from);
         setIsLoadingAnimation(true);
         setLoadingProgress(0);
         return;

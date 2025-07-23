@@ -283,54 +283,44 @@ export default function DashboardLayout() {
               </div>
             </div>
 
-            {/* Profile chip - Hi, Versa Section */}
-            <div className="relative profile-tooltip-container">
-              <div
-                className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+            {/* Profile */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
                 style={{ height: 48 }}
-                onClick={handleProfileClick}
+                onClick={isGuest ? (e) => { e.stopPropagation(); navigate('/login', { state: { from: location.pathname } }); } : handleProfileClick}
               >
-                <span
-                  className="text-base font-light text-gray-700 hidden md:block"
-                  style={{ fontWeight: 300 }}
-                >
-                  Hi, {userName}
-                </span>
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span style={{ fontSize: 20 }}>🐴</span>
-                  </div>
-                  
-                  {/* Enhanced Caution Icon - Only show for logged-in users with incomplete profile */}
-                  {shouldShowCaution && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCautionClick();
-                      }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors shadow-lg"
-                    >
-                      <AlertTriangle size={14} className="text-white" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Profile Tooltip */}
-              {showProfileTooltip && (
-                <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
-                  <div className="text-sm text-gray-700 mb-3">
-                    Kamu belum melengkapi profil personalisasi.
-                  </div>
-                  <button
-                    onClick={handleStartProfile}
-                    className="w-full bg-green-600 text-white py-3 px-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
+                {isGuest ? (
+                  <span
+                    className="text-base font-light text-gray-700 hidden md:block"
+                    style={{ fontWeight: 400 }}
                   >
-                    Mulai
-                  </button>
-                </div>
-              )}
+                    Login
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-base font-light text-gray-700 hidden md:block">Hi, {userName}</span>
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span style={{ fontSize: 20 }}>🐴</span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
+
+            {/* Profile Tooltip */}
+            {showProfileTooltip && (
+              <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                <div className="text-sm text-gray-700 mb-3">
+                  Kamu belum melengkapi profil personalisasi.
+                </div>
+                <button
+                  onClick={handleStartProfile}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
+                >
+                  Mulai
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
