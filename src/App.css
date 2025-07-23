@@ -835,4 +835,126 @@ h3 {
   }
 } 
 
+/* ===== LOGIN PAGE ENHANCED STYLES ===== */
+
+/* Google Fonts Integration */
+@import url('https://fonts.googleapis.com/css2?family=Product+Sans:wght@300;400;500;600;700&display=swap');
+
+/* Login Form Enhancements */
+.login-form-input {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+}
+
+.login-form-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+}
+
+/* Button Styles */
+.login-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+}
+
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+}
+
+/* Feature Navigation */
+.feature-nav-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+  min-width: 100px;
+}
+
+.feature-nav-button:hover {
+  transform: translateY(-1px);
+}
+
+.feature-nav-button.active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Feature Content Animation */
+.feature-content {
+  animation: featureSlideIn 0.4s ease-out;
+}
+
+@keyframes featureSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading Animation Styles */
+.loading-animation-overlay {
+  font-family: 'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.loading-progress-bar {
+  transition: width 0.2s ease-out;
+}
+
+/* Fade out animation from center */
+.fade-out-center {
+  transform-origin: center;
+  transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Form Styling */
+input[type="text"],
+input[type="password"] {
+  font-family: 'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Logo and Branding */
+.brand-logo {
+  font-family: 'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 300;
+}
+
+/* GIF Container */
+.feature-gif-container {
+  transition: all 0.5s ease;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.feature-gif-container img {
+  transition: opacity 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .feature-nav-button {
+    min-width: 80px;
+    padding: 0.5rem 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-button {
+    padding: 0.875rem 1.5rem;
+  }
+}
+
 

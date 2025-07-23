@@ -15,11 +15,13 @@ export default function DashboardLayout() {
   const [userName, setUserName] = useState('User');
   const [isGuest, setIsGuest] = useState(false);
 
-  // Fetch user info on mount
+  // Fetch user info on mount and check for first-time login
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('access_token');
-      if (token) {
+      const isGuestMode = localStorage.getItem('isGuest') === 'true';
+      
+      if (token && !isGuestMode) {
         try {
           const res = await fetch(`${config.API_BASE_URL}/api/v1/auth/me`, {
             headers: {
@@ -29,20 +31,39 @@ export default function DashboardLayout() {
           });
           if (res.ok) {
             const user = await res.json();
-            setUserName(user.name || user.username || 'User');
+            setUserName(user.name || user.username || 'Versa');
             setIsGuest(false);
+            
+            // Check if this is first-time login (no personalization completed)
+            const isProfileCompleted = localStorage.getItem('profileCompleted') === 'true';
+            if (!isProfileCompleted) {
+              // Show personalization modal for logged-in users
+              setTimeout(() => {
+                setShowPersonalizationModal(true);
+              }, 500);
+            }
             return;
           }
         } catch (err) {}
       }
-      setIsGuest(true);
+      
+      if (isGuestMode) {
+        setIsGuest(true);
+        setUserName('Guest');
+      } else {
+        setIsGuest(true);
+        setUserName('User');
+      }
     };
+
     fetchUser();
   }, []);
 
-  // Check if profile is incomplete
+  // Check if profile is incomplete - Only for logged-in users
   const isProfileSkipped = localStorage.getItem('profileSkipped') === 'true';
   const isProfileCompleted = localStorage.getItem('profileCompleted') === 'true';
+  const token = localStorage.getItem('access_token');
+  const shouldShowCaution = token && !isGuest && isProfileSkipped && !isProfileCompleted;
 
   /* ---------- MAIN NAVIGATION ---------- */
   const menus = [
@@ -101,7 +122,11 @@ export default function DashboardLayout() {
         body: '',
       });
     } catch (err) {}
+    
     localStorage.removeItem('access_token');
+    localStorage.removeItem('isGuest');
+    localStorage.removeItem('profileCompleted');
+    localStorage.removeItem('profileSkipped');
     window.location.href = '/';
   };
 
@@ -120,10 +145,7 @@ export default function DashboardLayout() {
       id: "logout",
       label: "Logout",
       icon: <LogOut size={16} />,
-      action: () => {
-        setShowSettingsDropdown(false);
-        handleLogout();
-      },
+      action: handleLogout,
     },
   ];
 
@@ -151,17 +173,6 @@ export default function DashboardLayout() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showSettingsDropdown, showProfileTooltip]);
-
-  /* ---------- CHECK PROFILE STATUS ON MOUNT ---------- */
-  useEffect(() => {
-    const checkProfileStatus = () => {
-      const skipped = localStorage.getItem('profileSkipped') === 'true';
-      const completed = localStorage.getItem('profileCompleted') === 'true';
-      setShowProfileIncomplete(skipped && !completed);
-    };
-    
-    checkProfileStatus();
-  }, []);
 
   /* ---------- RESET SCROLL WHEN ROUTE CHANGES ---------- */
   useEffect(() => {
@@ -272,7 +283,7 @@ export default function DashboardLayout() {
               </div>
             </div>
 
-            {/* Profile chip - Hi, Versa Section with Enhanced Caution */}
+            {/* Profile chip - Hi, Versa Section */}
             <div className="relative profile-tooltip-container">
               <div
                 className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
@@ -281,18 +292,17 @@ export default function DashboardLayout() {
               >
                 <span
                   className="text-base font-light text-gray-700 hidden md:block"
-                  style={{ fontWeight: 300, cursor: isGuest ? 'pointer' : 'default', textDecoration: isGuest ? 'underline' : 'none' }}
-                  onClick={() => { if (isGuest) navigate('/login'); }}
+                  style={{ fontWeight: 300 }}
                 >
-                  {isGuest ? 'Login' : `Hi, ${userName}`}
+                  Hi, {userName}
                 </span>
                 <div className="relative">
                   <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                     <span style={{ fontSize: 20 }}>🐴</span>
                   </div>
                   
-                  {/* Enhanced Caution Icon - Made Bigger */}
-                  {isProfileSkipped && !isProfileCompleted && (
+                  {/* Enhanced Caution Icon - Only show for logged-in users with incomplete profile */}
+                  {shouldShowCaution && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -306,7 +316,7 @@ export default function DashboardLayout() {
                 </div>
               </div>
 
-              {/* Profile Tooltip with Enhanced Button */}
+              {/* Profile Tooltip */}
               {showProfileTooltip && (
                 <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
                   <div className="text-sm text-gray-700 mb-3">
