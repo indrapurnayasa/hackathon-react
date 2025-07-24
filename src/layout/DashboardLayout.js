@@ -14,6 +14,9 @@ export default function DashboardLayout() {
   const [showProfileTooltip, setShowProfileTooltip] = useState(false);
   const [userName, setUserName] = useState('User');
   const [isGuest, setIsGuest] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false); // Add buffer animation state
+  const [showLogoutModal, setShowLogoutModal] = useState(false); // Logout modal state
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Logout loading state
 
   // Fetch user info on mount and check for first-time login
   useEffect(() => {
@@ -111,8 +114,16 @@ export default function DashboardLayout() {
     setShowPersonalizationModal(true);
   };
 
-  // Add logout handler
-  const handleLogout = async () => {
+  // Show logout confirmation modal
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+    setShowSettingsDropdown(false);
+  };
+
+  // Handle confirmed logout with loading animation
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    
     try {
       await fetch(`${config.API_BASE_URL}/api/v1/auth/logout`, {
         method: 'POST',
@@ -123,11 +134,19 @@ export default function DashboardLayout() {
       });
     } catch (err) {}
     
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('isGuest');
-    localStorage.removeItem('profileCompleted');
-    localStorage.removeItem('profileSkipped');
-    window.location.href = '/';
+    // Simulate loading for UX
+    setTimeout(() => {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('isGuest');
+      localStorage.removeItem('profileCompleted');
+      localStorage.removeItem('profileSkipped');
+      window.location.href = '/login';
+    }, 1000);
+  };
+
+  // Cancel logout
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   /* ---------- SETTINGS-DROPDOWN ITEMS ---------- */
@@ -145,7 +164,7 @@ export default function DashboardLayout() {
       id: "logout",
       label: "Logout",
       icon: <LogOut size={16} />,
-      action: handleLogout,
+      action: handleLogoutClick,
     },
   ];
 
@@ -251,57 +270,65 @@ export default function DashboardLayout() {
 
           {/* Right-side Profile & Settings */}
           <div className="flex items-center space-x-3">
-            {/* Settings icon & dropdown */}
-            <div className="relative settings-dropdown-container">
-              <button
-                className="flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-                style={{ width: 48, height: 48 }}
-                onClick={handleSettingsClick}
-              >
-                <Settings size={20} className="text-gray-600" />
-              </button>
+            {/* Settings icon & dropdown - Only show for authenticated users */}
+            {!isGuest && (
+              <div className="relative settings-dropdown-container">
+                <button
+                  className="flex items-center justify-center bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+                  style={{ width: 48, height: 48 }}
+                  onClick={handleSettingsClick}
+                >
+                  <Settings size={20} className="text-gray-600" />
+                </button>
 
-              {/* Dropdown */}
-              <div
-                className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 origin-top-right transition-all ${
-                  showSettingsDropdown
-                    ? "opacity-100 scale-100 translate-y-0"
-                    : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-                }`}
-                style={{ zIndex: 60, fontWeight: 300 }}
-              >
-                {settingsMenuItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={item.action}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    <span className="text-gray-500">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+                {/* Dropdown */}
+                <div
+                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 origin-top-right transition-all ${
+                    showSettingsDropdown
+                      ? "opacity-100 scale-100 translate-y-0"
+                      : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+                  }`}
+                  style={{ zIndex: 60, fontWeight: 300 }}
+                >
+                  {settingsMenuItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={item.action}
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <span className="text-gray-500">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Profile */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
                 style={{ height: 48 }}
-                onClick={isGuest ? (e) => { e.stopPropagation(); navigate('/login', { state: { from: location.pathname } }); } : handleProfileClick}
+                onClick={isGuest ? (e) => { e.stopPropagation(); setIsBuffering(true); setTimeout(() => { navigate('/login', { state: { from: location.pathname } }); }, 500); } : handleProfileClick}
               >
-                {isGuest ? (
-                  <span
-                    className="text-base font-light text-gray-700 hidden md:block"
-                    style={{ fontWeight: 400 }}
-                  >
-                    Login
-                  </span>
+                {isBuffering ? (
+                  <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <span className="text-base font-light text-gray-700 hidden md:block">Hi, {userName}</span>
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                      <span style={{ fontSize: 20 }}>🐴</span>
-                    </div>
+                    {isGuest ? (
+                      <span
+                        className="text-base font-light text-gray-700 hidden md:block"
+                        style={{ fontWeight: 400 }}
+                      >
+                        Login
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-base font-light text-gray-700 hidden md:block">Hi, {userName}</span>
+                        <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span style={{ fontSize: 20 }}>🐴</span>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -335,6 +362,68 @@ export default function DashboardLayout() {
       >
         <Outlet />
       </main>
+
+      {/* Buffer Loading Animation - YouTube style */}
+      {isBuffering && (
+        <div
+          className={`fixed inset-0 bg-white flex items-center justify-center z-[9999] transition-opacity duration-300`}
+          style={{
+            fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+          }}
+        >
+          {/* Simple buffer animation */}
+          <div className="flex space-x-1">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[10000]">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl"
+               style={{ fontFamily: "'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            {isLoggingOut ? (
+              // Loading state
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <span className="text-white text-2xl">⚡</span>
+                </div>
+                <h3 className="text-lg font-light text-gray-900 mb-2">Logging out...</h3>
+                <p className="text-gray-600 font-light">Please wait while we sign you out safely.</p>
+              </div>
+            ) : (
+              // Confirmation state
+              <>
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <LogOut size={24} className="text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-light text-gray-900 mb-2">Konfirmasi Logout</h3>
+                  <p className="text-gray-600 font-light">Apakah kamu yakin untuk logout?</p>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleCancelLogout}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-full font-light hover:bg-gray-200 transition-all"
+                  >
+                    Tidak
+                  </button>
+                  <button
+                    onClick={handleConfirmLogout}
+                    className="flex-1 bg-red-600 text-white py-3 px-4 rounded-full font-light hover:bg-red-700 transition-all"
+                  >
+                    Yakin
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Personalization Modal */}
       <PersonalizationModal

@@ -1,8 +1,23 @@
 // src/components/LoginRequiredModal.js
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginRequiredModal({ onLogin, onClose }) {
+  const [isBuffering, setIsBuffering] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    setIsBuffering(true);
+    setTimeout(() => {
+      if (onLogin) {
+        onLogin();
+      } else {
+        navigate('/login');
+      }
+    }, 500);
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4"
@@ -76,7 +91,7 @@ export default function LoginRequiredModal({ onLogin, onClose }) {
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={onLogin}
+              onClick={handleSignIn}
               className="w-full bg-green-600 text-white py-3 px-4 rounded-full font-light hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all hover:shadow-lg"
             >
               Sign In Now
@@ -89,21 +104,25 @@ export default function LoginRequiredModal({ onLogin, onClose }) {
               Maybe Later
             </button>
           </div>
-
-          {/* Additional Info */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500 font-light">
-              Don't have an account?{' '}
-              <button 
-                onClick={onLogin}
-                className="text-green-600 hover:underline font-light"
-              >
-                Create one for free
-              </button>
-            </p>
-          </div>
         </div>
       </div>
+
+      {/* Buffer Loading Animation - YouTube style */}
+      {isBuffering && (
+        <div
+          className={`fixed inset-0 bg-white flex items-center justify-center z-[10000] transition-opacity duration-300`}
+          style={{
+            fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+          }}
+        >
+          {/* Simple buffer animation */}
+          <div className="flex space-x-1">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
