@@ -237,7 +237,7 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden overflow-x-hidden p-0">
+    <div className="h-screen flex flex-col lg:flex-row overflow-hidden overflow-x-hidden p-0">
       <TooltipPortal />
       <div className="relative w-full h-full">
         {/* Sidebar - AI Assistant */}
@@ -288,7 +288,7 @@ export default function AIAssistantPage() {
           </div>
         </div>
         {/* Chat Container */}
-        <div className="flex-1 h-full min-h-0 flex flex-col pr-6">
+        <div className="flex-1 h-full min-h-0 flex flex-col pr-6 ml-[352px]">
           <ChatInterface
             messages={messages}
             setMessages={setMessages}

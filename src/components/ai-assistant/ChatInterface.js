@@ -1048,7 +1048,7 @@ const ChatInterface = ({
   // We'll wrap the main chat area in a centered container with max width
 
   return (
-    <div className="flex-1 flex justify-center items-stretch bg-gray-50 min-h-screen w-full max-w-full overflow-x-hidden">
+    <div className="flex-1 flex justify-center items-stretch bg-gray-50 h-full w-full max-w-full overflow-hidden mt-24 mb-6">
       <div className="w-full flex flex-col flex-1 max-w-full overflow-x-hidden">
         <div className="bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col flex-1 relative overflow-hidden w-full max-w-full">
           {/* Chat Messages */}
