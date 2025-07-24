@@ -1044,158 +1044,166 @@ const ChatInterface = ({
     );
   };
 
+  // --- NEW: Responsive max width for chat area ---
+  // We'll wrap the main chat area in a centered container with max width
+
   return (
-    <div className="flex-1 overflow-hidden">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col relative overflow-hidden">
-        {/* Chat Messages */}
-        <div
-          ref={chatContainerRef}
-          className="flex-1 overflow-y-auto p-6 space-y-4"
-          style={{
-            background: "#f2f2f7",
-            overflowX: "hidden",
-          }}
-        >
-          {messages.map((message, index) => renderMessage(message, index))}
-          {isTyping && <TypingIndicator />}
-          {isGenerating && (
-            <div className="flex items-end space-x-2 mb-4">
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mb-1"
-                style={{
-                  backgroundColor: "#ffffff",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                }}
-              >
-                <span style={{ fontSize: "22px" }}>🌶️</span>
-              </div>
-              <div className="max-w-xs lg:max-w-md relative">
-                <div
-                  className="px-4 py-3 text-sm leading-5 text-black relative"
-                  style={{
-                    backgroundColor: "#ffffff",
-                    borderRadius: "18px 18px 18px 4px",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                    fontFamily:
-                      "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                    fontSize: "16px",
-                    lineHeight: "1.4",
-                    fontWeight: 400,
-                  }}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-600">Mencari jawaban...</span>
-                  </div>
-                  <div
-                    className="absolute bottom-0 left-0 w-0 h-0"
-                    style={{
-                      borderRight: "8px solid #ffffff",
-                      borderBottom: "8px solid transparent",
-                      transform: "translateX(-2px)",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Suggestions Bar - ENHANCED TANPA ANAK PANAH */}
-        <div className="border-t border-gray-100 bg-gray-50 p-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <Lightbulb className="w-4 h-4 text-orange-500" />
-            <span
-              className="text-sm font-medium text-gray-700"
-              style={{
-                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                fontWeight: 500,
-              }}
-            >
-              Pertanyaan Umum:
-            </span>
-          </div>
-
-          {/* HORIZONTAL SCROLL TANPA ANAK PANAH */}
+    <div className="flex-1 flex justify-center items-stretch bg-gray-50 min-h-screen w-full max-w-full overflow-x-hidden">
+      <div className="w-full flex flex-col flex-1 max-w-full overflow-x-hidden">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col flex-1 relative overflow-hidden w-full max-w-full">
+          {/* Chat Messages */}
           <div
-            className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
+            ref={chatContainerRef}
+            className="flex-1 flex flex-col overflow-y-auto space-y-4 p-6 w-full max-w-full overflow-x-hidden"
             style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-              WebkitOverflowScrolling: "touch",
+              background: "#f2f2f7",
+              overflowX: "hidden",
+              borderRadius: '1.25rem 1.25rem 0 0',
+              minHeight: 0,
+              height: 'auto',
             }}
           >
-            {generalSuggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-3 py-2 transition-all whitespace-nowrap"
+            {messages.map((message, index) => renderMessage(message, index))}
+            {isTyping && <TypingIndicator />}
+            {isGenerating && (
+              <div className="flex items-end space-x-2 mb-4">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mb-1"
+                  style={{
+                    backgroundColor: "#ffffff",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <span style={{ fontSize: "22px" }}>🌶️</span>
+                </div>
+                <div className="max-w-xs lg:max-w-lg relative">
+                  <div
+                    className="px-4 py-3 text-sm leading-5 text-black relative"
+                    style={{
+                      backgroundColor: "#ffffff",
+                      borderRadius: "18px 18px 18px 4px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                      fontFamily:
+                        "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                      fontSize: "16px",
+                      lineHeight: "1.4",
+                      fontWeight: 400,
+                    }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-gray-600">Mencari jawaban...</span>
+                    </div>
+                    <div
+                      className="absolute bottom-0 left-0 w-0 h-0"
+                      style={{
+                        borderRight: "8px solid #ffffff",
+                        borderBottom: "8px solid transparent",
+                        transform: "translateX(-2px)",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Suggestions Bar - flush with border */}
+          <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 w-full max-w-full overflow-x-hidden" aria-label="Pertanyaan Umum">
+            <div className="flex items-center space-x-2 mb-2">
+              <Lightbulb className="w-4 h-4 text-orange-500" />
+              <span
+                className="text-sm font-medium text-gray-700"
                 style={{
-                  fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                  fontWeight: 400,
-                  minWidth: "fit-content",
+                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                  fontWeight: 500,
                 }}
               >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Input Section */}
-        <div className="border-t border-gray-100 p-4 bg-white">
-          <div className="flex space-x-3">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleSend();
-                }
-              }}
-              placeholder="Tulis pesan..."
-              className="flex-1 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                Pertanyaan Umum:
+              </span>
+            </div>
+            <div
+              className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
               style={{
-                fontFamily:
-                  "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                fontSize: "16px",
-                fontWeight: 400,
-              }}
-              disabled={isGenerating}
-            />
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || isGenerating}
-              className="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                fontWeight: 500,
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
               }}
             >
-              <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">Kirim</span>
-            </button>
+              {(Array.isArray(generalSuggestions) && generalSuggestions.length > 0) ? (
+                generalSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-4 py-2 transition-all whitespace-nowrap shadow-sm text-gray-700"
+                    style={{
+                      fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                      fontWeight: 400,
+                      minWidth: "fit-content",
+                    }}
+                  >
+                    {suggestion}
+                  </button>
+                ))
+              ) : (
+                <span className="text-xs text-gray-500 px-2 py-1">Tidak ada pertanyaan umum.</span>
+              )}
+            </div>
+          </div>
+
+          {/* Input Section - flush with border */}
+          <div className="border-t border-gray-100 px-6 py-5 bg-white w-full max-w-full overflow-x-hidden">
+            <div className="flex space-x-3">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleSend();
+                  }
+                }}
+                placeholder="Tulis pesan..."
+                className="flex-1 border border-gray-200 rounded-lg px-4 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+                style={{
+                  fontFamily:
+                    "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                }}
+                disabled={isGenerating}
+              />
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() || isGenerating}
+                className="bg-gray-900 text-white px-7 py-4 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                style={{
+                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+                  fontWeight: 500,
+                }}
+              >
+                <Send className="w-4 h-4" />
+                <span className="hidden sm:inline">Kirim</span>
+              </button>
+            </div>
           </div>
         </div>
+        {/* CSS untuk hide scrollbar */}
+        <style jsx>{`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+          @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+          }
+        `}</style>
       </div>
-
-      {/* CSS untuk hide scrollbar */}
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        
-        @keyframes blink {
-          0%, 50% { opacity: 1; }
-          51%, 100% { opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };

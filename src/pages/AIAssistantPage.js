@@ -237,11 +237,11 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden p-6 gap-6">
+    <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden overflow-x-hidden p-0">
       <TooltipPortal />
-      {/* Sidebar - AI Assistant */}
-      <div className="flex-none w-full lg:w-80 h-48 lg:h-full overflow-hidden">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 h-full flex flex-col">
+      <div className="relative w-full h-full">
+        {/* Sidebar - AI Assistant */}
+        <div className="absolute top-24 left-6 bottom-6 w-80 z-20 bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 flex flex-col overflow-y-auto overflow-x-hidden">
           <div className="flex items-center space-x-3 mb-4 lg:mb-6">
             <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
@@ -287,34 +287,34 @@ export default function AIAssistantPage() {
             <p className="text-xs text-gray-500">💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung di chat</p>
           </div>
         </div>
-      </div>
-      {/* Chat Container */}
-      <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <ChatInterface
-          messages={messages}
-          setMessages={setMessages}
-          isTyping={isTyping}
-          isTypingResponse={isTypingResponse}
-          input={input}
-          setInput={setInput}
-          handleSend={handleSend}
-          isGenerating={isGenerating}
-          currentFlow={currentFlow}
-          generalSuggestions={generalSuggestions}
-          handleSuggestionClick={handleSuggestionClick}
-          messagesEndRef={messagesEndRef}
-          chatContainerRef={chatContainerRef}
-          completedDocuments={completedDocuments}
-          setCompletedDocuments={setCompletedDocuments}
-          completedEmails={completedEmails}
-          setCompletedEmails={setCompletedEmails}
-          completedProposals={completedProposals}
-          setCompletedProposals={setCompletedProposals}
-          setCurrentFlow={setCurrentFlow}
-          setIsTyping={setIsTyping}
-          chatHistory={chatHistory}
-          setChatHistory={setChatHistory}
-        />
+        {/* Chat Container */}
+        <div className="flex-1 h-full min-h-0 flex flex-col pr-6">
+          <ChatInterface
+            messages={messages}
+            setMessages={setMessages}
+            isTyping={isTyping}
+            isTypingResponse={isTypingResponse}
+            input={input}
+            setInput={setInput}
+            handleSend={handleSend}
+            isGenerating={isGenerating}
+            currentFlow={currentFlow}
+            generalSuggestions={generalSuggestions}
+            handleSuggestionClick={handleSuggestionClick}
+            messagesEndRef={messagesEndRef}
+            chatContainerRef={chatContainerRef}
+            completedDocuments={completedDocuments}
+            setCompletedDocuments={setCompletedDocuments}
+            completedEmails={completedEmails}
+            setCompletedEmails={setCompletedEmails}
+            completedProposals={completedProposals}
+            setCompletedProposals={setCompletedProposals}
+            setCurrentFlow={setCurrentFlow}
+            setIsTyping={setIsTyping}
+            chatHistory={chatHistory}
+            setChatHistory={setChatHistory}
+          />
+        </div>
       </div>
     </div>
   );
