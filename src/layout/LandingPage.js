@@ -600,50 +600,96 @@ const LandingPage = () => {
           )}
         </section>
 
-        {/* Features Section - Clean version without icons */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Why Choose ExportIn?
+        {/* Features Section - With GIFs, without icons */}
+        <section id="features" className="py-20 sm:py-32 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Section Header */}
+            <div className="text-center mb-16 sm:mb-20">
+              <p className="text-sm sm:text-base font-medium tracking-wider text-blue-600 uppercase mb-4">
+                Our Solutions
+              </p>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                Our AI-Powered Export Solutions
               </h2>
-              <p className="text-xl text-gray-600">
-                Discover the features that make us the leading export platform
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Comprehensive platform that integrates intelligent automation
+                with global trade expertise to deliver end-to-end export
+                solutions.
               </p>
             </div>
 
+            {/* Features Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* AI Assistant Feature */}
-              <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  AI Assistant
-                </h3>
-                <p className="text-gray-600">
-                  24/7 intelligent support for all your export operations. Get
-                  instant answers and assistance for your global trade needs.
-                </p>
+              {/* Feature Cards */}
+              {/* Conversational AI */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:-translate-y-2 transition-all hover:shadow-xl">
+                {/* GIF Background */}
+                <div className="w-full h-48 relative">
+                  <img
+                    src={aiImage1}
+                    alt="AI Assistant Feature"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="p-8">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                    Conversational AI
+                  </h3>
+                  <p className="text-gray-600">
+                    AI-powered chat assistant that provides 24/7 export
+                    guidance, document generation, and cost calculations with
+                    real-time regulatory compliance.
+                  </p>
+                </div>
               </div>
 
-              {/* Smart Shipping Feature */}
-              <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  Smart Shipping
-                </h3>
-                <p className="text-gray-600">
-                  Interactive globe-based shipping management system. Track and
-                  manage your shipments with real-time updates.
-                </p>
+              {/* Smart Shipping */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:-translate-y-2 transition-all hover:shadow-xl">
+                {/* GIF Background */}
+                <div className="w-full h-48 relative">
+                  <img
+                    src={shippingImage1}
+                    alt="Smart Shipping Feature"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="p-8">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                    Smart Shipping
+                  </h3>
+                  <p className="text-gray-600">
+                    Interactive globe-based shipping solution with real-time
+                    cost estimation, route optimization, and comprehensive
+                    logistics management.
+                  </p>
+                </div>
               </div>
 
-              {/* Market Trends Feature */}
-              <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                  Market Trends
-                </h3>
-                <p className="text-gray-600">
-                  Real-time analytics and market intelligence. Make data-driven
-                  decisions with our comprehensive trend analysis.
-                </p>
+              {/* Market Trend Analytics */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:-translate-y-2 transition-all hover:shadow-xl">
+                {/* GIF Background */}
+                <div className="w-full h-48 relative">
+                  <img
+                    src={trendsImage1}
+                    alt="Market Trends Feature"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="p-8">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                    Market Trend Analytics
+                  </h3>
+                  <p className="text-gray-600">
+                    Comprehensive market analysis dashboard with seasonal trends
+                    and country demand insights for strategic export planning.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
