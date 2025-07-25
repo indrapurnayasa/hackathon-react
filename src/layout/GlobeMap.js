@@ -3,7 +3,7 @@ import Globe from "react-globe.gl";
 
 const GEOJSON_URL = "/countries.geojson";
 
-const GlobeMap = () => {
+const GlobeMap = ({ onCountryClick, onCountryHover }) => {
   const globeEl = useRef();
   const containerRef = useRef();
   const [countries, setCountries] = useState({ features: [] });
@@ -78,35 +78,31 @@ const GlobeMap = () => {
     };
   }, []);
 
-  // Setup globe controls dengan disable zoom dan scroll handling
+  // Setup globe controls
   useEffect(() => {
     if (!isLoading && globeEl.current && countries.features.length > 0) {
       try {
         const globe = globeEl.current;
 
         if (globe.controls) {
-          // Disable zoom functionality
-          globe.controls().enableZoom = false;
+          // Enable smooth controls
+          globe.controls().enableZoom = true;
           globe.controls().enablePan = true;
+          globe.controls().enableRotate = true;
           globe.controls().autoRotate = true;
-          globe.controls().autoRotateSpeed = 0.3;
+          globe.controls().autoRotateSpeed = 0.5;
+          globe.controls().minDistance = 200;
+          globe.controls().maxDistance = 400;
+          globe.controls().dampingFactor = 0.1;
+          globe.controls().rotateSpeed = 0.7;
 
           // Set initial view
-          globe.pointOfView({ altitude: 0.9 }, 3000);
+          globe.pointOfView({ altitude: 2.5 });
 
-          // Disable mouse wheel zoom pada globe
+          // Allow natural zoom behavior
           const globeContainer = globe.renderer().domElement;
           if (globeContainer) {
-            globeContainer.addEventListener(
-              "wheel",
-              (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // Allow page scroll instead
-                window.scrollBy(0, e.deltaY);
-              },
-              { passive: false }
-            );
+            globeContainer.style.touchAction = "none";
           }
         }
       } catch (err) {
@@ -146,21 +142,46 @@ const GlobeMap = () => {
     };
   };
 
-  const handlePolygonHover = useCallback((polygon) => {
-    try {
-      setHoverD(polygon);
+  // Handle polygon hover with mouse coordinates
+  const handlePolygonHover = useCallback(
+    (polygon, event) => {
+      try {
+        setHoverD(polygon);
 
-      if (globeEl.current && globeEl.current.controls) {
-        if (polygon) {
-          globeEl.current.controls().autoRotate = false;
-        } else {
-          globeEl.current.controls().autoRotate = true;
+        // Pass both polygon data and mouse event to parent
+        if (onCountryHover) {
+          onCountryHover(polygon, event);
         }
+
+        if (globeEl.current && globeEl.current.controls) {
+          if (polygon) {
+            globeEl.current.controls().autoRotateSpeed = 0.2;
+          } else {
+            globeEl.current.controls().autoRotateSpeed = 0.5;
+          }
+        }
+      } catch (err) {
+        console.warn("Error handling polygon hover:", err);
       }
-    } catch (err) {
-      console.warn("Error handling polygon hover:", err);
-    }
-  }, []);
+    },
+    [onCountryHover]
+  );
+
+  // Handle polygon click with mouse coordinates
+  const handlePolygonClick = useCallback(
+    (polygon, event) => {
+      try {
+        if (polygon && polygon.properties && onCountryClick) {
+          const countryName =
+            polygon.properties.NAME_EN || polygon.properties.NAME || "Unknown";
+          onCountryClick(countryName, event);
+        }
+      } catch (err) {
+        console.warn("Error handling polygon click:", err);
+      }
+    },
+    [onCountryClick]
+  );
 
   const getExportData = useCallback((countryName) => {
     const exportData = {
@@ -310,7 +331,7 @@ const GlobeMap = () => {
         position: "relative",
         overflow: "hidden",
         // Prevent default scroll behavior pada globe area
-        touchAction: "pan-y",
+        touchAction: "none",
         userSelect: "none",
       }}
     >
@@ -319,15 +340,15 @@ const GlobeMap = () => {
         globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
         backgroundColor="rgba(0,0,0,0)"
         polygonsData={countries.features.filter(
-          (d) => d && d.properties && d.properties.ISO_A2 !== "AQ"
+          (d) => d?.properties?.ISO_A2 !== "AQ"
         )}
-        polygonAltitude={(d) => (d === hoverD ? 0.04 : 0.02)}
+        polygonAltitude={(d) => (d === hoverD ? 0.02 : 0.01)}
         polygonCapColor={(d) =>
           d === hoverD ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.3)"
         }
         polygonSideColor={() => "rgba(255, 255, 255, 0.2)"}
-        polygonStrokeColor={() => "#000000"}
-        polygonStrokeWidth={0.8}
+        polygonStrokeColor={() => "#ffffff"}
+        polygonStrokeWidth={1}
         polygonLabel={({ properties: d }) => {
           try {
             if (!d) return "No data available";
@@ -437,7 +458,10 @@ const GlobeMap = () => {
           }
         }}
         onPolygonHover={handlePolygonHover}
-        polygonsTransitionDuration={300}
+        onPolygonClick={handlePolygonClick}
+        polygonsTransitionDuration={200}
+        atmosphereColor="rgba(200,200,255,0.2)"
+        atmosphereAltitude={0.1}
         // Dimensions yang mengisi penuh container
         width={dimensions.width}
         height={dimensions.height}
@@ -446,6 +470,7 @@ const GlobeMap = () => {
         rendererConfig={{
           antialias: true,
           alpha: true,
+          preserveDrawingBuffer: true,
         }}
       />
 

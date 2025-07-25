@@ -80,40 +80,13 @@ export default function AIAssistantPage() {
 
   // Add missing handler functions
   const handleFeatureSelect = (feature) => {
-    // Create user message immediately
-    const userMessage = {
-      from: "user",
-      text: feature.prompt,
-      timestamp: new Date().toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setChatHistory((prev) => [...prev, { role: 'user', content: feature.prompt }]);
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      processUserInput(feature.prompt);
-    }, 500);
+    // Instead of auto-sending, just fill the input box
+    setInput(feature.prompt);
   };
 
   const handleSuggestionClick = (suggestion) => {
-    const userMessage = {
-      from: "user",
-      text: suggestion,
-      timestamp: new Date().toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setChatHistory((prev) => [...prev, { role: 'user', content: suggestion }]);
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      processUserInput(suggestion);
-    }, 500);
+    // Instead of auto-sending, just fill the input box
+    setInput(suggestion);
   };
 
   const handleSend = () => {
@@ -127,7 +100,7 @@ export default function AIAssistantPage() {
       }),
     };
     setMessages((prev) => [...prev, userMessage]);
-    setChatHistory((prev) => [...prev, { role: 'user', content: input }]);
+    setChatHistory((prev) => [...prev, { role: "user", content: input }]);
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
@@ -140,18 +113,22 @@ export default function AIAssistantPage() {
   const processUserInput = async (userInput) => {
     try {
       setIsGenerating(true);
-      
+
       // Use Enhanced Chatbot System for intelligent responses
-      console.log('Processing user input with Enhanced System:', userInput);
-      const response = EnhancedChatbotSystem.getIntelligentResponse(userInput, setMessages, {
-        setCompletedDocuments,
-        setCompletedEmails,
-        setCompletedProposals,
-        setIsTyping,
-        setCurrentFlow
-      });
-      console.log('Enhanced system response:', response);
-      
+      console.log("Processing user input with Enhanced System:", userInput);
+      const response = EnhancedChatbotSystem.getIntelligentResponse(
+        userInput,
+        setMessages,
+        {
+          setCompletedDocuments,
+          setCompletedEmails,
+          setCompletedProposals,
+          setIsTyping,
+          setCurrentFlow,
+        }
+      );
+      console.log("Enhanced system response:", response);
+
       // If no specific enhanced response, provide general response
       if (!response) {
         setTimeout(() => {
@@ -176,9 +153,8 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
       } else {
         setIsGenerating(false);
       }
-      
     } catch (error) {
-      console.error('Error in processUserInput:', error);
+      console.error("Error in processUserInput:", error);
       setIsGenerating(false);
     }
   };
@@ -268,7 +244,9 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
             <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
             </div>
-            <h1 className="text-lg lg:text-xl font-bold text-gray-900">AI Assistant</h1>
+            <h1 className="text-lg lg:text-xl font-bold text-gray-900">
+              AI Assistant
+            </h1>
             <HelpCircle
               ref={helpIconRef}
               className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help transition-colors"
@@ -279,12 +257,14 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
           {/* Quick Actions */}
           <div className="flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">Quick Actions</h3>
+              <h3 className="text-sm font-semibold text-gray-700">
+                Quick Actions
+              </h3>
               <button
                 onClick={clearChatHistory}
-                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded-md transition-colors"
+                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-full transition-colors"
               >
-                New Chat
+                Clear Chat
               </button>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-3">
@@ -295,10 +275,16 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
                   className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full p-3 lg:p-4 transition-all text-left group"
                 >
                   <div className="flex items-center space-x-2 lg:space-x-3">
-                    <div className="text-gray-600 flex-shrink-0">{feature.icon}</div>
+                    <div className="text-gray-600 flex-shrink-0">
+                      {feature.icon}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 text-xs lg:text-sm truncate">{feature.title}</div>
-                      <div className="text-xs text-gray-600 mt-1 hidden lg:block">{feature.description}</div>
+                      <div className="font-bold text-gray-900 text-xs lg:text-sm truncate">
+                        {feature.title}
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1 hidden lg:block">
+                        {feature.description}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -306,9 +292,13 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
             </div>
           </div>
           <div className="pt-4 border-t border-gray-100 mt-4 lg:mt-6 hidden lg:block">
-            <p className="text-xs text-gray-500">💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung di chat</p>
+            <p className="text-xs text-gray-500">
+              💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung
+              di chat
+            </p>
           </div>
         </div>
+
         {/* Chat Container */}
         <div className="flex-1 h-full min-h-0 flex flex-col pr-6 ml-[352px]">
           <ChatInterface

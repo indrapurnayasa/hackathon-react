@@ -1,5 +1,5 @@
 // src/components/ai-assistant/ChatInterface.js
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   Send,
   Lightbulb,
@@ -7,12 +7,15 @@ import {
   Circle,
   Copy,
   Download,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import DocumentGenerator from "./DocumentGenerator";
 import EmailGenerator from "./EmailGenerator";
 import ProposalGenerator from "./ProposalGenerator";
 import EnhancedChatbotSystem from "../../utils/enhancedChatbotSystem";
+import { useLocation } from "react-router-dom";
 
 // TAMBAH FUNGSI FORMAT TANGGAL
 const formatDate = (date) => {
@@ -94,6 +97,42 @@ const TypingIndicator = () => (
   </div>
 );
 
+const SuccessPopup = ({ message, onClose }) => (
+  <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full mx-4 relative animate-fade-in-up">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <div className="flex items-center justify-center mb-4">
+        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+          <CheckCircle className="w-6 h-6 text-green-600" />
+        </div>
+      </div>
+      <h3
+        className="text-center text-lg font-medium text-gray-900 mb-2"
+        style={{
+          fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
+          fontWeight: 500,
+        }}
+      >
+        Berhasil!
+      </h3>
+      <p
+        className="text-center text-gray-600"
+        style={{
+          fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+          fontWeight: 400,
+        }}
+      >
+        {message}
+      </p>
+    </div>
+  </div>
+);
+
 const ChatInterface = ({
   messages,
   setMessages,
@@ -119,64 +158,86 @@ const ChatInterface = ({
   chatHistory,
   setChatHistory,
 }) => {
+  // Add location check
+  const location = useLocation();
+  const isAIAssistantPage = location.pathname.includes("ai-assistant");
+
   // Format text with bold and other formatting
   const formatMessageText = (text) => {
     if (!text) return text;
-    
+
     // Convert **bold** to HTML
-    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
     // Convert - bullet points to • bullet points
-    formatted = formatted.replace(/^- /gm, '• ');
-    
+    formatted = formatted.replace(/^- /gm, "• ");
+
     return formatted;
   };
 
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Update copy handler
   const handleCopy = (content) => {
     navigator.clipboard.writeText(content);
-    alert("Content berhasil disalin!");
+    setSuccessMessage("Content berhasil disalin ke clipboard!");
+    setShowSuccessPopup(true);
   };
 
+  // Update download handler
   const handleDownload = (content, filename) => {
     try {
-      console.log('Creating PDF from frontend HTML...');
+      console.log("Creating PDF from frontend HTML...");
       const doc = new jsPDF();
-      
+
       // Check if content is HTML (from enhanced document generator)
-      if (content.includes('<div') || content.includes('<table')) {
+      if (content.includes("<div") || content.includes("<table")) {
         // Parse HTML exactly as shown in frontend
-        const tempDiv = document.createElement('div');
+        const tempDiv = document.createElement("div");
         tempDiv.innerHTML = content;
-        
+
         let yPosition = 20;
         const margin = 15;
-        
+
         // Extract title
-        const titleEl = tempDiv.querySelector('h1, h2');
+        const titleEl = tempDiv.querySelector("h1, h2");
         if (titleEl) {
           doc.setFont("helvetica", "bold");
           doc.setFontSize(16);
           doc.text(titleEl.textContent.trim().toUpperCase(), margin, yPosition);
           yPosition += 15;
         }
-        
+
         // Extract subtitle
-        const subtitleEl = tempDiv.querySelector('p');
-        if (subtitleEl && (subtitleEl.textContent.includes('Export') || subtitleEl.textContent.includes('Document'))) {
+        const subtitleEl = tempDiv.querySelector("p");
+        if (
+          subtitleEl &&
+          (subtitleEl.textContent.includes("Export") ||
+            subtitleEl.textContent.includes("Document"))
+        ) {
           doc.setFont("helvetica", "normal");
           doc.setFontSize(10);
           doc.text(subtitleEl.textContent.trim(), margin, yPosition);
           yPosition += 10;
         }
-        
+
         // Extract document info (PEB number, Invoice number, etc.)
-        const docInfoDivs = tempDiv.querySelectorAll('div');
-        docInfoDivs.forEach(div => {
-          const style = div.getAttribute('style') || '';
-          if (style.includes('background: #f8f9fa') && style.includes('text-align: center')) {
-            const strongEl = div.querySelector('strong');
-            const spanEl = div.querySelector('span');
-            if (strongEl && (strongEl.textContent.includes('PEB') || strongEl.textContent.includes('Invoice') || strongEl.textContent.includes('No:'))) {
+        const docInfoDivs = tempDiv.querySelectorAll("div");
+        docInfoDivs.forEach((div) => {
+          const style = div.getAttribute("style") || "";
+          if (
+            style.includes("background: #f8f9fa") &&
+            style.includes("text-align: center")
+          ) {
+            const strongEl = div.querySelector("strong");
+            const spanEl = div.querySelector("span");
+            if (
+              strongEl &&
+              (strongEl.textContent.includes("PEB") ||
+                strongEl.textContent.includes("Invoice") ||
+                strongEl.textContent.includes("No:"))
+            ) {
               doc.setFont("helvetica", "bold");
               doc.setFontSize(10);
               doc.text(strongEl.textContent.trim(), margin, yPosition);
@@ -190,32 +251,31 @@ const ChatInterface = ({
             }
           }
         });
-        
+
         // Process tables exactly as they appear in frontend
-        const sections = tempDiv.querySelectorAll('div');
-        sections.forEach(section => {
-          const h4 = section.querySelector('h4');
-          const table = section.querySelector('table');
-          
+        const sections = tempDiv.querySelectorAll("div");
+        sections.forEach((section) => {
+          const h4 = section.querySelector("h4");
+          const table = section.querySelector("table");
+
           if (h4 && table) {
             // Check if we need a new page
             if (yPosition > doc.internal.pageSize.getHeight() - 80) {
               doc.addPage();
               yPosition = 20;
             }
-            
+
             // Add section title
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
             doc.text(h4.textContent.trim(), margin, yPosition);
             yPosition += 8;
-            
+
             // Process table with frontend structure
             yPosition = renderFrontendTable(doc, table, margin, yPosition);
             yPosition += 10;
           }
         });
-        
       } else {
         // Fallback for plain text
         doc.setFont("helvetica");
@@ -244,108 +304,119 @@ const ChatInterface = ({
         });
       }
 
-      doc.save(`${filename.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
-      alert("PDF berhasil didownload!");
-      
+      doc.save(`${filename.replace(/[^a-z0-9]/gi, "_")}_${Date.now()}.pdf`);
+      setSuccessMessage("PDF berhasil didownload!");
+      setShowSuccessPopup(true);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Gagal membuat PDF. Silakan coba lagi.");
+      setSuccessMessage("Gagal membuat PDF. Silakan coba lagi.");
+      setShowSuccessPopup(true);
     }
   };
-  
+
   // Function to render table exactly as frontend shows
   const renderFrontendTable = (doc, table, startX, startY) => {
     const pageWidth = doc.internal.pageSize.getWidth() - startX * 2;
     let yPosition = startY;
     const rowHeight = 10;
-    
+
     // Check table structure
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+
     if (thead && tbody) {
       // Structured table with proper headers
-      const headerCells = thead.querySelectorAll('th');
+      const headerCells = thead.querySelectorAll("th");
       if (headerCells.length > 0) {
         const colWidth = pageWidth / headerCells.length;
-        
+
         // Draw header row with light background like frontend
         doc.setFillColor(248, 249, 250); // #f8f9fa
-        doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
-        
+        doc.rect(startX, yPosition, pageWidth, rowHeight, "F");
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
         doc.setTextColor(73, 80, 87); // #495057
-        
+
         headerCells.forEach((cell, index) => {
-          const x = startX + (index * colWidth);
+          const x = startX + index * colWidth;
           const text = cell.textContent.trim();
-          doc.text(text.length > 20 ? text.substring(0, 20) + '...' : text, x + 2, yPosition + 6);
-          
+          doc.text(
+            text.length > 20 ? text.substring(0, 20) + "..." : text,
+            x + 2,
+            yPosition + 6
+          );
+
           // Draw border
           doc.setDrawColor(222, 226, 230); // #dee2e6
           doc.setLineWidth(0.1);
           doc.rect(x, yPosition, colWidth, rowHeight);
         });
-        
+
         yPosition += rowHeight;
-        
+
         // Draw data rows
-        const dataRows = tbody.querySelectorAll('tr');
+        const dataRows = tbody.querySelectorAll("tr");
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(0, 0, 0);
-        
+
         dataRows.forEach((row, rowIndex) => {
-          const cells = row.querySelectorAll('td');
-          
+          const cells = row.querySelectorAll("td");
+
           // Alternate row background like frontend
           if (rowIndex % 2 === 1) {
             doc.setFillColor(248, 249, 250);
-            doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+            doc.rect(startX, yPosition, pageWidth, rowHeight, "F");
           }
-          
+
           cells.forEach((cell, cellIndex) => {
-            const x = startX + (cellIndex * colWidth);
+            const x = startX + cellIndex * colWidth;
             let text = cell.textContent.trim();
-            
+
             if (text.length > 25) {
-              text = text.substring(0, 25) + '...';
+              text = text.substring(0, 25) + "...";
             }
-            
+
             // Right align numbers and currency like frontend
-            if (text.includes('$') || text.includes('kg') || text.includes('USD') || 
-                !isNaN(parseFloat(text.replace(/[^\d.-]/g, '')))) {
-              doc.text(text, x + colWidth - 2, yPosition + 6, { align: 'right' });
+            if (
+              text.includes("$") ||
+              text.includes("kg") ||
+              text.includes("USD") ||
+              !isNaN(parseFloat(text.replace(/[^\d.-]/g, "")))
+            ) {
+              doc.text(text, x + colWidth - 2, yPosition + 6, {
+                align: "right",
+              });
             } else {
               doc.text(text, x + 2, yPosition + 6);
             }
-            
+
             // Draw border
             doc.setDrawColor(222, 226, 230);
             doc.setLineWidth(0.1);
             doc.rect(x, yPosition, colWidth, rowHeight);
           });
-          
+
           yPosition += rowHeight;
         });
       }
     } else {
       // Simple table structure - process all rows
-      const allRows = table.querySelectorAll('tr');
+      const allRows = table.querySelectorAll("tr");
       if (allRows.length > 0) {
         const firstRow = allRows[0];
-        const cellCount = firstRow.querySelectorAll('th, td').length;
+        const cellCount = firstRow.querySelectorAll("th, td").length;
         const colWidth = pageWidth / cellCount;
-        
+
         allRows.forEach((row, rowIndex) => {
-          const cells = row.querySelectorAll('th, td');
-          const isHeaderRow = cells[0] && cells[0].tagName === 'TH';
-          
+          const cells = row.querySelectorAll("th, td");
+          const isHeaderRow = cells[0] && cells[0].tagName === "TH";
+
           if (isHeaderRow) {
             // Header styling - light gray like frontend
             doc.setFillColor(248, 249, 250);
-            doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+            doc.rect(startX, yPosition, pageWidth, rowHeight, "F");
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
             doc.setTextColor(73, 80, 87);
@@ -353,39 +424,42 @@ const ChatInterface = ({
             // Data row
             if (rowIndex % 2 === 1) {
               doc.setFillColor(248, 249, 250);
-              doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+              doc.rect(startX, yPosition, pageWidth, rowHeight, "F");
             }
             doc.setFont("helvetica", "normal");
             doc.setFontSize(9);
             doc.setTextColor(0, 0, 0);
           }
-          
+
           cells.forEach((cell, cellIndex) => {
-            const x = startX + (cellIndex * colWidth);
+            const x = startX + cellIndex * colWidth;
             let text = cell.textContent.trim();
-            
+
             if (text.length > 25) {
-              text = text.substring(0, 25) + '...';
+              text = text.substring(0, 25) + "...";
             }
-            
+
             doc.text(text, x + 2, yPosition + 6);
-            
+
             // Draw cell border
             doc.setDrawColor(222, 226, 230);
             doc.setLineWidth(0.1);
             doc.rect(x, yPosition, colWidth, rowHeight);
           });
-          
+
           yPosition += rowHeight;
         });
       }
     }
-    
-         return yPosition;
-   };
 
-   const renderMessage = (message, index) => {
-    if (message.type === "document-list" || message.type === "enhanced-document-list") {
+    return yPosition;
+  };
+
+  const renderMessage = (message, index) => {
+    if (
+      message.type === "document-list" ||
+      message.type === "enhanced-document-list"
+    ) {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -423,8 +497,7 @@ const ChatInterface = ({
                   <button
                     key={doc.id}
                     onClick={() => {
-                      // Use enhanced document generation with document ID/name
-                      EnhancedChatbotSystem.generateEnhancedDocument(
+                      DocumentGenerator.generateDocument(
                         doc.id,
                         setMessages,
                         setCompletedDocuments
@@ -480,16 +553,6 @@ const ChatInterface = ({
                   </button>
                 ))}
               </div>
-
-              {/* WHATSAPP STYLE TAIL */}
-              <div
-                className="absolute bottom-0 left-0 w-0 h-0"
-                style={{
-                  borderRight: "8px solid #ffffff",
-                  borderBottom: "8px solid transparent",
-                  transform: "translateX(-2px)",
-                }}
-              />
             </div>
 
             <div
@@ -507,7 +570,137 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "email-template-list" || message.type === "enhanced-email-list") {
+    if (message.type === "typing") {
+      return <TypingIndicator key={index} />;
+    }
+
+    if (message.type === "document-ready") {
+      return (
+        <div key={index} className="flex items-end space-x-2 mb-4">
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mb-1"
+            style={{
+              backgroundColor: "#ffffff",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            }}
+          >
+            <span style={{ fontSize: "22px" }}>🌶️</span>
+          </div>
+
+          <div className="max-w-2xl relative">
+            <div
+              className="px-4 py-3 text-sm leading-5 text-black relative"
+              style={{
+                backgroundColor: "#ffffff",
+                borderRadius: "18px 18px 18px 4px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                fontFamily:
+                  "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontSize: "16px",
+                lineHeight: "1.4",
+                fontWeight: 400,
+              }}
+            >
+              <div
+                className="text-sm leading-relaxed mb-3"
+                style={{ fontWeight: 400 }}
+                dangerouslySetInnerHTML={{
+                  __html: formatMessageText(message.text),
+                }}
+              />
+
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span
+                    className="text-xs font-medium text-gray-700"
+                    style={{
+                      fontFamily:
+                        "'Product Sans', 'Google Sans Text', sans-serif",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Generated Document:
+                  </span>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleCopy(message.content)}
+                      className="text-xs text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>Copy</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleDownload(
+                          message.content,
+                          message.documentName || "document"
+                        );
+                      }}
+                      className="text-xs text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+                    >
+                      <Download className="w-3 h-3" />
+                      <span>Download PDF</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded p-3 max-h-96 overflow-y-auto border">
+                  {message.content && message.content.includes("<") ? (
+                    <div
+                      className="text-sm text-gray-800"
+                      dangerouslySetInnerHTML={{
+                        __html: message.content,
+                      }}
+                      style={{
+                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                        lineHeight: "1.4",
+                      }}
+                    />
+                  ) : (
+                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                      {message.content}
+                    </pre>
+                  )}
+                </div>
+              </div>
+
+              {/* Next Button */}
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => {
+                    DocumentGenerator.showDocumentList(
+                      setMessages,
+                      setCurrentFlow,
+                      completedDocuments
+                    );
+                  }}
+                  className="text-sm text-white bg-gray-900 hover:bg-gray-800 px-4 py-2 rounded-full transition-colors flex items-center space-x-1"
+                >
+                  <span>Next Document</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div
+              className="text-xs mt-1 text-left text-gray-500"
+              style={{
+                fontSize: "11px",
+                fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                fontWeight: 400,
+              }}
+            >
+              {message.timestamp}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (
+      message.type === "email-template-list" ||
+      message.type === "enhanced-email-list"
+    ) {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -614,7 +807,10 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "proposal-list" || message.type === "enhanced-proposal-list") {
+    if (
+      message.type === "proposal-list" ||
+      message.type === "enhanced-proposal-list"
+    ) {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -711,134 +907,10 @@ const ChatInterface = ({
       );
     }
 
-    // Enhanced document ready with HTML content display
-    if (message.type === "enhanced-document-ready" || message.type === "document-ready") {
-      return (
-        <div key={index} className="flex items-end space-x-2 mb-4">
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mb-1"
-            style={{
-              backgroundColor: "#ffffff",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          >
-            <span style={{ fontSize: "22px" }}>🌶️</span>
-          </div>
-
-          <div className="max-w-2xl relative">
-            <div
-              className="px-4 py-3 text-sm leading-5 text-black relative"
-              style={{
-                backgroundColor: "#ffffff",
-                borderRadius: "18px 18px 18px 4px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                fontFamily:
-                  "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                fontSize: "16px",
-                lineHeight: "1.4",
-                fontWeight: 400,
-              }}
-            >
-              <div
-                className="text-sm leading-relaxed mb-3"
-                style={{ fontWeight: 400 }}
-                dangerouslySetInnerHTML={{
-                  __html: formatMessageText(message.text)
-                }}
-              />
-              
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className="text-xs font-medium text-gray-700"
-                    style={{
-                      fontFamily:
-                        "'Product Sans', 'Google Sans Text', sans-serif",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Generated Document:
-                  </span>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleCopy(message.content)}
-                      className="text-xs text-gray-600 hover:text-gray-900 flex items-center space-x-1"
-                    >
-                      <Copy className="w-3 h-3" />
-                      <span>Copy</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleDownload(
-                          message.content,
-                          message.documentName || "document"
-                        );
-                        setTimeout(() => {
-                          DocumentGenerator.showDocumentList(
-                            setMessages,
-                            setCurrentFlow,
-                            completedDocuments
-                          );
-                        }, 500);
-                      }}
-                      className="text-xs text-gray-600 hover:text-gray-900 flex items-center space-x-1"
-                    >
-                      <Download className="w-3 h-3" />
-                      <span>Download PDF</span>
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Display HTML content properly or fallback to plain text */}
-                <div className="bg-white rounded p-3 max-h-96 overflow-y-auto border">
-                  {message.content && message.content.includes('<') ? (
-                    // HTML content - render as HTML
-                    <div 
-                      className="text-sm text-gray-800"
-                      dangerouslySetInnerHTML={{
-                        __html: message.content
-                      }}
-                      style={{
-                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                        lineHeight: "1.4"
-                      }}
-                    />
-                  ) : (
-                    // Plain text content
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
-                      {message.content}
-                    </pre>
-                  )}
-                </div>
-              </div>
-
-              {/* WHATSAPP STYLE TAIL */}
-              <div
-                className="absolute bottom-0 left-0 w-0 h-0"
-                style={{
-                  borderRight: "8px solid #ffffff",
-                  borderBottom: "8px solid transparent",
-                  transform: "translateX(-2px)",
-                }}
-              />
-            </div>
-
-            <div
-              className="text-xs mt-1 text-left text-gray-500"
-              style={{
-                fontSize: "11px",
-                fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                fontWeight: 400,
-              }}
-            >
-              {message.timestamp}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (message.type === "enhanced-email-ready" || message.type === "email-ready") {
+    if (
+      message.type === "enhanced-email-ready" ||
+      message.type === "email-ready"
+    ) {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -932,7 +1004,10 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "enhanced-proposal-ready" || message.type === "proposal-ready") {
+    if (
+      message.type === "enhanced-proposal-ready" ||
+      message.type === "proposal-ready"
+    ) {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -1038,7 +1113,10 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "cost-estimation" || message.type === "enhanced-cost-estimation") {
+    if (
+      message.type === "cost-estimation" ||
+      message.type === "enhanced-cost-estimation"
+    ) {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -1069,7 +1147,7 @@ const ChatInterface = ({
                 className="text-sm leading-relaxed mb-3"
                 style={{ fontWeight: 400 }}
                 dangerouslySetInnerHTML={{
-                  __html: formatMessageText(message.text)
+                  __html: formatMessageText(message.text),
                 }}
               />
               <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
@@ -1150,9 +1228,18 @@ const ChatInterface = ({
                     Informasi Tambahan:
                   </h4>
                   <div className="text-sm space-y-2">
-                    <div><strong>Estimasi Waktu Kirim:</strong> {message.content.additionalInfo.shippingTime}</div>
-                    <div><strong>Dokumen Diperlukan:</strong> {message.content.additionalInfo.documentation.join(", ")}</div>
-                    <div><strong>Payment Terms:</strong> {message.content.additionalInfo.paymentTerms}</div>
+                    <div>
+                      <strong>Estimasi Waktu Kirim:</strong>{" "}
+                      {message.content.additionalInfo.shippingTime}
+                    </div>
+                    <div>
+                      <strong>Dokumen Diperlukan:</strong>{" "}
+                      {message.content.additionalInfo.documentation.join(", ")}
+                    </div>
+                    <div>
+                      <strong>Payment Terms:</strong>{" "}
+                      {message.content.additionalInfo.paymentTerms}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1261,13 +1348,15 @@ const ChatInterface = ({
                 className="text-sm leading-relaxed whitespace-pre-line"
                 style={{ fontWeight: 400 }}
                 dangerouslySetInnerHTML={{
-                  __html: formatMessageText(message.formattedText || message.text)
+                  __html: formatMessageText(
+                    message.formattedText || message.text
+                  ),
                 }}
               />
               {isTypingResponse && message.from === "bot" && (
-                <span 
+                <span
                   className="inline-block w-0.5 h-4 bg-gray-600 ml-1 animate-pulse"
-                  style={{ animation: 'blink 1s infinite' }}
+                  style={{ animation: "blink 1s infinite" }}
                 />
               )}
 
@@ -1323,9 +1412,9 @@ const ChatInterface = ({
             style={{
               background: "#f2f2f7",
               overflowX: "hidden",
-              borderRadius: '1.25rem 1.25rem 0 0',
+              borderRadius: "1.25rem 1.25rem 0 0",
               minHeight: 0,
-              height: 'auto',
+              height: "auto",
             }}
           >
             {messages.map((message, index) => renderMessage(message, index))}
@@ -1374,86 +1463,99 @@ const ChatInterface = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggestions Bar - flush with border */}
-          <div className="border-t border-gray-100 bg-gray-50 px-6 py-4 w-full max-w-full overflow-x-hidden" aria-label="Pertanyaan Umum">
-            <div className="flex items-center space-x-2 mb-2">
-              <Lightbulb className="w-4 h-4 text-orange-500" />
-              <span
-                className="text-sm font-medium text-gray-700"
-                style={{
-                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                  fontWeight: 500,
-                }}
+          {/* Only render suggestions and input box on AI Assistant page */}
+          {isAIAssistantPage && (
+            <>
+              {/* Suggestions Bar */}
+              <div
+                className="border-t border-gray-100 bg-gray-50 px-6 py-4 w-full max-w-full overflow-x-hidden"
+                aria-label="Pertanyaan Umum"
               >
-                Pertanyaan Umum:
-              </span>
-            </div>
-            <div
-              className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                WebkitOverflowScrolling: "touch",
-              }}
-            >
-              {(Array.isArray(generalSuggestions) && generalSuggestions.length > 0) ? (
-                generalSuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-4 py-2 transition-all whitespace-nowrap shadow-sm text-gray-700"
+                <div className="flex items-center space-x-2 mb-2">
+                  <Lightbulb className="w-4 h-4 text-orange-500" />
+                  <span
+                    className="text-sm font-medium text-gray-700"
                     style={{
-                      fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                      fontWeight: 400,
-                      minWidth: "fit-content",
+                      fontFamily:
+                        "'Product Sans', 'Google Sans Text', sans-serif",
+                      fontWeight: 500,
                     }}
                   >
-                    {suggestion}
-                  </button>
-                ))
-              ) : (
-                <span className="text-xs text-gray-500 px-2 py-1">Tidak ada pertanyaan umum.</span>
-              )}
-            </div>
-          </div>
+                    Pertanyaan Umum:
+                  </span>
+                </div>
+                <div
+                  className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
+                  style={{
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                    WebkitOverflowScrolling: "touch",
+                  }}
+                >
+                  {Array.isArray(generalSuggestions) &&
+                  generalSuggestions.length > 0 ? (
+                    generalSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-4 py-2 transition-all whitespace-nowrap shadow-sm text-gray-700"
+                        style={{
+                          fontFamily:
+                            "'Google Sans Text', 'Roboto', sans-serif",
+                          fontWeight: 400,
+                          minWidth: "fit-content",
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-500 px-2 py-1">
+                      Tidak ada pertanyaan umum.
+                    </span>
+                  )}
+                </div>
+              </div>
 
-          {/* Input Section - flush with border */}
-          <div className="border-t border-gray-100 px-6 py-5 bg-white w-full max-w-full overflow-x-hidden">
-            <div className="flex space-x-3">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    handleSend();
-                  }
-                }}
-                placeholder="Tulis pesan..."
-                className="flex-1 border border-gray-200 rounded-lg px-4 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black"
-                style={{
-                  fontFamily:
-                    "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  color: "#000000", // Explicit black text color
-                }}
-                disabled={isGenerating}
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || isGenerating}
-                className="bg-gray-900 text-white px-7 py-4 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                style={{
-                  fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">Kirim</span>
-              </button>
-            </div>
-          </div>
+              {/* Input Section */}
+              <div className="border-t border-gray-100 px-6 py-5 bg-white w-full max-w-full overflow-x-hidden">
+                <div className="flex space-x-3">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        handleSend();
+                      }
+                    }}
+                    placeholder="Tulis pesan..."
+                    className="flex-1 border border-gray-200 rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black"
+                    style={{
+                      fontFamily:
+                        "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                    }}
+                    disabled={isGenerating}
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={!input.trim() || isGenerating}
+                    className="bg-gray-900 text-white px-7 py-4 rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                    style={{
+                      fontFamily:
+                        "'Product Sans', 'Google Sans Text', sans-serif",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <Send className="w-4 h-4" />
+                    <span className="hidden sm:inline">Kirim</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         {/* CSS untuk hide scrollbar */}
         <style jsx>{`
@@ -1465,11 +1567,42 @@ const ChatInterface = ({
             display: none;
           }
           @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
+            0%,
+            50% {
+              opacity: 1;
+            }
+            51%,
+            100% {
+              opacity: 0;
+            }
           }
         `}</style>
       </div>
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <SuccessPopup
+          message={successMessage}
+          onClose={() => setShowSuccessPopup(false)}
+        />
+      )}
+
+      {/* Add fade-in animation styles */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

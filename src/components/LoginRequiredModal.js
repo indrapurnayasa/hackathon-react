@@ -1,7 +1,7 @@
 // src/components/LoginRequiredModal.js
-import React, { useState } from 'react';
-import { X, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { X, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginRequiredModal({ onLogin, onClose }) {
   const [isBuffering, setIsBuffering] = useState(false);
@@ -13,27 +13,28 @@ export default function LoginRequiredModal({ onLogin, onClose }) {
       if (onLogin) {
         onLogin();
       } else {
-        navigate('/login');
+        navigate("/login");
       }
     }, 500);
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4"
-      style={{ 
+      style={{
         zIndex: 9999,
-        backdropFilter: 'none',
-        WebkitBackdropFilter: 'none'
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
       }}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl w-full max-w-md flex flex-col shadow-2xl"
         style={{
-          fontFamily: "'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-          position: 'relative',
+          fontFamily:
+            "'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+          position: "relative",
           zIndex: 10,
-          backgroundColor: '#ffffff'
+          backgroundColor: "#ffffff",
         }}
       >
         {/* Header with Close Button */}
@@ -63,27 +64,34 @@ export default function LoginRequiredModal({ onLogin, onClose }) {
               Account Access Required
             </h3>
             <p className="text-gray-600 font-light leading-relaxed">
-              You need to sign in to access this feature. Please login to your account or create a new one to continue.
+              Kamu perlu sign in untuk akses semua fitur. Mohon login ke akun
+              kamu atau buat akun baru untuk melanjutkan.
             </p>
           </div>
 
           {/* Benefits */}
           <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
             <div className="text-sm font-light text-green-800 mb-3">
-              With an account, you can:
+              Dengan login, kamu bisa:
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-green-700">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs font-light">Save your preferences and settings</span>
+                <span className="text-xs font-light">
+                  Conversational AI yang membantu anda dalam setiap langkah
+                </span>
               </div>
               <div className="flex items-center gap-2 text-green-700">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs font-light">Access personalized recommendations</span>
+                <span className="text-xs font-light">
+                  Akses Smart Shipping - Rekomendasi Alur Shipping
+                </span>
               </div>
               <div className="flex items-center gap-2 text-green-700">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs font-light">Sync data across devices</span>
+                <span className="text-xs font-light">
+                  Personalisasi per user untuk rekomendasi
+                </span>
               </div>
             </div>
           </div>
@@ -94,14 +102,14 @@ export default function LoginRequiredModal({ onLogin, onClose }) {
               onClick={handleSignIn}
               className="w-full bg-green-600 text-white py-3 px-4 rounded-full font-light hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all hover:shadow-lg"
             >
-              Sign In Now
+              Sign In Sekarang
             </button>
-            
+
             <button
               onClick={onClose}
               className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-full font-light hover:bg-gray-200 transition-all hover:shadow-lg"
             >
-              Maybe Later
+              Mungkin Nanti
             </button>
           </div>
         </div>
@@ -112,14 +120,21 @@ export default function LoginRequiredModal({ onLogin, onClose }) {
         <div
           className={`fixed inset-0 bg-white flex items-center justify-center z-[10000] transition-opacity duration-300`}
           style={{
-            fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+            fontFamily:
+              "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif",
           }}
         >
           {/* Simple buffer animation */}
           <div className="flex space-x-1">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div
+              className="w-3 h-3 bg-green-500 rounded-full animate-pulse"
+              style={{ animationDelay: "0.1s" }}
+            ></div>
+            <div
+              className="w-3 h-3 bg-green-500 rounded-full animate-pulse"
+              style={{ animationDelay: "0.2s" }}
+            ></div>
           </div>
         </div>
       )}

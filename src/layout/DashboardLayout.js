@@ -1,44 +1,45 @@
 // src/layout/DashboardLayout.js
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, NavLink, useNavigate } from "react-router-dom";
-import { Settings, User, LogOut, AlertTriangle } from "lucide-react";
+import { Settings, User, LogOut } from "lucide-react";
 import PersonalizationModal from "../components/PersonalizationModal";
-import config from '../config';
+import config from "../config";
 
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
-  const [showPersonalizationModal, setShowPersonalizationModal] = useState(false);
-  const [showProfileIncomplete, setShowProfileIncomplete] = useState(false);
+  const [showPersonalizationModal, setShowPersonalizationModal] =
+    useState(false);
   const [showProfileTooltip, setShowProfileTooltip] = useState(false);
-  const [userName, setUserName] = useState('User');
+  const [userName, setUserName] = useState("User");
   const [isGuest, setIsGuest] = useState(false);
-  const [isBuffering, setIsBuffering] = useState(false); // Add buffer animation state
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // Logout modal state
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // Logout loading state
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Fetch user info on mount and check for first-time login
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('access_token');
-      const isGuestMode = localStorage.getItem('isGuest') === 'true';
-      
+      const token = localStorage.getItem("access_token");
+      const isGuestMode = localStorage.getItem("isGuest") === "true";
+
       if (token && !isGuestMode) {
         try {
           const res = await fetch(`${config.API_BASE_URL}/api/v1/auth/me`, {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'accept': 'application/json',
+              Authorization: `Bearer ${token}`,
+              accept: "application/json",
             },
           });
           if (res.ok) {
             const user = await res.json();
-            setUserName(user.name || user.username || 'Versa');
+            setUserName(user.name || user.username || "Versa");
             setIsGuest(false);
-            
+
             // Check if this is first-time login (no personalization completed)
-            const isProfileCompleted = localStorage.getItem('profileCompleted') === 'true';
+            const isProfileCompleted =
+              localStorage.getItem("profileCompleted") === "true";
             if (!isProfileCompleted) {
               // Show personalization modal for logged-in users
               setTimeout(() => {
@@ -47,26 +48,20 @@ export default function DashboardLayout() {
             }
             return;
           }
-        } catch (err) {}
-      }
-      
-      if (isGuestMode) {
-        setIsGuest(true);
-        setUserName('Guest');
+          throw new Error("Failed to fetch user");
+        } catch (err) {
+          console.error("Error fetching user:", err);
+          setIsGuest(true);
+          setUserName("User");
+        }
       } else {
         setIsGuest(true);
-        setUserName('User');
+        setUserName(isGuestMode ? "Guest" : "User");
       }
     };
 
     fetchUser();
   }, []);
-
-  // Check if profile is incomplete - Only for logged-in users
-  const isProfileSkipped = localStorage.getItem('profileSkipped') === 'true';
-  const isProfileCompleted = localStorage.getItem('profileCompleted') === 'true';
-  const token = localStorage.getItem('access_token');
-  const shouldShowCaution = token && !isGuest && isProfileSkipped && !isProfileCompleted;
 
   /* ---------- MAIN NAVIGATION ---------- */
   const menus = [
@@ -99,22 +94,9 @@ export default function DashboardLayout() {
   const handleClosePersonalizationModal = () => {
     setShowPersonalizationModal(false);
     setShowProfileTooltip(false);
-    // Recheck profile status after modal closes
-    const updatedSkipped = localStorage.getItem('profileSkipped') === 'true';
-    const updatedCompleted = localStorage.getItem('profileCompleted') === 'true';
-    setShowProfileIncomplete(updatedSkipped && !updatedCompleted);
   };
 
-  const handleCautionClick = () => {
-    setShowProfileTooltip(!showProfileTooltip);
-  };
-
-  const handleStartProfile = () => {
-    setShowProfileTooltip(false);
-    setShowPersonalizationModal(true);
-  };
-
-  // Show logout confirmation modal
+  // Handle logout confirmation modal
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
     setShowSettingsDropdown(false);
@@ -123,24 +105,26 @@ export default function DashboardLayout() {
   // Handle confirmed logout with loading animation
   const handleConfirmLogout = async () => {
     setIsLoggingOut(true);
-    
+
     try {
       await fetch(`${config.API_BASE_URL}/api/v1/auth/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'accept': 'application/json',
+          accept: "application/json",
         },
-        body: '',
+        body: "",
       });
-    } catch (err) {}
-    
+    } catch (err) {
+      console.error("Error during logout:", err);
+    }
+
     // Simulate loading for UX
     setTimeout(() => {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('isGuest');
-      localStorage.removeItem('profileCompleted');
-      localStorage.removeItem('profileSkipped');
-      window.location.href = '/login';
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("isGuest");
+      localStorage.removeItem("profileCompleted");
+      localStorage.removeItem("profileSkipped");
+      window.location.href = "/login";
     }, 1000);
   };
 
@@ -213,8 +197,9 @@ export default function DashboardLayout() {
     >
       {/* ── HEADER ─────────────────────────── */}
       <header
-        className="flex-none w-full py-6 z-50 fixed top-0 inset-x-0"
-        style={{ background: "transparent" }}
+        className={`flex-none w-full py-6 z-50 fixed top-0 inset-x-0 ${
+          isShippingPage ? "" : "bg-[#f2f2f7]"
+        }`}
       >
         <div className="flex items-center justify-between w-full px-6">
           {/* Logo / Brand */}
@@ -306,9 +291,22 @@ export default function DashboardLayout() {
 
             {/* Profile */}
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+              <div
+                className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
                 style={{ height: 48 }}
-                onClick={isGuest ? (e) => { e.stopPropagation(); setIsBuffering(true); setTimeout(() => { navigate('/login', { state: { from: location.pathname } }); }, 500); } : handleProfileClick}
+                onClick={
+                  isGuest
+                    ? (e) => {
+                        e.stopPropagation();
+                        setIsBuffering(true);
+                        setTimeout(() => {
+                          navigate("/login", {
+                            state: { from: location.pathname },
+                          });
+                        }, 500);
+                      }
+                    : handleProfileClick
+                }
               >
                 {isBuffering ? (
                   <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
@@ -323,7 +321,9 @@ export default function DashboardLayout() {
                       </span>
                     ) : (
                       <>
-                        <span className="text-base font-light text-gray-700 hidden md:block">Hi, {userName}</span>
+                        <span className="text-base font-light text-gray-700 hidden md:block">
+                          Hi, {userName}
+                        </span>
                         <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                           <span style={{ fontSize: 20 }}>🐴</span>
                         </div>
@@ -341,7 +341,7 @@ export default function DashboardLayout() {
                   Kamu belum melengkapi profil personalisasi.
                 </div>
                 <button
-                  onClick={handleStartProfile}
+                  onClick={handleProfileClick} // Changed from handleStartProfile to handleProfileClick
                   className="w-full bg-green-600 text-white py-3 px-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
                 >
                   Mulai
@@ -368,14 +368,21 @@ export default function DashboardLayout() {
         <div
           className={`fixed inset-0 bg-white flex items-center justify-center z-[9999] transition-opacity duration-300`}
           style={{
-            fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+            fontFamily:
+              "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif",
           }}
         >
           {/* Simple buffer animation */}
           <div className="flex space-x-1">
             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div
+              className="w-3 h-3 bg-green-500 rounded-full animate-pulse"
+              style={{ animationDelay: "0.1s" }}
+            ></div>
+            <div
+              className="w-3 h-3 bg-green-500 rounded-full animate-pulse"
+              style={{ animationDelay: "0.2s" }}
+            ></div>
           </div>
         </div>
       )}
@@ -383,16 +390,25 @@ export default function DashboardLayout() {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[10000]">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl"
-               style={{ fontFamily: "'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+          <div
+            className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl"
+            style={{
+              fontFamily:
+                "'Product Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            }}
+          >
             {isLoggingOut ? (
               // Loading state
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                   <span className="text-white text-2xl">⚡</span>
                 </div>
-                <h3 className="text-lg font-light text-gray-900 mb-2">Logging out...</h3>
-                <p className="text-gray-600 font-light">Please wait while we sign you out safely.</p>
+                <h3 className="text-lg font-light text-gray-900 mb-2">
+                  Logging out...
+                </h3>
+                <p className="text-gray-600 font-light">
+                  Please wait while we sign you out safely.
+                </p>
               </div>
             ) : (
               // Confirmation state
@@ -401,10 +417,14 @@ export default function DashboardLayout() {
                   <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <LogOut size={24} className="text-red-600" />
                   </div>
-                  <h3 className="text-xl font-light text-gray-900 mb-2">Konfirmasi Logout</h3>
-                  <p className="text-gray-600 font-light">Apakah kamu yakin untuk logout?</p>
+                  <h3 className="text-xl font-light text-gray-900 mb-2">
+                    Konfirmasi Logout
+                  </h3>
+                  <p className="text-gray-600 font-light">
+                    Apakah kamu yakin untuk logout?
+                  </p>
                 </div>
-                
+
                 <div className="flex space-x-3">
                   <button
                     onClick={handleCancelLogout}

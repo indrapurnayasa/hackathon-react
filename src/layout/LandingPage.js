@@ -1,1134 +1,787 @@
-import React, { useEffect, useState } from "react";
-import GlobeMap from "./GlobeMap";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import Globe from "react-globe.gl";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
-import Fitur1 from '../assets/Fitur1.gif'; // Replace with conversational-ai-1.png
-import Fitur2 from '../assets/Fitur2.gif'; // Replace with smart-shipping-1.png
-import Fitur3 from '../assets/Fitur3.gif'; // Replace with market-trends-1.png
+// Import carousel images
+import aiImage1 from "../assets/images/carousel/ai-1.jpg";
+import aiImage2 from "../assets/images/carousel/ai-2.jpg";
+import aiImage3 from "../assets/images/carousel/ai-3.jpg";
+import shippingImage1 from "../assets/images/carousel/shipping-1.jpg";
+import shippingImage2 from "../assets/images/carousel/shipping-2.jpg";
+import shippingImage3 from "../assets/images/carousel/shipping-3.jpg";
+import trendsImage1 from "../assets/images/carousel/trends-1.jpg";
+import trendsImage2 from "../assets/images/carousel/trends-2.jpg";
+import trendsImage3 from "../assets/images/carousel/trends-3.jpg";
 
-const sections = [
-  { id: "hero", name: "About", shortName: "About" },
-  { id: "conversational-ai", name: "Conversational AI", shortName: "AI Chat" },
-  { id: "smart-shipping", name: "Smart Shipping", shortName: "Shipping" },
-  { id: "market-trends", name: "Market Analytics", shortName: "Analytics" },
-];
+// Import background images
+import aiBg from "../assets/images/backgrounds/ai-background.jpg";
+import shippingBg from "../assets/images/backgrounds/shipping-background.jpg";
+import trendsBg from "../assets/images/backgrounds/trends-background.jpg";
 
-// Enhanced Carousel Component with Bullet Navigation
-const ImageCarousel = ({ images, height = "400px" }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const GEOJSON_URL = "/countries.geojson";
 
-  // Auto-advance every 1 second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => 
-        prevIndex === images.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [images.length]);
-
-  const goToPrevious = () => {
-    setCurrentIndex(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
-  };
-
-  const goToNext = () => {
-    setCurrentIndex(currentIndex === images.length - 1 ? 0 : currentIndex + 1);
-  };
-
-  return (
-    <div style={{ position: "relative", width: "100%", height, overflow: "hidden", borderRadius: "16px" }}>
-      {/* Main Image */}
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          backgroundImage: `url(${images[currentIndex]})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          transition: "all 0.5s ease-in-out",
-        }}
-      />
-
-      {/* Navigation Arrows */}
-      <button
-        onClick={goToPrevious}
-        style={{
-          position: "absolute",
-          left: "16px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          background: "rgba(0,0,0,0.5)",
-          color: "white",
-          border: "none",
-          borderRadius: "50%",
-          width: "40px",
-          height: "40px",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "18px",
-          transition: "background 0.3s ease",
-        }}
-        onMouseEnter={(e) => e.target.style.background = "rgba(0,0,0,0.8)"}
-        onMouseLeave={(e) => e.target.style.background = "rgba(0,0,0,0.5)"}
-      >
-        ‹
-      </button>
-
-      <button
-        onClick={goToNext}
-        style={{
-          position: "absolute",
-          right: "16px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          background: "rgba(0,0,0,0.5)",
-          color: "white",
-          border: "none",
-          borderRadius: "50%",
-          width: "40px",
-          height: "40px",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "18px",
-          transition: "background 0.3s ease",
-        }}
-        onMouseEnter={(e) => e.target.style.background = "rgba(0,0,0,0.8)"}
-        onMouseLeave={(e) => e.target.style.background = "rgba(0,0,0,0.5)"}
-      >
-        ›
-      </button>
-
-      {/* Bullet Navigation Indicators */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: "16px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "8px",
-          zIndex: 10,
-        }}
-      >
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            style={{
-              width: "12px",
-              height: "12px",
-              borderRadius: "50%",
-              border: "2px solid white",
-              background: index === currentIndex ? "white" : "transparent",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-              outline: "none",
-            }}
-            aria-label={`Go to image ${index + 1}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Ship Component for Montfort-style ship section
-const ShipComponent = () => {
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "500px",
-        background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)",
-        borderRadius: "16px",
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+// Update CarouselNavigation component
+const CarouselNavigation = ({
+  currentIndex,
+  totalImages,
+  onPrevious,
+  onNext,
+}) => (
+  <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-4">
+    {/* Previous Button */}
+    <button
+      onClick={onPrevious}
+      className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all"
+      aria-label="Previous image"
     >
-      {/* Ocean waves effect */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "60%",
-          background: "linear-gradient(to top, rgba(59, 130, 246, 0.8), rgba(30, 58, 138, 0.4))",
-          borderRadius: "0 0 16px 16px",
-        }}
-      />
-      
-      {/* Ship silhouette */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          color: "white",
-          textAlign: "center",
-          opacity: 0.9,
-        }}
-      >
-        <svg
-          width="200"
-          height="120"
-          viewBox="0 0 200 120"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Ship hull */}
-          <path
-            d="M20 80 L180 80 L170 100 L30 100 Z"
-            fill="rgba(255, 255, 255, 0.8)"
-          />
-          {/* Ship deck */}
-          <rect x="40" y="60" width="120" height="20" fill="rgba(255, 255, 255, 0.9)" />
-          {/* Ship mast */}
-          <rect x="99" y="20" width="2" height="60" fill="rgba(255, 255, 255, 0.8)" />
-          {/* Containers */}
-          <rect x="50" y="50" width="20" height="10" fill="rgba(239, 68, 68, 0.8)" />
-          <rect x="75" y="50" width="20" height="10" fill="rgba(34, 197, 94, 0.8)" />
-          <rect x="100" y="50" width="20" height="10" fill="rgba(59, 130, 246, 0.8)" />
-          <rect x="125" y="50" width="20" height="10" fill="rgba(251, 191, 36, 0.8)" />
-        </svg>
-        
-        <div style={{ marginTop: "20px", fontSize: "16px", fontWeight: "500" }}>
-          Global Shipping Network
-        </div>
-      </div>
-      
-      {/* Floating animation for containers */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        svg rect:nth-child(3) { animation: float 3s ease-in-out infinite; }
-        svg rect:nth-child(4) { animation: float 3s ease-in-out infinite 0.5s; }
-        svg rect:nth-child(5) { animation: float 3s ease-in-out infinite 1s; }
-        svg rect:nth-child(6) { animation: float 3s ease-in-out infinite 1.5s; }
-      `}</style>
+      ←
+    </button>
+
+    {/* Dots */}
+    <div className="flex gap-3">
+      {[...Array(totalImages)].map((_, idx) => (
+        <div
+          key={idx}
+          className={`w-2 h-2 rounded-full transition-all ${
+            idx === currentIndex ? "bg-white scale-125" : "bg-white/50"
+          }`}
+        />
+      ))}
     </div>
-  );
+
+    {/* Next Button */}
+    <button
+      onClick={onNext}
+      className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all"
+      aria-label="Next image"
+    >
+      →
+    </button>
+  </div>
+);
+
+// Add PropTypes
+CarouselNavigation.propTypes = {
+  currentIndex: PropTypes.number.isRequired,
+  totalImages: PropTypes.number.isRequired,
+  onPrevious: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
 };
 
 const LandingPage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // Scroll and globe visibility states
-  const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
-
-  // Loading states - simplified without fade
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
 
-  // Handle scroll animations
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setScrollY(scrollPosition);
+  // Globe states
+  const globeEl = useRef();
+  const containerRef = useRef();
+  const [countries, setCountries] = useState({ features: [] });
+  const [hoverD, setHoverD] = useState();
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [isGlobeLoading, setIsGlobeLoading] = useState(true);
+  const [globeError, setGlobeError] = useState(null);
+  const [hoveredCountry, setHoveredCountry] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+  // Get export data for tooltip
+  const getExportData = useCallback((countryName) => {
+    const exportData = {
+      Indonesia: {
+        commodities: ["Palm Oil", "Coal", "Textiles"],
+        percentage: 12.5,
+      },
+      "United States": {
+        commodities: ["Machinery", "Electronics", "Chemicals"],
+        percentage: 8.3,
+      },
+      China: {
+        commodities: ["Electronics", "Machinery", "Textiles"],
+        percentage: 15.7,
+      },
+      Germany: {
+        commodities: ["Machinery", "Vehicles", "Chemicals"],
+        percentage: 6.9,
+      },
+      Japan: {
+        commodities: ["Electronics", "Vehicles", "Machinery"],
+        percentage: 4.2,
+      },
     };
-    
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return (
+      exportData[countryName] || {
+        commodities: [
+          "Agricultural Products",
+          "Raw Materials",
+          "Manufactured Goods",
+        ],
+        percentage: Math.floor(Math.random() * 15) + 3,
+      }
+    );
   }, []);
 
-  // Loading animation - Handle Get Started with direct loading then buffer before LoginPage
-  const handleGetStarted = () => {
+  // Update dimensions untuk globe container
+  const updateDimensions = useCallback(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDimensions({
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+  }, []);
+
+  // Load GeoJSON data
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadGeoData = async () => {
+      try {
+        setIsGlobeLoading(true);
+        setGlobeError(null);
+
+        const response = await fetch(GEOJSON_URL);
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+        if (!data || !Array.isArray(data.features)) {
+          throw new Error("Invalid GeoJSON structure");
+        }
+
+        if (isMounted) {
+          setCountries(data);
+          setIsGlobeLoading(false);
+        }
+      } catch (error) {
+        console.error("Error loading GeoJSON data:", error);
+        if (isMounted) {
+          setGlobeError(error.message);
+          setIsGlobeLoading(false);
+          setCountries({ features: [] });
+        }
+      }
+    };
+
+    loadGeoData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Setup globe controls
+  useEffect(() => {
+    if (!isGlobeLoading && globeEl.current && countries.features.length > 0) {
+      const globe = globeEl.current;
+
+      if (globe.controls) {
+        // Lock zoom but enable rotation
+        globe.controls().enableZoom = false;
+        globe.controls().enablePan = true;
+        globe.controls().enableRotate = true;
+        globe.controls().autoRotate = true;
+        globe.controls().autoRotateSpeed = 0.5;
+        globe.controls().dampingFactor = 0.1;
+        globe.controls().rotateSpeed = 0.7;
+
+        // Set fixed zoom level
+        globe.pointOfView(
+          {
+            lat: 0,
+            lng: 0,
+            altitude: 1.8,
+          },
+          1000
+        );
+      }
+    }
+  }, [countries, isGlobeLoading]);
+
+  // Resize listener
+  useEffect(() => {
+    updateDimensions();
+    const handleResize = () => {
+      requestAnimationFrame(updateDimensions);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [updateDimensions]);
+
+  const handlePolygonHover = useCallback(
+    (polygon, event) => {
+      if (polygon) {
+        const countryName =
+          polygon.properties?.NAME_EN || polygon.properties?.NAME || "Unknown";
+        setHoveredCountry({
+          name: countryName,
+          ...getExportData(countryName),
+        });
+
+        // Update tooltip position using mouse coordinates
+        if (event?.clientX && event?.clientY) {
+          setTooltipPosition({
+            x: event.clientX,
+            y: event.clientY,
+          });
+        }
+      } else {
+        setHoveredCountry(null);
+      }
+
+      if (globeEl.current?.controls) {
+        globeEl.current.controls().autoRotateSpeed = polygon ? 0.2 : 0.5;
+      }
+    },
+    [getExportData]
+  );
+
+  // Handle learn more button click
+  const handleLearnMore = useCallback(() => {
     setIsLoadingAnimation(true);
     setLoadingProgress(0);
-  };
+  }, []);
 
-  // Loading animation effect - Direct navigation without fade transition
+  const handlePolygonClick = useCallback((polygon) => {
+    if (polygon?.properties) {
+      setIsLoadingAnimation(true);
+      setLoadingProgress(0);
+    }
+  }, []);
+
+  // Loading animation effect
   useEffect(() => {
     if (isLoadingAnimation) {
       const interval = setInterval(() => {
         setLoadingProgress((prev) => {
           if (prev >= 100) {
             clearInterval(interval);
-            // Direct navigation without fade animation
             setTimeout(() => {
-              navigate('/dashboard/trend');
+              navigate("/dashboard/shipping");
             }, 100);
             return 100;
           }
-          const increment = Math.random() * 15 + 5;
-          return Math.min(prev + increment, 100);
+          return Math.min(prev + Math.random() * 15 + 5, 100);
         });
       }, 80);
       return () => clearInterval(interval);
     }
   }, [isLoadingAnimation, navigate]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const handleGetStarted = () => {
+    setIsLoadingAnimation(true);
+    setLoadingProgress(0);
   };
 
-  // Carousel images for each feature
-  const conversationalAIImages = [Fitur1, Fitur1, Fitur1, Fitur1, Fitur1];
-  const smartShippingImages = [Fitur2, Fitur2, Fitur2, Fitur2, Fitur2];
-  const marketTrendsImages = [Fitur3, Fitur3, Fitur3, Fitur3, Fitur3];
+  const handleLogin = () => {
+    setIsLoadingAnimation(true);
+    setLoadingProgress(0);
+  };
 
+  // Carousel states for each section
+  const [aiImageIndex, setAiImageIndex] = useState(0);
+  const [shippingImageIndex, setShippingImageIndex] = useState(0);
+  const [trendsImageIndex, setTrendsImageIndex] = useState(0);
+
+  // Image arrays for each section with new images
+  const aiImages = [aiImage1, aiImage2, aiImage3];
+  const shippingImages = [shippingImage1, shippingImage2, shippingImage3];
+  const trendsImages = [trendsImage1, trendsImage2, trendsImage3];
+
+  // Add animation direction state for each carousel
+  const [aiSlideDirection, setAiSlideDirection] = useState("next");
+  const [shippingSlideDirection, setShippingSlideDirection] = useState("next");
+  const [trendsSlideDirection, setTrendsSlideDirection] = useState("next");
+
+  // Update handlePrevious to include animation
+  const handlePrevious = (currentIndex, setIndex, totalImages) => {
+    const newIndex = (currentIndex - 1 + totalImages) % totalImages;
+    if (setIndex === setAiImageIndex) setAiSlideDirection("prev");
+    if (setIndex === setShippingImageIndex) setShippingSlideDirection("prev");
+    if (setIndex === setTrendsImageIndex) setTrendsSlideDirection("prev");
+    setIndex(newIndex);
+  };
+
+  // Update handleNext to include animation
+  const handleNext = (currentIndex, setIndex, totalImages) => {
+    const newIndex = (currentIndex + 1) % totalImages;
+    if (setIndex === setAiImageIndex) setAiSlideDirection("next");
+    if (setIndex === setShippingImageIndex) setShippingSlideDirection("next");
+    if (setIndex === setTrendsImageIndex) setTrendsSlideDirection("next");
+    setIndex(newIndex);
+  };
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNext(aiImageIndex, setAiImageIndex, aiImages.length);
+      handleNext(
+        shippingImageIndex,
+        setShippingImageIndex,
+        shippingImages.length
+      );
+      handleNext(trendsImageIndex, setTrendsImageIndex, trendsImages.length);
+    }, 2500); // Changed from 1000 to 2500 milliseconds
+
+    return () => clearInterval(interval);
+  }, [aiImageIndex, shippingImageIndex, trendsImageIndex]);
+
+  // Update carousel image container styles with slide animation
+  const carouselImageStyle = (direction) => ({
+    transform: "scale(1.05)",
+    transition: "all 0.5s ease-in-out",
+    opacity: 0.9,
+    animation: `${
+      direction === "next" ? "slideNext" : "slidePrev"
+    } 0.5s ease-in-out`,
+  });
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        margin: 0,
-        padding: 0,
-        fontFamily: '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif',
-        backgroundColor: "#ffffff",
-        overflowX: "hidden",
-        color: "#2c2c2c",
-      }}
-    >
-      {/* Header - Fixed at top, stays when scrolling */}
-      <header
-        style={{
-          position: "fixed",
-          top: "0",
-          left: "0",
-          right: "0",
-          height: "80px",
-          width: "100%",
-          margin: 0,
-          padding: "0 40px",
-          zIndex: 1000, // Higher than globe to stay on top
-          backgroundColor: scrollY > 50 ? "rgba(255, 255, 255, 0.95)" : "transparent",
-          backdropFilter: "blur(20px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          transition: "all 0.4s ease",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ width: "36px", height: "36px" }}>
-            <svg
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"
-                fill="#1a1a1a"
-              />
-            </svg>
-          </div>
-          <h1
-            style={{
-              fontFamily: '"Inter", sans-serif',
-              fontWeight: "600",
-              letterSpacing: "-0.02em",
-              fontSize: "24px",
-              color: "#1a1a1a",
-              margin: 0,
-              padding: 0,
-            }}
-          >
-            ExportIn
-          </h1>
-        </div>
+    <>
+      <style>
+        {`
+          @keyframes slideNext {
+            from {
+              transform: translateX(100%) scale(1.05);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0) scale(1.05);
+              opacity: 0.9;
+            }
+          }
 
-        {/* Navigation Menu - Montfort Style */}
-        <nav style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          {sections.map((section) => (
-            <a
-              key={section.id}
-              href={`#${section.id}`}
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById(section.id)?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              style={{
-                fontSize: "15px",
-                fontWeight: "400",
-                color: "#1a1a1a",
-                textDecoration: "none",
-                fontFamily: '"Inter", sans-serif',
-                letterSpacing: "-0.01em",
-                transition: "all 0.3s ease",
-                padding: "8px 0",
-                borderBottom: "2px solid transparent",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.color = "#2563eb";
-                e.target.style.borderBottom = "2px solid #2563eb";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.color = "#1a1a1a";
-                e.target.style.borderBottom = "2px solid transparent";
-              }}
-            >
-              {section.name}
-            </a>
-          ))}
-        </nav>
-      </header>
+          @keyframes slidePrev {
+            from {
+              transform: translateX(-100%) scale(1.05);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0) scale(1.05);
+              opacity: 0.9;
+            }
+          }
+        `}
+      </style>
 
-      {/* Main Content */}
-      <div style={{ paddingTop: "0" }}>
-        {/* Hero Section - First Section with Globe */}
-        <section
-          id="hero"
-          style={{
-            position: "relative",
-            height: "100vh",
-            width: "100%",
-            margin: 0,
-            padding: "80px 0 0 0", // Add top padding for fixed header
-            backgroundColor: "#f8fafc",
-            overflow: "hidden", // Ensure globe cannot escape section bounds
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-          }}
-        >
-          {/* Globe - Contained within section 1 only */}
-          <div
-            style={{
-              position: "absolute",
-              top: "0",
-              right: "-10%",
-              width: "60%", 
-              height: "100%",
-              zIndex: 5,
-              pointerEvents: "auto",
-              overflow: "hidden", // Ensure globe stays within section bounds
-            }}
-          >
-            <GlobeMap />
-          </div>
+      <div className="min-h-screen w-full bg-white overflow-x-hidden text-gray-900 font-['Inter']">
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 sm:h-20">
+              {/* Logo */}
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-light text-lg">⚡</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-light">ExportIn</h1>
+              </div>
 
-          {/* Content Container - Left side with lower z-index */}
-          <div
-            style={{
-              position: "relative",
-              zIndex: 10, // Lower z-index so globe appears above
-              width: "50%",
-              padding: "0 40px 0 40px",
-              display: "flex",
-              alignItems: "center",
-              minHeight: "100vh",
-              background: "linear-gradient(90deg, rgba(248, 250, 252, 0.9) 0%, rgba(248, 250, 252, 0.7) 40%, rgba(248, 250, 252, 0.2) 70%, transparent 100%)",
-            }}
-          >
-            <div style={{ width: "100%", maxWidth: "500px" }}>
-              {/* Subtitle */}
-              <p
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "500",
-                  letterSpacing: "0.05em",
-                  fontSize: "14px",
-                  color: "#2563eb",
-                  margin: "0 0 24px 0",
-                  textTransform: "uppercase",
-                }}
-              >
-                AI-Powered Export Platform
-              </p>
-
-              <h1
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "700",
-                  letterSpacing: "-0.03em",
-                  lineHeight: "1.1",
-                  fontSize: "clamp(36px, 4vw, 56px)",
-                  color: "#1a1a1a",
-                  margin: "0 0 32px 0",
-                  padding: 0,
-                }}
-              >
-                ExportIn is a global export intelligence platform
-              </h1>
-
-              <p
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "400",
-                  letterSpacing: "-0.01em",
-                  lineHeight: "1.7",
-                  fontSize: "18px",
-                  color: "#64748b",
-                  margin: "0 0 40px 0",
-                  padding: 0,
-                }}
-              >
-                We democratize global trade through AI-powered solutions. Our platform integrates conversational AI, smart shipping logistics, and market trend analytics to create comprehensive export solutions for businesses worldwide.
-              </p>
-
-              {/* Buttons - Get Started only */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "20px",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <button
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    background: "#1a1a1a",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "50px",
-                    padding: "16px 32px",
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    letterSpacing: "-0.01em",
-                  }}
-                  onClick={handleGetStarted}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#2563eb";
-                    e.target.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#1a1a1a";
-                    e.target.style.transform = "translateY(0)";
-                  }}
+              {/* Navigation */}
+              <nav className="hidden md:flex items-center space-x-8">
+                <a
+                  href="#features"
+                  className="text-gray-600 hover:text-gray-900 font-light"
                 >
-                  Get Started
+                  Features
+                </a>
+                <a
+                  href="#about"
+                  className="text-gray-600 hover:text-gray-900 font-light"
+                >
+                  About
+                </a>
+                <a
+                  href="#contact"
+                  className="text-gray-600 hover:text-gray-900 font-light"
+                >
+                  Contact
+                </a>
+              </nav>
+
+              {/* Mobile Menu Button */}
+              <div className="md:hidden">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="text-gray-600 hover:text-gray-900 focus:outline-none"
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={
+                        isMenuOpen
+                          ? "M6 18L18 6M6 6l12 12"
+                          : "M4 6h16M4 12h16M4 18h16"
+                      }
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Login Button */}
+              <div className="hidden md:block">
+                <button
+                  onClick={handleLogin}
+                  className="bg-black text-white px-6 py-2 rounded-full font-light hover:bg-gray-900 transition-all"
+                >
+                  Login
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Scroll Indicator */}
+          {/* Mobile Menu */}
+          {isMenuOpen && (
+            <div className="md:hidden bg-white border-t border-gray-100 py-4">
+              <div className="container mx-auto px-4">
+                <nav className="flex flex-col space-y-4">
+                  <a
+                    href="#features"
+                    className="text-gray-600 hover:text-gray-900 font-light"
+                  >
+                    Features
+                  </a>
+                  <a
+                    href="#about"
+                    className="text-gray-600 hover:text-gray-900 font-light"
+                  >
+                    About
+                  </a>
+                  <a
+                    href="#contact"
+                    className="text-gray-600 hover:text-gray-900 font-light"
+                  >
+                    Contact
+                  </a>
+                  <button
+                    onClick={handleLogin}
+                    className="bg-black text-white px-6 py-2 rounded-full font-light hover:bg-gray-900 transition-all w-full"
+                  >
+                    Login
+                  </button>
+                </nav>
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* Hero Section */}
+        <section className="relative min-h-screen flex items-center pt-16 sm:pt-20">
+          {/* Globe Container */}
           <div
-            style={{
-              position: "absolute",
-              bottom: "40px",
-              left: "40px",
-              zIndex: 10,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: "8px",
-              animation: "bounce 2s infinite",
-            }}
+            className="absolute right-0 w-[60%] h-full"
+            ref={containerRef}
+            data-globe-container
           >
-            <span
+            {!isGlobeLoading && !globeError && (
+              <Globe
+                ref={globeEl}
+                globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+                backgroundColor="rgba(0,0,0,0)"
+                width={dimensions.width}
+                height={dimensions.height}
+                polygonsData={countries.features.filter(
+                  (d) => d?.properties?.ISO_A2 !== "AQ"
+                )}
+                polygonAltitude={(d) => (d === hoverD ? 0.02 : 0.01)}
+                polygonCapColor={(d) =>
+                  d === hoverD
+                    ? "rgba(255, 255, 255, 0.8)"
+                    : "rgba(255, 255, 255, 0.3)"
+                }
+                polygonSideColor={() => "rgba(255, 255, 255, 0.2)"}
+                polygonStrokeColor={() => "#ffffff"}
+                polygonStrokeWidth={1}
+                atmosphereColor="rgba(200,200,255,0.2)"
+                atmosphereAltitude={0.1}
+                onPolygonHover={handlePolygonHover}
+                onPolygonClick={handlePolygonClick}
+                polygonsTransitionDuration={200}
+                enablePointerInteraction={true}
+                pointerEventsFilter={() => true}
+                rendererConfig={{
+                  antialias: true,
+                  alpha: true,
+                  preserveDrawingBuffer: true,
+                }}
+              />
+            )}
+          </div>
+
+          {/* Content Container */}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pointer-events-none">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              {/* Left Content */}
+              <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl lg:max-w-xl pointer-events-auto">
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-gray-900 mb-6">
+                  Revolutionize Your Export Business
+                </h2>
+                <p className="text-lg sm:text-xl text-gray-600 font-light mb-8">
+                  Unlock global opportunities with AI-powered insights,
+                  streamlined documentation, and real-time market analysis.
+                </p>
+                <div className="flex justify-start">
+                  <button
+                    onClick={handleGetStarted}
+                    className="bg-black text-white px-8 py-3 rounded-full font-light hover:bg-gray-900 transition-all text-lg"
+                  >
+                    Get Started
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Content - Empty to allow globe visibility */}
+              <div className="hidden lg:block"></div>
+            </div>
+          </div>
+
+          {/* Country Tooltip - Now using fixed positioning with mouse coordinates */}
+          {hoveredCountry && (
+            <div
+              className="fixed z-[9999] bg-white text-gray-900 p-4 rounded-xl shadow-lg pointer-events-auto"
               style={{
-                fontSize: "12px",
-                color: "#64748b",
-                fontFamily: '"Inter", sans-serif',
-                fontWeight: "400",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
+                left: `${tooltipPosition.x}px`,
+                top: `${tooltipPosition.y - 10}px`,
+                transform: "translate(-50%, -100%)",
+                minWidth: "280px",
+                border: "1px solid rgba(0,0,0,0.1)",
               }}
             >
-              Scroll to discover
-            </span>
-            <div
-              style={{
-                width: "1px",
-                height: "20px",
-                background: "#64748b",
-                opacity: 0.5,
-              }}
-            />
-          </div>
+              <h3 className="text-lg font-medium mb-2 text-gray-900">
+                {hoveredCountry.name}
+              </h3>
+              <div className="mb-3">
+                <p className="text-sm text-gray-600 mb-1">
+                  Top Export Commodities:
+                </p>
+                <ul className="list-disc list-inside">
+                  {hoveredCountry.commodities.map((commodity, index) => (
+                    <li key={index} className="text-sm text-gray-700 ml-2">
+                      {commodity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex items-center mb-3">
+                <span className="text-sm text-gray-600">Export Growth:</span>
+                <span className="ml-2 text-green-600 font-medium">
+                  {hoveredCountry.percentage}% ↗
+                </span>
+              </div>
+              <button
+                onClick={handleLearnMore}
+                className="w-full bg-black text-white py-2 px-4 rounded-lg font-light hover:bg-gray-900 transition-all text-sm flex items-center justify-center space-x-2"
+              >
+                <span>Click for Learn More</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Features Overview Section - With GIFs */}
-        <section id="features"
-          style={{
-            width: "100%",
-            minHeight: "100vh",
-            margin: 0,
-            padding: "120px 40px",
-            backgroundColor: "#ffffff",
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div style={{ maxWidth: "1200px", width: "100%", textAlign: "center" }}>
-            {/* Section Header */}
-            <div style={{ marginBottom: "80px" }}>
-              <p
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "500",
-                  letterSpacing: "0.05em",
-                  fontSize: "14px",
-                  color: "#2563eb",
-                  margin: "0 0 16px 0",
-                  textTransform: "uppercase",
-                }}
-              >
-                Our Solutions
-              </p>
-              
-              <h2
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "700",
-                  fontSize: "clamp(32px, 4vw, 48px)",
-                  color: "#1a1a1a",
-                  margin: "0 0 24px 0",
-                  letterSpacing: "-0.02em",
-                  lineHeight: "1.2",
-                }}
-              >
-                Our AI-Powered Export Solutions
+        {/* Features Section - Clean version without icons */}
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Why Choose ExportIn?
               </h2>
-
-              <p
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "400",
-                  fontSize: "18px",
-                  color: "#64748b",
-                  margin: "0 auto",
-                  lineHeight: "1.7",
-                  maxWidth: "600px",
-                }}
-              >
-                Comprehensive platform that integrates intelligent automation with global trade expertise to deliver end-to-end export solutions.
+              <p className="text-xl text-gray-600">
+                Discover the features that make us the leading export platform
               </p>
             </div>
 
-            {/* Features Grid */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-                gap: "40px",
-                alignItems: "start",
-              }}
-            >
-              {/* Conversational AI */}
-              <div
-                style={{
-                  padding: "0",
-                  backgroundColor: "#f8fafc",
-                  borderRadius: "16px",
-                  border: "1px solid #e2e8f0",
-                  textAlign: "left",
-                  transition: "all 0.4s ease",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px)";
-                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.borderColor = "#2563eb";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.borderColor = "#e2e8f0";
-                }}
-              >
-                {/* GIF Background */}
-                <div
-                  style={{
-                    width: "100%",
-                    height: "200px",
-                    backgroundImage: `url(${Fitur1})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    borderRadius: "16px 16px 0 0",
-                  }}
-                />
-
-                {/* Content */}
-                <div style={{ padding: "32px" }}>
-                  {/* Feature Icon */}
-                  <div
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundColor: "#2563eb",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: "24px",
-                    }}
-                  >
-                    <span style={{ fontSize: "24px", color: "white" }}>🤖</span>
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "600",
-                      color: "#1a1a1a",
-                      margin: "0 0 16px 0",
-                      fontFamily: '"Inter", sans-serif',
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    Conversational AI
-                  </h3>
-                  
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      color: "#64748b",
-                      margin: 0,
-                      lineHeight: "1.6",
-                      fontFamily: '"Inter", sans-serif',
-                    }}
-                  >
-                    AI-powered chat assistant that provides 24/7 export guidance, document generation, and cost calculations with real-time regulatory compliance.
-                  </p>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* AI Assistant Feature */}
+              <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  AI Assistant
+                </h3>
+                <p className="text-gray-600">
+                  24/7 intelligent support for all your export operations. Get
+                  instant answers and assistance for your global trade needs.
+                </p>
               </div>
 
-              {/* Smart Shipping */}
-              <div
-                style={{
-                  padding: "0",
-                  backgroundColor: "#f8fafc",
-                  borderRadius: "16px",
-                  border: "1px solid #e2e8f0",
-                  textAlign: "left",
-                  transition: "all 0.4s ease",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px)";
-                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.borderColor = "#2563eb";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.borderColor = "#e2e8f0";
-                }}
-              >
-                {/* GIF Background */}
-                <div
-                  style={{
-                    width: "100%",
-                    height: "200px",
-                    backgroundImage: `url(${Fitur2})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    borderRadius: "16px 16px 0 0",
-                  }}
-                />
-
-                {/* Content */}
-                <div style={{ padding: "32px" }}>
-                  {/* Feature Icon */}
-                  <div
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundColor: "#2563eb",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: "24px",
-                    }}
-                  >
-                    <span style={{ fontSize: "24px", color: "white" }}>🚢</span>
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "600",
-                      color: "#1a1a1a",
-                      margin: "0 0 16px 0",
-                      fontFamily: '"Inter", sans-serif',
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    Smart Shipping
-                  </h3>
-                  
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      color: "#64748b",
-                      margin: 0,
-                      lineHeight: "1.6",
-                      fontFamily: '"Inter", sans-serif',
-                    }}
-                  >
-                    Interactive globe-based shipping solution with real-time cost estimation, route optimization, and comprehensive logistics management.
-                  </p>
-                </div>
+              {/* Smart Shipping Feature */}
+              <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  Smart Shipping
+                </h3>
+                <p className="text-gray-600">
+                  Interactive globe-based shipping management system. Track and
+                  manage your shipments with real-time updates.
+                </p>
               </div>
 
-              {/* Market Trend Analytics */}
-              <div
-                style={{
-                  padding: "0",
-                  backgroundColor: "#f8fafc",
-                  borderRadius: "16px",
-                  border: "1px solid #e2e8f0",
-                  textAlign: "left",
-                  transition: "all 0.4s ease",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-8px)";
-                  e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.borderColor = "#2563eb";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.borderColor = "#e2e8f0";
-                }}
-              >
-                {/* GIF Background */}
-                <div
-                  style={{
-                    width: "100%",
-                    height: "200px",
-                    backgroundImage: `url(${Fitur3})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    borderRadius: "16px 16px 0 0",
-                  }}
-                />
-
-                {/* Content */}
-                <div style={{ padding: "32px" }}>
-                  {/* Feature Icon */}
-                  <div
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      backgroundColor: "#2563eb",
-                      borderRadius: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: "24px",
-                    }}
-                  >
-                    <span style={{ fontSize: "24px", color: "white" }}>📊</span>
-                  </div>
-
-                  <h3
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "600",
-                      color: "#1a1a1a",
-                      margin: "0 0 16px 0",
-                      fontFamily: '"Inter", sans-serif',
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    Market Trend Analytics
-                  </h3>
-                  
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      color: "#64748b",
-                      margin: 0,
-                      lineHeight: "1.6",
-                      fontFamily: '"Inter", sans-serif',
-                    }}
-                  >
-                    Comprehensive market analysis dashboard with seasonal trends and country demand insights for strategic export planning.
-                  </p>
-                </div>
+              {/* Market Trends Feature */}
+              <div className="p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  Market Trends
+                </h3>
+                <p className="text-gray-600">
+                  Real-time analytics and market intelligence. Make data-driven
+                  decisions with our comprehensive trend analysis.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Conversational AI Section - With Background Image */}
-        <section id="conversational-ai"
+        {/* Conversational AI Section */}
+        <section
+          id="conversational-ai"
+          className="relative min-h-screen flex items-center"
           style={{
-            width: "100%",
-            minHeight: "100vh",
-            margin: 0,
-            padding: 0,
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-            backgroundImage: "url('/src/assets/images/ai-background.jpg')",
+            backgroundImage: `url(${aiBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundAttachment: "fixed",
           }}
         >
-          {/* Dark Overlay for Text Visibility */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.75)",
-              zIndex: 1,
-            }}
-          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/70"></div>
 
-          {/* Background Pattern */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.2) 0%, transparent 70%)",
-              zIndex: 2,
-            }}
-          />
-
-          <div style={{ maxWidth: "1200px", width: "100%", padding: "0 40px", position: "relative", zIndex: 10 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "80px",
-                alignItems: "center",
-                minHeight: "80vh",
-              }}
-            >
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
               {/* Content */}
-              <div>
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "500",
-                    letterSpacing: "0.05em",
-                    fontSize: "14px",
-                    color: "#3b82f6",
-                    margin: "0 0 16px 0",
-                    textTransform: "uppercase",
-                  }}
-                >
+              <div className="text-white">
+                <p className="text-blue-400 text-sm font-medium tracking-wider uppercase mb-4">
                   AI Assistant
                 </p>
-
-                <h2
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "700",
-                    fontSize: "clamp(32px, 4vw, 48px)",
-                    color: "#ffffff",
-                    margin: "0 0 24px 0",
-                    letterSpacing: "-0.02em",
-                    lineHeight: "1.2",
-                  }}
-                >
+                <h2 className="text-4xl sm:text-5xl font-bold mb-6">
                   Conversational AI Assistant
                 </h2>
-
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "400",
-                    fontSize: "18px",
-                    color: "#3b82f6",
-                    margin: "0 0 24px 0",
-                    lineHeight: "1.4",
-                    fontStyle: "italic",
-                  }}
-                >
-                  "Your intelligent export companion that never sleeps, delivering instant solutions around the clock."
+                <p className="text-xl text-blue-300 italic mb-6">
+                  "Your intelligent export companion that never sleeps,
+                  delivering instant solutions around the clock."
                 </p>
-
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "400",
-                    fontSize: "16px",
-                    color: "#e2e8f0",
-                    margin: "0 0 40px 0",
-                    lineHeight: "1.7",
-                  }}
-                >
-                  Rasakan pengalaman ekspor yang revolusioner dengan AI Assistant yang memahami kompleksitas bisnis Anda. Platform ini mengintegrasikan kecerdasan buatan terdepan dengan database regulasi ekspor yang real-time.
+                <p className="text-gray-300 mb-8">
+                  Experience revolutionary export operations with our AI
+                  Assistant that understands your business complexity. Our
+                  platform integrates cutting-edge artificial intelligence with
+                  real-time export regulations database.
                 </p>
-
                 <button
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    background: "#3b82f6",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "50px",
-                    padding: "16px 32px",
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    letterSpacing: "-0.01em",
-                  }}
                   onClick={handleGetStarted}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#2563eb";
-                    e.target.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#3b82f6";
-                    e.target.style.transform = "translateY(0)";
-                  }}
+                  className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-all"
                 >
                   Try AI Assistant
                 </button>
               </div>
 
-              {/* Carousel */}
-              <div style={{ position: "relative" }}>
-                <ImageCarousel images={conversationalAIImages} height="500px" />
+              {/* Image Carousel */}
+              <div className="relative rounded-2xl overflow-hidden aspect-video bg-black/30">
+                <img
+                  src={aiImages[aiImageIndex]}
+                  alt="AI Assistant Feature"
+                  className="w-full h-full object-cover"
+                  style={carouselImageStyle(aiSlideDirection)}
+                />
+                <CarouselNavigation
+                  currentIndex={aiImageIndex}
+                  totalImages={aiImages.length}
+                  onPrevious={() =>
+                    handlePrevious(
+                      aiImageIndex,
+                      setAiImageIndex,
+                      aiImages.length
+                    )
+                  }
+                  onNext={() =>
+                    handleNext(aiImageIndex, setAiImageIndex, aiImages.length)
+                  }
+                />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Smart Shipping Section with Ship Component & Background Image */}
-        <section id="smart-shipping"
+        {/* Smart Shipping Section */}
+        <section
+          id="smart-shipping"
+          className="relative min-h-screen flex items-center"
           style={{
-            width: "100%",
-            minHeight: "100vh",
-            margin: 0,
-            padding: 0,
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-            backgroundImage: "url('/src/assets/images/shipping-background.jpg')",
+            backgroundImage: `url(${shippingBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundAttachment: "fixed",
           }}
         >
-          {/* Dark Overlay for Text Visibility */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.6)",
-              zIndex: 1,
-            }}
-          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/70"></div>
 
-          <div style={{ maxWidth: "1200px", width: "100%", padding: "0 40px", position: "relative", zIndex: 10 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "80px",
-                alignItems: "center",
-                minHeight: "80vh",
-              }}
-            >
-              {/* Ship Component - Montfort Style */}
-              <div style={{ position: "relative" }}>
-                <ShipComponent />
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+              {/* Image Carousel */}
+              <div className="relative rounded-2xl overflow-hidden aspect-video bg-black/30">
+                <img
+                  src={shippingImages[shippingImageIndex]}
+                  alt="Smart Shipping Feature"
+                  className="w-full h-full object-cover"
+                  style={carouselImageStyle(shippingSlideDirection)}
+                />
+                <CarouselNavigation
+                  currentIndex={shippingImageIndex}
+                  totalImages={shippingImages.length}
+                  onPrevious={() =>
+                    handlePrevious(
+                      shippingImageIndex,
+                      setShippingImageIndex,
+                      shippingImages.length
+                    )
+                  }
+                  onNext={() =>
+                    handleNext(
+                      shippingImageIndex,
+                      setShippingImageIndex,
+                      shippingImages.length
+                    )
+                  }
+                />
               </div>
 
               {/* Content */}
-              <div>
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "500",
-                    letterSpacing: "0.05em",
-                    fontSize: "14px",
-                    color: "#3b82f6",
-                    margin: "0 0 16px 0",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Smart Logistics
+              <div className="text-white">
+                <p className="text-blue-400 text-sm font-medium tracking-wider uppercase mb-4">
+                  Smart Shipping
                 </p>
-
-                <h2
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "700",
-                    fontSize: "clamp(32px, 4vw, 48px)",
-                    color: "#ffffff",
-                    margin: "0 0 24px 0",
-                    letterSpacing: "-0.02em",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  Smart Shipping Solutions
+                <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+                  Intelligent Shipping Solutions
                 </h2>
-
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "400",
-                    fontSize: "18px",
-                    color: "#3b82f6",
-                    margin: "0 0 24px 0",
-                    lineHeight: "1.4",
-                    fontStyle: "italic",
-                  }}
-                >
-                  "Navigate global markets with precision - your interactive gateway to worldwide shipping excellence."
+                <p className="text-xl text-blue-300 italic mb-6">
+                  "Navigate global shipping with precision and efficiency
+                  through our smart logistics platform."
                 </p>
-
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "400",
-                    fontSize: "16px",
-                    color: "#e2e8f0",
-                    margin: "0 0 40px 0",
-                    lineHeight: "1.7",
-                  }}
-                >
-                  Jelajahi dunia ekspor melalui pengalaman visual yang menakjubkan dengan Smart Shipping berbasis globe interaktif. Teknologi revolusioner ini mentransformasi kompleksitas logistik global menjadi interface yang intuitif dan mudah dipahami.
+                <p className="text-gray-300 mb-8">
+                  Transform your shipping operations with real-time tracking,
+                  optimized routes, and predictive analytics. Our platform
+                  ensures seamless coordination across your entire supply chain.
                 </p>
-
                 <button
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    background: "#3b82f6",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "50px",
-                    padding: "16px 32px",
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    letterSpacing: "-0.01em",
-                  }}
-                  onClick={() => navigate('/dashboard/shipping')}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#2563eb";
-                    e.target.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#3b82f6";
-                    e.target.style.transform = "translateY(0)";
-                  }}
+                  onClick={handleGetStarted}
+                  className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-all"
                 >
                   Explore Shipping
                 </button>
@@ -1137,477 +790,153 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Market Trends Section - With Background Image & Overlay */}
-        <section id="market-trends"
+        {/* Market Trends Section */}
+        <section
+          id="market-trends"
+          className="relative min-h-screen flex items-center"
           style={{
-            width: "100%",
-            minHeight: "100vh",
-            margin: 0,
-            padding: 0,
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            overflow: "hidden",
-            backgroundImage: "url('/src/assets/images/analytics-background.jpg')",
+            backgroundImage: `url(${trendsBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundAttachment: "fixed",
           }}
         >
-          {/* Dark Overlay for Text Visibility */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
-              zIndex: 1,
-            }}
-          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/70"></div>
 
-          <div style={{ maxWidth: "1200px", width: "100%", padding: "0 40px", position: "relative", zIndex: 10 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "80px",
-                alignItems: "center",
-                minHeight: "80vh",
-              }}
-            >
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
               {/* Content */}
-              <div>
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "500",
-                    letterSpacing: "0.05em",
-                    fontSize: "14px",
-                    color: "#3b82f6",
-                    margin: "0 0 16px 0",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Market Intelligence
+              <div className="text-white">
+                <p className="text-blue-400 text-sm font-medium tracking-wider uppercase mb-4">
+                  Market Trends
                 </p>
-
-                <h2
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "700",
-                    fontSize: "clamp(32px, 4vw, 48px)",
-                    color: "#ffffff",
-                    margin: "0 0 24px 0",
-                    letterSpacing: "-0.02em",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  Market Trend Analysis
+                <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+                  Real-time Market Intelligence
                 </h2>
-
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "400",
-                    fontSize: "18px",
-                    color: "#3b82f6",
-                    margin: "0 0 24px 0",
-                    lineHeight: "1.4",
-                    fontStyle: "italic",
-                  }}
-                >
-                  "Unlock tomorrow's opportunities today - where data meets strategic foresight for export success."
+                <p className="text-xl text-blue-300 italic mb-6">
+                  "Stay ahead of market dynamics with our comprehensive trend
+                  analysis and forecasting."
                 </p>
-
-                <p
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "400",
-                    fontSize: "16px",
-                    color: "#e2e8f0",
-                    margin: "0 0 40px 0",
-                    lineHeight: "1.7",
-                  }}
-                >
-                  Temukan kekuatan analisis prediktif melalui dashboard Market Trend Analysis yang menggabungkan kecerdasan buatan dengan big data dari sumber terpercaya. Platform ini mentransformasi data kompleks menjadi insight strategis yang actionable.
+                <p className="text-gray-300 mb-8">
+                  Access powerful insights into global trade patterns, commodity
+                  prices, and market opportunities. Make data-driven decisions
+                  with our advanced analytics platform.
                 </p>
-
                 <button
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    background: "#3b82f6",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "50px",
-                    padding: "16px 32px",
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    letterSpacing: "-0.01em",
-                  }}
-                  onClick={() => navigate('/dashboard/trend')}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "#2563eb";
-                    e.target.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "#3b82f6";
-                    e.target.style.transform = "translateY(0)";
-                  }}
+                  onClick={handleGetStarted}
+                  className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-all"
                 >
-                  View Analytics
+                  View Trends
                 </button>
               </div>
 
-              {/* Carousel */}
-              <div style={{ position: "relative" }}>
-                <ImageCarousel images={marketTrendsImages} height="500px" />
+              {/* Image Carousel */}
+              <div className="relative rounded-2xl overflow-hidden aspect-video bg-black/30">
+                <img
+                  src={trendsImages[trendsImageIndex]}
+                  alt="Market Trends Feature"
+                  className="w-full h-full object-cover"
+                  style={carouselImageStyle(trendsSlideDirection)}
+                />
+                <CarouselNavigation
+                  currentIndex={trendsImageIndex}
+                  totalImages={trendsImages.length}
+                  onPrevious={() =>
+                    handlePrevious(
+                      trendsImageIndex,
+                      setTrendsImageIndex,
+                      trendsImages.length
+                    )
+                  }
+                  onNext={() =>
+                    handleNext(
+                      trendsImageIndex,
+                      setTrendsImageIndex,
+                      trendsImages.length
+                    )
+                  }
+                />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Footer/Closing Section */}
-        <footer
-          style={{
-            width: "100%",
-            padding: "80px 40px 40px",
-            background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {/* Background Pattern */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: `
-                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(139, 92, 246, 0.3) 0%, transparent 50%)
-              `,
-              zIndex: 0,
-            }}
-          />
-
-          <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+        {/* Footer Section */}
+        <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white py-16">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Main Footer Content */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1fr 1fr 1fr",
-                gap: "60px",
-                marginBottom: "60px",
-              }}
-            >
-              {/* Company Info */}
-              <div>
-                <div style={{ marginBottom: "32px" }}>
-                  <div style={{ display: "flex", alignItems: "center", marginBottom: "16px" }}>
-                    <div style={{ width: "40px", height: "40px", backgroundColor: "#10b981", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "16px" }}>
-                      <span style={{ color: "#ffffff", fontSize: "20px", fontWeight: "600" }}>⚡</span>
-                    </div>
-                    <h2
-                      style={{
-                        fontFamily: '"Inter", sans-serif',
-                        fontWeight: "600",
-                        fontSize: "24px",
-                        color: "#ffffff",
-                        margin: 0,
-                      }}
-                    >
-                      ExportIn
-                    </h2>
+            <div className="flex flex-col items-center text-center">
+              {/* Logo and Company Info */}
+              <div className="mb-8">
+                <div className="flex items-center justify-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xl">⚡</span>
                   </div>
-                  
-                  <p
-                    style={{
-                      fontFamily: '"Inter", sans-serif',
-                      fontSize: "16px",
-                      color: "#cbd5e1",
-                      margin: "0 0 24px 0",
-                      lineHeight: "1.6",
-                    }}
+                  <h2 className="text-2xl font-light">ExportIn</h2>
+                </div>
+                <p className="text-gray-300 max-w-md mx-auto mb-6">
+                  Democratizing global trade through AI-powered solutions. Join
+                  thousands of exporters who trust ExportIn.
+                </p>
+                <div className="flex justify-center space-x-4">
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white transition-colors"
                   >
-                    Democratizing global trade through AI-powered solutions. Join thousands of exporters who trust ExportIn for their international business growth.
-                  </p>
+                    <span className="text-xl">📱</span>
+                  </a>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    <span className="text-xl">💼</span>
+                  </a>
+                  <a
+                    href="#"
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    <span className="text-xl">🌐</span>
+                  </a>
+                </div>
+              </div>
 
-                  <div style={{ display: "flex", gap: "16px" }}>
+              {/* Bottom Bar */}
+              <div className="w-full max-w-2xl mx-auto pt-8 border-t border-gray-800">
+                <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
+                  <p className="text-gray-400 text-sm">
+                    © 2025 ExportIn. All rights reserved.
+                  </p>
+                  <div className="flex space-x-6">
                     <a
                       href="#"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        backgroundColor: "rgba(59, 130, 246, 0.1)",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        textDecoration: "none",
-                        transition: "all 0.3s ease",
-                      }}
+                      className="text-gray-400 hover:text-white text-sm transition-colors"
                     >
-                      <span style={{ color: "#3b82f6", fontSize: "20px" }}>📱</span>
+                      Privacy
                     </a>
                     <a
                       href="#"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        backgroundColor: "rgba(59, 130, 246, 0.1)",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        textDecoration: "none",
-                        transition: "all 0.3s ease",
-                      }}
+                      className="text-gray-400 hover:text-white text-sm transition-colors"
                     >
-                      <span style={{ color: "#3b82f6", fontSize: "20px" }}>💼</span>
+                      Terms
                     </a>
                     <a
                       href="#"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        backgroundColor: "rgba(59, 130, 246, 0.1)",
-                        borderRadius: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        textDecoration: "none",
-                        transition: "all 0.3s ease",
-                      }}
+                      className="text-gray-400 hover:text-white text-sm transition-colors"
                     >
-                      <span style={{ color: "#3b82f6", fontSize: "20px" }}>🌐</span>
+                      Cookies
                     </a>
                   </div>
                 </div>
-
-              {/* Platform Links */}
-              <div>
-                <h3
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "600",
-                    fontSize: "18px",
-                    color: "#ffffff",
-                    margin: "0 0 24px 0",
-                  }}
-                >
-                  Platform
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {[
-                    { name: "AI Assistant", href: "#" },
-                    { name: "Smart Shipping", href: "#" },
-                    { name: "Market Analytics", href: "#" },
-                    { name: "Documentation", href: "#" },
-                  ].map((link) => (
-                    <a
-                      key={link.name}
-                      href={link.href}
-                      style={{
-                        fontFamily: '"Inter", sans-serif',
-                        fontSize: "14px",
-                        color: "#cbd5e1",
-                        textDecoration: "none",
-                        transition: "color 0.3s ease",
-                      }}
-                    >
-                      {link.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Company Links */}
-              <div>
-                <h3
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "600",
-                    fontSize: "18px",
-                    color: "#ffffff",
-                    margin: "0 0 24px 0",
-                  }}
-                >
-                  Company
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {[
-                    { name: "About Us", href: "#" },
-                    { name: "Careers", href: "#" },
-                    { name: "Press", href: "#" },
-                    { name: "Partners", href: "#" },
-                  ].map((link) => (
-                    <a
-                      key={link.name}
-                      href={link.href}
-                      style={{
-                        fontFamily: '"Inter", sans-serif',
-                        fontSize: "14px",
-                        color: "#cbd5e1",
-                        textDecoration: "none",
-                        transition: "color 0.3s ease",
-                      }}
-                    >
-                      {link.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Support Links */}
-              <div>
-                <h3
-                  style={{
-                    fontFamily: '"Inter", sans-serif',
-                    fontWeight: "600",
-                    fontSize: "18px",
-                    color: "#ffffff",
-                    margin: "0 0 24px 0",
-                  }}
-                >
-                  Support
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {[
-                    { name: "Help Center", href: "#" },
-                    { name: "Contact Us", href: "#" },
-                    { name: "Privacy Policy", href: "#" },
-                    { name: "Terms of Service", href: "#" },
-                  ].map((link) => (
-                    <a
-                      key={link.name}
-                      href={link.href}
-                      style={{
-                        fontFamily: '"Inter", sans-serif',
-                        fontSize: "14px",
-                        color: "#cbd5e1",
-                        textDecoration: "none",
-                        transition: "color 0.3s ease",
-                      }}
-                    >
-                      {link.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Call to Action */}
-            <div
-              style={{
-                borderTop: "1px solid rgba(59, 130, 246, 0.2)",
-                paddingTop: "40px",
-                textAlign: "center",
-                marginBottom: "40px",
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontWeight: "600",
-                  fontSize: "24px",
-                  color: "#ffffff",
-                  margin: "0 0 16px 0",
-                }}
-              >
-                Ready to Transform Your Export Business?
-              </h3>
-              <p
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontSize: "16px",
-                  color: "#cbd5e1",
-                  margin: "0 0 32px 0",
-                  maxWidth: "600px",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                }}
-              >
-                Join thousands of exporters who use ExportIn to streamline their operations and expand globally.
-              </p>
-              <button
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  background: "#3b82f6",
-                  color: "#ffffff",
-                  border: "none",
-                  borderRadius: "50px",
-                  padding: "16px 32px",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  letterSpacing: "-0.01em",
-                }}
-                onClick={() => navigate('/dashboard/trend')}
-              >
-                Get Started Today
-              </button>
-            </div>
-
-            {/* Bottom Copyright */}
-            <div
-              style={{
-                borderTop: "1px solid rgba(59, 130, 246, 0.2)",
-                paddingTop: "32px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "16px",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: '"Inter", sans-serif',
-                  fontSize: "14px",
-                  color: "#64748b",
-                  margin: 0,
-                }}
-              >
-                © 2024 ExportIn. All rights reserved.
-              </p>
-              <div style={{ display: "flex", gap: "24px" }}>
-                <a href="#" style={{ fontFamily: '"Inter", sans-serif', fontSize: "14px", color: "#64748b", textDecoration: "none" }}>Privacy</a>
-                <a href="#" style={{ fontFamily: '"Inter", sans-serif', fontSize: "14px", color: "#64748b", textDecoration: "none" }}>Terms</a>
-                <a href="#" style={{ fontFamily: '"Inter", sans-serif', fontSize: "14px", color: "#64748b", textDecoration: "none" }}>Cookies</a>
               </div>
             </div>
           </div>
-        </div>
         </footer>
 
-        {/* Loading Animation Overlay - Properly centered */}
+        {/* Loading Animation Overlay */}
         {isLoadingAnimation && (
-          <div
-            style={{
-              position: "fixed",
-              top: "0",
-              left: "0",
-              right: "0", 
-              bottom: "0",
-              backgroundColor: "#ffffff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 9999,
-              fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
-            }}
-          >
+          <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999] font-['Inter']">
             <div className="text-center">
-              {/* Logo */}
               <div className="mb-8">
                 <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-white text-3xl font-light">⚡</span>
@@ -1615,29 +944,31 @@ const LandingPage = () => {
                 <h1 className="text-4xl font-light text-gray-900">ExportIn</h1>
               </div>
 
-              {/* Loading Progress */}
               <div className="w-80 bg-gray-200 rounded-full h-2 mb-4">
-                <div 
+                <div
                   className="bg-green-500 h-2 rounded-full transition-all duration-200 ease-out"
                   style={{ width: `${loadingProgress}%` }}
                 />
               </div>
-              
+
               <p className="text-gray-600 font-light">
-                {loadingProgress < 50 ? 'Initializing...' : 
-                 loadingProgress < 80 ? 'Loading your AI Assistant...' : 
-                 'Almost ready...'}
+                {loadingProgress < 50
+                  ? "Initializing..."
+                  : loadingProgress < 80
+                  ? "Loading your AI Assistant..."
+                  : "Almost ready..."}
               </p>
             </div>
           </div>
         )}
       </div>
-      
+
       <style jsx>{`
-        html, body {
+        html,
+        body {
           scroll-behavior: smooth;
         }
-        
+
         /* Header - Fixed positioning */
         header {
           position: fixed !important;
@@ -1648,32 +979,42 @@ const LandingPage = () => {
           transform: translate3d(0, 0, 0) !important;
           contain: layout style paint !important;
         }
-        
+
         /* Globe container - normal positioning within section 1 */
         .globe-container {
           /* No special CSS needed - use inline styles only */
         }
-        
+
         @keyframes bounce {
-          0%, 20%, 53%, 80%, 100% {
-            transform: translate3d(0,0,0);
+          0%,
+          20%,
+          53%,
+          80%,
+          100% {
+            transform: translate3d(0, 0, 0);
           }
-          40%, 43% {
-            transform: translate3d(0,-10px,0);
+          40%,
+          43% {
+            transform: translate3d(0, -10px, 0);
           }
           70% {
-            transform: translate3d(0,-5px,0);
+            transform: translate3d(0, -5px, 0);
           }
           90% {
-            transform: translate3d(0,-2px,0);
+            transform: translate3d(0, -2px, 0);
           }
         }
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
         }
       `}</style>
-    </div>
+    </>
   );
 };
 

@@ -6,7 +6,6 @@ import {
   HelpCircle,
   Package,
   DollarSign,
-  TrendingUp,
   ChevronRight,
 } from "lucide-react";
 import Globe from "react-globe.gl";

@@ -354,8 +354,11 @@ This certificate is evidence of insurance coverage.`;
     }
   }
 
-  static showDocumentList(setMessages, setCurrentFlow, completedDocuments) {
-    setCurrentFlow("document-list");
+  static showDocumentList(
+    setMessages,
+    setCurrentFlow,
+    completedDocuments = new Set()
+  ) {
     const documents = this.exportDocuments.map((doc) => ({
       ...doc,
       completed: completedDocuments.has(doc.id),
@@ -363,7 +366,7 @@ This certificate is evidence of insurance coverage.`;
 
     const botMessage = {
       from: "bot",
-      text: "Berikut adalah daftar dokumen ekspor yang dapat saya buatkan untuk Anda:",
+      text: "Berikut adalah daftar dokumen ekspor yang dapat saya bantu generate:",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
@@ -371,64 +374,61 @@ This certificate is evidence of insurance coverage.`;
       type: "document-list",
       documents: documents,
     };
+
     setMessages((prev) => [...prev, botMessage]);
+    if (setCurrentFlow) setCurrentFlow("document-list");
   }
 
-  static async generateDocument(
-    document,
-    setMessages,
-    setCompletedDocuments,
-    setIsTyping,
-    setCurrentFlow
-  ) {
-    setIsTyping(true);
-
-    const processingMessage = {
+  static async generateDocument(docId, setMessages, setCompletedDocuments) {
+    // First show typing animation
+    const typingMessage = {
       from: "bot",
-      text: `Sedang memproses ${document.name}... Saya akan mengisi semua data yang diperlukan secara otomatis. ⏳`,
+      text: "Generating document...",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }),
+      type: "typing",
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages((prev) => [...prev, processingMessage]);
+    // Wait for 2 seconds to simulate processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setTimeout(() => {
-        const dummyData = this.generateDummyData(document);
-        const content = this.createDocumentContent(document, dummyData);
+    // Remove typing message and show document
+    setMessages((prev) => {
+      const newMessages = prev.filter((msg) => msg.type !== "typing");
+      const document = this.exportDocuments.find((doc) => doc.id === docId);
 
-        // Update completedDocuments
-        setCompletedDocuments((prevCompleted) => {
-          const newCompleted = new Set(prevCompleted);
-          newCompleted.add(document.id);
-          return newCompleted;
-        });
+      if (document) {
+        // Mark document as completed
+        if (setCompletedDocuments) {
+          setCompletedDocuments((prev) => {
+            const newCompleted = new Set(prev);
+            newCompleted.add(docId);
+            return newCompleted;
+          });
+        }
 
-        const completedMessage = {
+        // Add document ready message
+        newMessages.push({
           from: "bot",
-          text: `✅ Sempurna! ${document.name} telah berhasil dibuat dengan semua data lengkap. Dokumen siap untuk didownload.`,
+          text: `✅ ${document.name} telah berhasil dibuat!`,
           timestamp: new Date().toLocaleTimeString("id-ID", {
             hour: "2-digit",
             minute: "2-digit",
           }),
           type: "document-ready",
-          content: content,
+          content: this.createDocumentContent(
+            document,
+            this.generateDummyData(document)
+          ),
           documentName: document.name,
-        };
-        setMessages((prev) => [...prev, completedMessage]);
+        });
+      }
 
-        // HAPUS bagian yang menyebabkan double list
-        // setTimeout(() => {
-        //   setCompletedDocuments((currentCompleted) => {
-        //     this.showDocumentList(setMessages, setCurrentFlow, currentCompleted);
-        //     return currentCompleted;
-        //   });
-        // }, 1000);
-      }, 2000);
-    }, 1000);
+      return newMessages;
+    });
   }
 
   static handleCopy(content) {
