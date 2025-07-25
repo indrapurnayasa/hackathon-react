@@ -1,6 +1,6 @@
 // src/pages/LoginPage.js
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import cargoBg from "../assets/images/cargo-background.avif";
 import config from "../config";
 
@@ -19,6 +19,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedFeature, setSelectedFeature] = useState("ai-assistant");
+  const [showSigningInModal, setShowSigningInModal] = useState(false);
 
   // Loading animation states - Only for successful login
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -27,7 +28,6 @@ const LoginPage = () => {
   const [redirectPath, setRedirectPath] = useState("/dashboard");
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Data fitur dengan GIF
   const features = [
@@ -108,6 +108,7 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setShowSigningInModal(true);
 
     try {
       const res = await fetch(`${config.API_BASE_URL}/api/v1/auth/login`, {
@@ -128,6 +129,7 @@ const LoginPage = () => {
           data?.detail || "Login failed. Please check your credentials."
         );
         setLoading(false);
+        setShowSigningInModal(false);
         return;
       }
 
@@ -153,9 +155,8 @@ const LoginPage = () => {
         }
 
         setLoading(false);
-        // Store redirect path and start loading animation
-        const from = location.state?.from || "/dashboard";
-        setRedirectPath(from);
+        // Always redirect to shipping page
+        setRedirectPath("/dashboard/shipping");
         setIsLoadingAnimation(true);
         setLoadingProgress(0);
         return;
@@ -163,9 +164,11 @@ const LoginPage = () => {
 
       setError("Login failed. Please check your credentials.");
       setLoading(false);
+      setShowSigningInModal(false);
     } catch (err) {
       setError("Network error. Please try again.");
       setLoading(false);
+      setShowSigningInModal(false);
     }
   };
 
@@ -313,13 +316,6 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
-
-          <p className="text-center text-sm text-gray-600 font-light">
-            Don't have an account?{" "}
-            <a href="#" className="text-green-600 hover:underline font-light">
-              Sign up
-            </a>
-          </p>
         </div>
       </div>
 
@@ -377,11 +373,11 @@ const LoginPage = () => {
             {selectedFeatureData && (
               <>
                 {/* Feature Info */}
-                <div className="text-center mb-6">
-                  <div className="text-sm font-light text-green-600 mb-2 uppercase tracking-wide">
+                <div className="text-center mb-2">
+                  <div className="text-sm font-light text-green-600 mb-1 uppercase tracking-wide">
                     {selectedFeatureData.category}
                   </div>
-                  <h2 className="text-2xl font-light text-gray-900 mb-3">
+                  <h2 className="text-2xl font-light text-gray-900 mb-2">
                     {selectedFeatureData.title}
                   </h2>
                   <p className="text-gray-600 font-light max-w-md mx-auto">
@@ -390,7 +386,7 @@ const LoginPage = () => {
                 </div>
 
                 {/* Feature GIF */}
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-start justify-center mt-2">
                   <div className="w-full max-w-md">
                     <div className="aspect-video bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
                       <img
@@ -421,6 +417,23 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Signing In Modal */}
+      {showSigningInModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 flex flex-col items-center">
+            <div className="w-16 h-16 mb-6">
+              <div className="w-full h-full border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h3 className="text-xl font-light text-gray-900 mb-2">
+              Signing in...
+            </h3>
+            <p className="text-sm text-gray-600 text-center">
+              Please wait while we verify your credentials
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

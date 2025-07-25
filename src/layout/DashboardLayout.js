@@ -1,7 +1,7 @@
 // src/layout/DashboardLayout.js
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, NavLink, useNavigate } from "react-router-dom";
-import { Settings, User, LogOut } from "lucide-react";
+import { Settings, LogOut, AlertTriangle } from "lucide-react";
 import PersonalizationModal from "../components/PersonalizationModal";
 import config from "../config";
 
@@ -17,12 +17,18 @@ export default function DashboardLayout() {
   const [isBuffering, setIsBuffering] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+  const [showCautionTooltip, setShowCautionTooltip] = useState(false);
 
   // Fetch user info on mount and check for first-time login
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("access_token");
       const isGuestMode = localStorage.getItem("isGuest") === "true";
+      const isProfileCompleted =
+        localStorage.getItem("profileCompleted") === "true";
+      const isProfileSkipped =
+        localStorage.getItem("profileSkipped") === "true";
 
       if (token && !isGuestMode) {
         try {
@@ -37,11 +43,11 @@ export default function DashboardLayout() {
             setUserName(user.name || user.username || "Versa");
             setIsGuest(false);
 
-            // Check if this is first-time login (no personalization completed)
-            const isProfileCompleted =
-              localStorage.getItem("profileCompleted") === "true";
+            // Show caution if user has skipped personalization
+            setIsProfileIncomplete(isProfileSkipped);
+
+            // Always show personalization modal on login unless completed
             if (!isProfileCompleted) {
-              // Show personalization modal for logged-in users
               setTimeout(() => {
                 setShowPersonalizationModal(true);
               }, 500);
@@ -87,13 +93,29 @@ export default function DashboardLayout() {
   };
 
   /* ---------- MODAL HANDLERS ---------- */
-  const handleProfileClick = () => {
+  // Handle caution click
+  const handleCautionClick = (e) => {
+    e.stopPropagation();
+    setShowCautionTooltip((prev) => !prev);
+  };
+
+  // Handle start personalization
+  const handleStartPersonalization = () => {
+    setShowCautionTooltip(false);
     setShowPersonalizationModal(true);
   };
 
+  // Enhanced handleClosePersonalizationModal
   const handleClosePersonalizationModal = () => {
     setShowPersonalizationModal(false);
     setShowProfileTooltip(false);
+
+    // Check if user completed or skipped
+    const isCompleted = localStorage.getItem("profileCompleted") === "true";
+    const isSkipped = localStorage.getItem("profileSkipped") === "true";
+
+    // Update caution visibility based on completion status
+    setIsProfileIncomplete(isSkipped && !isCompleted);
   };
 
   // Handle logout confirmation modal
@@ -135,15 +157,6 @@ export default function DashboardLayout() {
 
   /* ---------- SETTINGS-DROPDOWN ITEMS ---------- */
   const settingsMenuItems = [
-    {
-      id: "account",
-      label: "Account",
-      icon: <User size={16} />,
-      action: () => {
-        console.log("Account clicked");
-        setShowSettingsDropdown(false);
-      },
-    },
     {
       id: "logout",
       label: "Logout",
@@ -289,65 +302,75 @@ export default function DashboardLayout() {
               </div>
             )}
 
-            {/* Profile */}
+            {/* Profile Section */}
             <div className="flex items-center space-x-3">
-              <div
-                className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
-                style={{ height: 48 }}
-                onClick={
-                  isGuest
-                    ? (e) => {
-                        e.stopPropagation();
-                        setIsBuffering(true);
-                        setTimeout(() => {
-                          navigate("/login", {
-                            state: { from: location.pathname },
-                          });
-                        }, 500);
-                      }
-                    : handleProfileClick
-                }
-              >
-                {isBuffering ? (
-                  <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    {isGuest ? (
-                      <span
-                        className="text-base font-light text-gray-700 hidden md:block"
-                        style={{ fontWeight: 400 }}
-                      >
-                        Login
-                      </span>
-                    ) : (
-                      <>
-                        <span className="text-base font-light text-gray-700 hidden md:block">
-                          Hi, {userName}
+              <div className="relative profile-tooltip-container">
+                <div
+                  className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+                  style={{ height: 48 }}
+                  onClick={
+                    isGuest
+                      ? (e) => {
+                          e.stopPropagation();
+                          setIsBuffering(true);
+                          setTimeout(() => {
+                            navigate("/login", {
+                              state: { from: location.pathname },
+                            });
+                          }, 500);
+                        }
+                      : null
+                  }
+                >
+                  {isBuffering ? (
+                    <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      {isGuest ? (
+                        <span
+                          className="text-base font-light text-gray-700 hidden md:block"
+                          style={{ fontWeight: 400 }}
+                        >
+                          Login
                         </span>
-                        <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                          <span style={{ fontSize: 20 }}>🐴</span>
-                        </div>
-                      </>
-                    )}
-                  </>
+                      ) : (
+                        <>
+                          <span className="text-base font-light text-gray-700 hidden md:block">
+                            Hi, {userName}
+                          </span>
+                          <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span style={{ fontSize: 20 }}>🐴</span>
+                          </div>
+                          {isProfileIncomplete && (
+                            <div
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-amber-600 transition-colors"
+                              onClick={handleCautionClick}
+                            >
+                              <AlertTriangle size={12} className="text-white" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Caution Tooltip */}
+                {showCautionTooltip && isProfileIncomplete && (
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+                    <div className="text-sm text-gray-700 mb-3">
+                      Kamu belum mengisi personalisasi
+                    </div>
+                    <button
+                      onClick={handleStartPersonalization}
+                      className="w-full bg-green-600 text-white py-2 px-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
+                    >
+                      Mulai
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-
-            {/* Profile Tooltip */}
-            {showProfileTooltip && (
-              <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
-                <div className="text-sm text-gray-700 mb-3">
-                  Kamu belum melengkapi profil personalisasi.
-                </div>
-                <button
-                  onClick={handleProfileClick} // Changed from handleStartProfile to handleProfileClick
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
-                >
-                  Mulai
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </header>
@@ -449,6 +472,7 @@ export default function DashboardLayout() {
       <PersonalizationModal
         isOpen={showPersonalizationModal}
         onClose={handleClosePersonalizationModal}
+        userName={userName}
       />
     </div>
   );
