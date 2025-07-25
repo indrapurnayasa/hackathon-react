@@ -105,17 +105,24 @@ export default function ShippingPage() {
     function getLabelLatLng(code) {
       const country = countries.find((c) => c.code === code);
       if (country) {
-        return { lat: country.lat - 8, lng: country.lng };
+        // Adjust latitude for label (slightly lower than flag)
+        return { lat: country.lat - 1, lng: country.lng };
       }
       if (code === "ID") {
-        return { lat: indonesiaCoords.lat - 8, lng: indonesiaCoords.lng };
+        return { lat: indonesiaCoords.lat - 1, lng: indonesiaCoords.lng };
       }
       return { lat: 0, lng: 0 };
     }
 
     function getFlagLatLng(code) {
-      const label = getLabelLatLng(code);
-      return { lat: label.lat + 2, lng: label.lng };
+      const country = countries.find((c) => c.code === code);
+      if (country) {
+        return { lat: country.lat, lng: country.lng };
+      }
+      if (code === "ID") {
+        return { lat: indonesiaCoords.lat, lng: indonesiaCoords.lng };
+      }
+      return { lat: 0, lng: 0 };
     }
 
     const elements = [];
@@ -124,13 +131,13 @@ export default function ShippingPage() {
     elements.push(
       {
         ...getFlagLatLng("ID"),
-        html: `<div style="font-size:28px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12));">🇮🇩</div>`,
-        altitude: 0.025,
+        html: `<div style="font-size:24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); transform: translate(-50%, -50%); position: absolute; left: 50%; top: 50%;">🇮🇩</div>`,
+        altitude: 0.01,
       },
       {
         ...getLabelLatLng("ID"),
-        html: `<div style="background: white; color: black; padding: 6px 14px; border-radius: 16px; font-family: 'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 600; border: 1px solid black; box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap; text-align: center; pointer-events: none; user-select: none; transform: translate(-50%, -50%);">Indonesia</div>`,
-        altitude: 0.025,
+        html: `<div style="background: rgba(255,255,255,0.9); color: black; padding: 4px 12px; border-radius: 12px; font-family: 'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap; text-align: center; pointer-events: none; user-select: none; transform: translate(-50%, -50%); position: absolute; left: 50%; top: 50%;">Indonesia</div>`,
+        altitude: 0.01,
       }
     );
 
@@ -139,13 +146,13 @@ export default function ShippingPage() {
       elements.push(
         {
           ...getFlagLatLng(country.code),
-          html: `<div style="font-size:28px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.12));">${country.flag}</div>`,
-          altitude: 0.015,
+          html: `<div style="font-size:24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); transform: translate(-50%, -50%); position: absolute; left: 50%; top: 50%;">${country.flag}</div>`,
+          altitude: 0.01,
         },
         {
           ...getLabelLatLng(country.code),
-          html: `<div style="background: white; color: black; padding: 6px 14px; border-radius: 16px; font-family: 'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 600; border: 1px solid black; box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap; text-align: center; pointer-events: none; user-select: none; transform: translate(-50%, -50%);">${country.name}</div>`,
-          altitude: 0.015,
+          html: `<div style="background: rgba(255,255,255,0.9); color: black; padding: 4px 12px; border-radius: 12px; font-family: 'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 600; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap; text-align: center; pointer-events: none; user-select: none; transform: translate(-50%, -50%); position: absolute; left: 50%; top: 50%;">${country.name}</div>`,
+          altitude: 0.01,
         }
       );
     });
@@ -163,15 +170,16 @@ export default function ShippingPage() {
     if (location.state && location.state.selectedCountry) {
       setSelectedCountry(location.state.selectedCountry);
       setIsExiting(false);
-      
+
       // Scroll to the selected country if requested
       if (location.state.scrollToCountry) {
         setTimeout(() => {
-          const countryRef = countryRefs.current[location.state.selectedCountry];
+          const countryRef =
+            countryRefs.current[location.state.selectedCountry];
           if (countryRef) {
             countryRef.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center'
+              behavior: "smooth",
+              block: "center",
             });
           }
         }, 500); // Small delay to ensure the component is rendered
@@ -247,7 +255,12 @@ export default function ShippingPage() {
     fetch("/countries.geojson")
       .then((res) => res.json())
       .then((data) => {
-        setCountriesData(data.features);
+        // Filter for all our target countries
+        const targetCountryCodes = countries.map((c) => c.code).concat(["ID"]);
+        const filteredFeatures = data.features.filter((d) =>
+          targetCountryCodes.includes(d.properties.ISO_A2)
+        );
+        setCountriesData(filteredFeatures);
       })
       .catch((error) => {
         console.log("Loading local geojson failed, using fallback");
@@ -303,8 +316,7 @@ export default function ShippingPage() {
     const name = countryData.properties.NAME || countryData.properties.NAME_EN;
     const iso = countryData.properties.ISO_A2;
 
-    if (iso === "ID" || name === "Indonesia") return "rgba(255,255,255,0.7)";
-
+    // Check if this is the selected country or Indonesia when no country is selected
     if (selectedCountry) {
       const selectedCountryObj = countries.find(
         (c) => c.code === selectedCountry
@@ -313,19 +325,80 @@ export default function ShippingPage() {
         selectedCountryObj &&
         (iso === selectedCountry || name === selectedCountryObj.name)
       ) {
-        return "rgba(255,255,255,0.9)";
+        return "rgba(255, 255, 255, 0.3)";
+      }
+    } else if (iso === "ID" || name === "Indonesia") {
+      return "rgba(255, 255, 255, 0.3)";
+    }
+
+    return "rgba(255,255,255,0)";
+  };
+
+  // Country color logic for polygon sides
+  const getPolygonSideColor = (countryData) => {
+    const name = countryData.properties.NAME || countryData.properties.NAME_EN;
+    const iso = countryData.properties.ISO_A2;
+
+    // Check if this is the selected country or Indonesia when no country is selected
+    if (selectedCountry) {
+      const selectedCountryObj = countries.find(
+        (c) => c.code === selectedCountry
+      );
+      if (
+        selectedCountryObj &&
+        (iso === selectedCountry || name === selectedCountryObj.name)
+      ) {
+        return "rgba(255, 255, 255, 0.5)";
+      }
+    } else if (iso === "ID" || name === "Indonesia") {
+      return "rgba(255, 255, 255, 0.5)";
+    }
+
+    return "rgba(255, 255, 255, 0)";
+  };
+
+  // Country stroke color logic
+  const getPolygonStrokeColor = (countryData) => {
+    const name = countryData.properties.NAME || countryData.properties.NAME_EN;
+    const iso = countryData.properties.ISO_A2;
+
+    // Check if this is the selected country
+    if (selectedCountry) {
+      const selectedCountryObj = countries.find(
+        (c) => c.code === selectedCountry
+      );
+      if (
+        selectedCountryObj &&
+        (iso === selectedCountry || name === selectedCountryObj.name)
+      ) {
+        return "rgba(0, 128, 255, 1)"; // Solid blue stroke for selected
       }
     }
 
-    // Check if this country is in our list
-    const isTargetCountry = countries.some(
-      (c) => c.code === iso || c.name === name
-    );
-    if (isTargetCountry) {
-      return "rgba(255,255,255,0.5)";
+    return "rgba(255, 255, 255, 1)"; // White stroke for other countries
+  };
+
+  // Get polygon altitude based on selection
+  const getPolygonAltitude = (countryData) => {
+    const name = countryData.properties.NAME || countryData.properties.NAME_EN;
+    const iso = countryData.properties.ISO_A2;
+
+    // Raise selected country or Indonesia when no country is selected
+    if (selectedCountry) {
+      const selectedCountryObj = countries.find(
+        (c) => c.code === selectedCountry
+      );
+      if (
+        selectedCountryObj &&
+        (iso === selectedCountry || name === selectedCountryObj.name)
+      ) {
+        return 0.01;
+      }
+    } else if (iso === "ID" || name === "Indonesia") {
+      return 0.01;
     }
 
-    return "rgba(255,255,255,0.1)";
+    return 0.0015;
   };
 
   // Handle country selection
@@ -468,7 +541,10 @@ export default function ShippingPage() {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden relative" style={{ background: '#f2f2f7' }}>
+    <div
+      className="h-screen w-full overflow-hidden relative"
+      style={{ background: "#f2f2f7" }}
+    >
       {/* CSS Animations */}
       <style>{`
         @keyframes slideInFromRight {
@@ -545,13 +621,14 @@ export default function ShippingPage() {
           height={window.innerHeight}
           polygonsData={countriesData}
           polygonCapColor={getCountryColor}
-          polygonSideColor={() => "rgba(255, 255, 255, 0.3)"}
-          polygonStrokeColor={() => "rgba(255, 255, 255, 0.8)"}
-          polygonAltitude={0.0015}
+          polygonSideColor={getPolygonSideColor}
+          polygonStrokeColor={getPolygonStrokeColor}
+          polygonAltitude={getPolygonAltitude}
+          polygonStrokeWidth={2}
           onPolygonClick={handleCountryClick}
           htmlElementsData={htmlElementsData}
           htmlElement={createLabelElement}
-          htmlAltitude={(d) => d.altitude}
+          htmlAltitude={0.01}
           enablePointerInteraction={true}
         />
       </div>
@@ -609,8 +686,8 @@ export default function ShippingPage() {
             {/* Scrollable Container untuk Country List */}
             <div className="country-list-container space-y-2">
               {countries.map((country) => (
-                <div 
-                  key={country.code} 
+                <div
+                  key={country.code}
                   className="relative"
                   ref={(el) => {
                     countryRefs.current[country.code] = el;
