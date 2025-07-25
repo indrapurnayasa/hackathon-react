@@ -8,8 +8,9 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import config from '../config';
+// import config from '../config'; // Unused for now
 import ChatInterface from "../components/ai-assistant/ChatInterface";
+import EnhancedChatbotSystem from "../utils/enhancedChatbotSystem";
 
 export default function AIAssistantPage() {
   const [input, setInput] = useState("");
@@ -25,7 +26,7 @@ export default function AIAssistantPage() {
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [isTypingResponse, setIsTypingResponse] = useState(false);
+  const [isTypingResponse] = useState(false); // Keep for future use
   const [currentFlow, setCurrentFlow] = useState(null);
   const [completedDocuments, setCompletedDocuments] = useState(new Set());
   const [completedEmails, setCompletedEmails] = useState(new Set());
@@ -135,28 +136,49 @@ export default function AIAssistantPage() {
     setInput("");
   };
 
-  // Add missing processUserInput function
+  // Enhanced processUserInput with intelligent chatbot system
   const processUserInput = async (userInput) => {
     try {
       setIsGenerating(true);
-      // Call the chatbot API
-      // (You can use your callChatbotAPI and formatting logic here)
-      // For now, just echo the user input as a bot response for demo:
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
+      
+      // Use Enhanced Chatbot System for intelligent responses
+      console.log('Processing user input with Enhanced System:', userInput);
+      const response = EnhancedChatbotSystem.getIntelligentResponse(userInput, setMessages, {
+        setCompletedDocuments,
+        setCompletedEmails,
+        setCompletedProposals,
+        setIsTyping,
+        setCurrentFlow
+      });
+      console.log('Enhanced system response:', response);
+      
+      // If no specific enhanced response, provide general response
+      if (!response) {
+        setTimeout(() => {
+          const botMessage = {
             from: "bot",
-            text: `Bot response to: ${userInput}`,
+            text: `Maaf, saya belum mengerti permintaan Anda. Saya dapat membantu dengan:
+
+💰 **Estimasi Biaya Ekspor** - Ketik "biaya ekspor" atau "kalkulasi"
+📄 **Dokumen Ekspor** - Ketik nama dokumen seperti "PEB", "Commercial Invoice"
+📧 **Email Bisnis** - Ketik "email penawaran" atau "business email"  
+🤝 **Proposal Kerjasama** - Ketik "proposal bisnis"
+
+Silakan coba lagi dengan permintaan yang lebih spesifik!`,
             timestamp: new Date().toLocaleTimeString("id-ID", {
               hour: "2-digit",
               minute: "2-digit",
             }),
-          },
-        ]);
+          };
+          setMessages((prev) => [...prev, botMessage]);
+          setIsGenerating(false);
+        }, 1000);
+      } else {
         setIsGenerating(false);
-      }, 1000);
+      }
+      
     } catch (error) {
+      console.error('Error in processUserInput:', error);
       setIsGenerating(false);
     }
   };

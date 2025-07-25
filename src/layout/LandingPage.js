@@ -2,25 +2,9 @@ import React, { useEffect, useState } from "react";
 import GlobeMap from "./GlobeMap";
 import { useNavigate } from "react-router-dom";
 
-// Import image files for features carousel
-// NOTE: Replace these with your actual PNG/JPG images
-// Place your images in src/assets/ folder with these names:
-// - conversational-ai-1.png, conversational-ai-2.png, conversational-ai-3.png, conversational-ai-4.png, conversational-ai-5.png
-// - smart-shipping-1.png, smart-shipping-2.png, smart-shipping-3.png, smart-shipping-4.png, smart-shipping-5.png
-// - market-trends-1.png, market-trends-2.png, market-trends-3.png, market-trends-4.png, market-trends-5.png
 import Fitur1 from '../assets/Fitur1.gif'; // Replace with conversational-ai-1.png
 import Fitur2 from '../assets/Fitur2.gif'; // Replace with smart-shipping-1.png
 import Fitur3 from '../assets/Fitur3.gif'; // Replace with market-trends-1.png
-
-// Background Images for Sections
-// NOTE: Add these background images to src/assets/images/ folder:
-// - ai-background.jpg (for Conversational AI section)
-// - shipping-background.jpg (for Smart Shipping section) 
-// - analytics-background.jpg (for Market Trends section)
-// You can use high-quality images from Unsplash or similar sources:
-// - AI/Technology themed image for conversational-ai
-// - Ship/Ocean/Port themed image for smart-shipping
-// - Charts/Analytics/Business themed image for market-trends
 
 const sections = [
   { id: "hero", name: "About", shortName: "About" },

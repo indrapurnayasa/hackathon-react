@@ -12,6 +12,7 @@ import { jsPDF } from "jspdf";
 import DocumentGenerator from "./DocumentGenerator";
 import EmailGenerator from "./EmailGenerator";
 import ProposalGenerator from "./ProposalGenerator";
+import EnhancedChatbotSystem from "../../utils/enhancedChatbotSystem";
 
 // TAMBAH FUNGSI FORMAT TANGGAL
 const formatDate = (date) => {
@@ -118,6 +119,19 @@ const ChatInterface = ({
   chatHistory,
   setChatHistory,
 }) => {
+  // Format text with bold and other formatting
+  const formatMessageText = (text) => {
+    if (!text) return text;
+    
+    // Convert **bold** to HTML
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert - bullet points to • bullet points
+    formatted = formatted.replace(/^- /gm, '• ');
+    
+    return formatted;
+  };
+
   const handleCopy = (content) => {
     navigator.clipboard.writeText(content);
     alert("Content berhasil disalin!");
@@ -125,41 +139,253 @@ const ChatInterface = ({
 
   const handleDownload = (content, filename) => {
     try {
+      console.log('Creating PDF from frontend HTML...');
       const doc = new jsPDF();
-      doc.setFont("helvetica");
-      doc.setFontSize(12);
-
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      const maxLineWidth = pageWidth - margin * 2;
-      const lines = doc.splitTextToSize(content, maxLineWidth);
-
-      doc.setFontSize(16);
-      doc.setFont("helvetica", "bold");
-      doc.text(filename.toUpperCase(), margin, 20);
-
-      doc.setFontSize(12);
-      let yPosition = 45;
-      const lineHeight = 7;
-
-      lines.forEach((line) => {
-        if (yPosition > doc.internal.pageSize.getHeight() - 20) {
-          doc.addPage();
-          yPosition = 20;
+      
+      // Check if content is HTML (from enhanced document generator)
+      if (content.includes('<div') || content.includes('<table')) {
+        // Parse HTML exactly as shown in frontend
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        let yPosition = 20;
+        const margin = 15;
+        
+        // Extract title
+        const titleEl = tempDiv.querySelector('h1, h2');
+        if (titleEl) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(16);
+          doc.text(titleEl.textContent.trim().toUpperCase(), margin, yPosition);
+          yPosition += 15;
         }
-        doc.text(line, margin, yPosition);
-        yPosition += lineHeight;
-      });
+        
+        // Extract subtitle
+        const subtitleEl = tempDiv.querySelector('p');
+        if (subtitleEl && (subtitleEl.textContent.includes('Export') || subtitleEl.textContent.includes('Document'))) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          doc.text(subtitleEl.textContent.trim(), margin, yPosition);
+          yPosition += 10;
+        }
+        
+        // Extract document info (PEB number, Invoice number, etc.)
+        const docInfoDivs = tempDiv.querySelectorAll('div');
+        docInfoDivs.forEach(div => {
+          const style = div.getAttribute('style') || '';
+          if (style.includes('background: #f8f9fa') && style.includes('text-align: center')) {
+            const strongEl = div.querySelector('strong');
+            const spanEl = div.querySelector('span');
+            if (strongEl && (strongEl.textContent.includes('PEB') || strongEl.textContent.includes('Invoice') || strongEl.textContent.includes('No:'))) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(10);
+              doc.text(strongEl.textContent.trim(), margin, yPosition);
+              yPosition += 6;
+              if (spanEl) {
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.text(spanEl.textContent.trim(), margin, yPosition);
+                yPosition += 10;
+              }
+            }
+          }
+        });
+        
+        // Process tables exactly as they appear in frontend
+        const sections = tempDiv.querySelectorAll('div');
+        sections.forEach(section => {
+          const h4 = section.querySelector('h4');
+          const table = section.querySelector('table');
+          
+          if (h4 && table) {
+            // Check if we need a new page
+            if (yPosition > doc.internal.pageSize.getHeight() - 80) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            // Add section title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text(h4.textContent.trim(), margin, yPosition);
+            yPosition += 8;
+            
+            // Process table with frontend structure
+            yPosition = renderFrontendTable(doc, table, margin, yPosition);
+            yPosition += 10;
+          }
+        });
+        
+      } else {
+        // Fallback for plain text
+        doc.setFont("helvetica");
+        doc.setFontSize(12);
 
-      doc.save(`${filename}_${Date.now()}.pdf`);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        const maxLineWidth = pageWidth - margin * 2;
+        const lines = doc.splitTextToSize(content, maxLineWidth);
+
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(filename.toUpperCase(), margin, 20);
+
+        doc.setFontSize(12);
+        let yPosition = 45;
+        const lineHeight = 7;
+
+        lines.forEach((line) => {
+          if (yPosition > doc.internal.pageSize.getHeight() - 20) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(line, margin, yPosition);
+          yPosition += lineHeight;
+        });
+      }
+
+      doc.save(`${filename.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+      alert("PDF berhasil didownload!");
+      
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("PDF generation failed.");
+      alert("Gagal membuat PDF. Silakan coba lagi.");
     }
   };
+  
+  // Function to render table exactly as frontend shows
+  const renderFrontendTable = (doc, table, startX, startY) => {
+    const pageWidth = doc.internal.pageSize.getWidth() - startX * 2;
+    let yPosition = startY;
+    const rowHeight = 10;
+    
+    // Check table structure
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    
+    if (thead && tbody) {
+      // Structured table with proper headers
+      const headerCells = thead.querySelectorAll('th');
+      if (headerCells.length > 0) {
+        const colWidth = pageWidth / headerCells.length;
+        
+        // Draw header row with light background like frontend
+        doc.setFillColor(248, 249, 250); // #f8f9fa
+        doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(73, 80, 87); // #495057
+        
+        headerCells.forEach((cell, index) => {
+          const x = startX + (index * colWidth);
+          const text = cell.textContent.trim();
+          doc.text(text.length > 20 ? text.substring(0, 20) + '...' : text, x + 2, yPosition + 6);
+          
+          // Draw border
+          doc.setDrawColor(222, 226, 230); // #dee2e6
+          doc.setLineWidth(0.1);
+          doc.rect(x, yPosition, colWidth, rowHeight);
+        });
+        
+        yPosition += rowHeight;
+        
+        // Draw data rows
+        const dataRows = tbody.querySelectorAll('tr');
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        
+        dataRows.forEach((row, rowIndex) => {
+          const cells = row.querySelectorAll('td');
+          
+          // Alternate row background like frontend
+          if (rowIndex % 2 === 1) {
+            doc.setFillColor(248, 249, 250);
+            doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+          }
+          
+          cells.forEach((cell, cellIndex) => {
+            const x = startX + (cellIndex * colWidth);
+            let text = cell.textContent.trim();
+            
+            if (text.length > 25) {
+              text = text.substring(0, 25) + '...';
+            }
+            
+            // Right align numbers and currency like frontend
+            if (text.includes('$') || text.includes('kg') || text.includes('USD') || 
+                !isNaN(parseFloat(text.replace(/[^\d.-]/g, '')))) {
+              doc.text(text, x + colWidth - 2, yPosition + 6, { align: 'right' });
+            } else {
+              doc.text(text, x + 2, yPosition + 6);
+            }
+            
+            // Draw border
+            doc.setDrawColor(222, 226, 230);
+            doc.setLineWidth(0.1);
+            doc.rect(x, yPosition, colWidth, rowHeight);
+          });
+          
+          yPosition += rowHeight;
+        });
+      }
+    } else {
+      // Simple table structure - process all rows
+      const allRows = table.querySelectorAll('tr');
+      if (allRows.length > 0) {
+        const firstRow = allRows[0];
+        const cellCount = firstRow.querySelectorAll('th, td').length;
+        const colWidth = pageWidth / cellCount;
+        
+        allRows.forEach((row, rowIndex) => {
+          const cells = row.querySelectorAll('th, td');
+          const isHeaderRow = cells[0] && cells[0].tagName === 'TH';
+          
+          if (isHeaderRow) {
+            // Header styling - light gray like frontend
+            doc.setFillColor(248, 249, 250);
+            doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(73, 80, 87);
+          } else {
+            // Data row
+            if (rowIndex % 2 === 1) {
+              doc.setFillColor(248, 249, 250);
+              doc.rect(startX, yPosition, pageWidth, rowHeight, 'F');
+            }
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+          }
+          
+          cells.forEach((cell, cellIndex) => {
+            const x = startX + (cellIndex * colWidth);
+            let text = cell.textContent.trim();
+            
+            if (text.length > 25) {
+              text = text.substring(0, 25) + '...';
+            }
+            
+            doc.text(text, x + 2, yPosition + 6);
+            
+            // Draw cell border
+            doc.setDrawColor(222, 226, 230);
+            doc.setLineWidth(0.1);
+            doc.rect(x, yPosition, colWidth, rowHeight);
+          });
+          
+          yPosition += rowHeight;
+        });
+      }
+    }
+    
+         return yPosition;
+   };
 
-  const renderMessage = (message, index) => {
-    if (message.type === "document-list") {
+   const renderMessage = (message, index) => {
+    if (message.type === "document-list" || message.type === "enhanced-document-list") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -196,15 +422,14 @@ const ChatInterface = ({
                 {message.documents.map((doc) => (
                   <button
                     key={doc.id}
-                    onClick={() =>
-                      DocumentGenerator.generateDocument(
-                        doc,
+                    onClick={() => {
+                      // Use enhanced document generation with document ID/name
+                      EnhancedChatbotSystem.generateEnhancedDocument(
+                        doc.id,
                         setMessages,
-                        setCompletedDocuments,
-                        setIsTyping,
-                        setCurrentFlow
-                      )
-                    }
+                        setCompletedDocuments
+                      );
+                    }}
                     className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
                   >
                     <div className="flex items-center space-x-2 mb-2">
@@ -282,7 +507,7 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "email-template-list") {
+    if (message.type === "email-template-list" || message.type === "enhanced-email-list") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -389,7 +614,7 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "proposal-list") {
+    if (message.type === "proposal-list" || message.type === "enhanced-proposal-list") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -486,7 +711,8 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "document-ready") {
+    // Enhanced document ready with HTML content display
+    if (message.type === "enhanced-document-ready" || message.type === "document-ready") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -513,12 +739,14 @@ const ChatInterface = ({
                 fontWeight: 400,
               }}
             >
-              <p
+              <div
                 className="text-sm leading-relaxed mb-3"
                 style={{ fontWeight: 400 }}
-              >
-                {message.text}
-              </p>
+                dangerouslySetInnerHTML={{
+                  __html: formatMessageText(message.text)
+                }}
+              />
+              
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <span
@@ -560,10 +788,27 @@ const ChatInterface = ({
                     </button>
                   </div>
                 </div>
-                <div className="bg-gray-100 rounded p-3 max-h-64 overflow-y-auto">
-                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
-                    {message.content}
-                  </pre>
+                
+                {/* Display HTML content properly or fallback to plain text */}
+                <div className="bg-white rounded p-3 max-h-96 overflow-y-auto border">
+                  {message.content && message.content.includes('<') ? (
+                    // HTML content - render as HTML
+                    <div 
+                      className="text-sm text-gray-800"
+                      dangerouslySetInnerHTML={{
+                        __html: message.content
+                      }}
+                      style={{
+                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
+                        lineHeight: "1.4"
+                      }}
+                    />
+                  ) : (
+                    // Plain text content
+                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                      {message.content}
+                    </pre>
+                  )}
                 </div>
               </div>
 
@@ -593,7 +838,7 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "email-ready") {
+    if (message.type === "enhanced-email-ready" || message.type === "email-ready") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -687,7 +932,7 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "proposal-ready") {
+    if (message.type === "enhanced-proposal-ready" || message.type === "proposal-ready") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -793,7 +1038,7 @@ const ChatInterface = ({
       );
     }
 
-    if (message.type === "cost-estimation") {
+    if (message.type === "cost-estimation" || message.type === "enhanced-cost-estimation") {
       return (
         <div key={index} className="flex items-end space-x-2 mb-4">
           <div
@@ -820,12 +1065,13 @@ const ChatInterface = ({
                 fontWeight: 400,
               }}
             >
-              <p
+              <div
                 className="text-sm leading-relaxed mb-3"
                 style={{ fontWeight: 400 }}
-              >
-                {message.text}
-              </p>
+                dangerouslySetInnerHTML={{
+                  __html: formatMessageText(message.text)
+                }}
+              />
               <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                 <div className="font-medium text-yellow-800 mb-3">
                   💰 Estimasi Biaya Ekspor
@@ -839,12 +1085,18 @@ const ChatInterface = ({
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="font-medium">Produk:</div>
                     <div>{message.content.productInfo.name}</div>
+                    <div className="font-medium">Kategori:</div>
+                    <div>{message.content.productInfo.category}</div>
+                    <div className="font-medium">Kode HS:</div>
+                    <div>{message.content.productInfo.hsCode}</div>
                     <div className="font-medium">Berat:</div>
                     <div>{message.content.productInfo.weight}</div>
                     <div className="font-medium">Nilai FOB:</div>
                     <div>{message.content.productInfo.value}</div>
                     <div className="font-medium">Tujuan:</div>
                     <div>{message.content.productInfo.destination}</div>
+                    <div className="font-medium">Region:</div>
+                    <div>{message.content.productInfo.region}</div>
                   </div>
                 </div>
 
@@ -889,6 +1141,18 @@ const ChatInterface = ({
                   <div className="text-xs text-yellow-700 mt-2">
                     *Estimasi berdasarkan peraturan Dirjen Bea dan Cukai. Biaya
                     aktual dapat bervariasi.
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                <div className="mt-4 pt-4 border-t border-yellow-200">
+                  <h4 className="font-medium text-yellow-800 mb-2">
+                    Informasi Tambahan:
+                  </h4>
+                  <div className="text-sm space-y-2">
+                    <div><strong>Estimasi Waktu Kirim:</strong> {message.content.additionalInfo.shippingTime}</div>
+                    <div><strong>Dokumen Diperlukan:</strong> {message.content.additionalInfo.documentation.join(", ")}</div>
+                    <div><strong>Payment Terms:</strong> {message.content.additionalInfo.paymentTerms}</div>
                   </div>
                 </div>
               </div>
@@ -993,18 +1257,19 @@ const ChatInterface = ({
                 fontWeight: 400,
               }}
             >
-              <p
+              <div
                 className="text-sm leading-relaxed whitespace-pre-line"
                 style={{ fontWeight: 400 }}
-              >
-                {message.formattedText ? message.formattedText : message.text}
-                {isTypingResponse && message.from === "bot" && (
-                  <span 
-                    className="inline-block w-0.5 h-4 bg-gray-600 ml-1 animate-pulse"
-                    style={{ animation: 'blink 1s infinite' }}
-                  />
-                )}
-              </p>
+                dangerouslySetInnerHTML={{
+                  __html: formatMessageText(message.formattedText || message.text)
+                }}
+              />
+              {isTypingResponse && message.from === "bot" && (
+                <span 
+                  className="inline-block w-0.5 h-4 bg-gray-600 ml-1 animate-pulse"
+                  style={{ animation: 'blink 1s infinite' }}
+                />
+              )}
 
               {/* WHATSAPP STYLE TAIL */}
               <div
@@ -1165,12 +1430,13 @@ const ChatInterface = ({
                   }
                 }}
                 placeholder="Tulis pesan..."
-                className="flex-1 border border-gray-200 rounded-lg px-4 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm"
+                className="flex-1 border border-gray-200 rounded-lg px-4 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black"
                 style={{
                   fontFamily:
                     "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
                   fontSize: "16px",
                   fontWeight: 400,
+                  color: "#000000", // Explicit black text color
                 }}
                 disabled={isGenerating}
               />
