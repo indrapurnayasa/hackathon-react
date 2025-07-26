@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Globe from "react-globe.gl";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -79,7 +79,7 @@ const LandingPage = () => {
   const globeEl = useRef();
   const containerRef = useRef();
   const [countries, setCountries] = useState({ features: [] });
-  const [hoverD, setHoverD] = useState();
+  const [hoverD] = useState();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [isGlobeLoading, setIsGlobeLoading] = useState(true);
   const [globeError, setGlobeError] = useState(null);
@@ -259,7 +259,7 @@ const LandingPage = () => {
           if (prev >= 100) {
             clearInterval(interval);
             setTimeout(() => {
-              navigate("/dashboard/shipping");
+              navigate("/dashboard/trend"); // Changed from shipping to trend
             }, 100);
             return 100;
           }
@@ -481,6 +481,13 @@ const LandingPage = () => {
             className="absolute right-0 w-[60%] h-full"
             ref={containerRef}
             data-globe-container
+            onClick={(e) => {
+              // Only trigger if not clicking a polygon (i.e., not handled by onPolygonClick)
+              if (e.target.closest(".globe-clickable-polygon")) return;
+              setIsLoadingAnimation(true);
+              setLoadingProgress(0);
+            }}
+            style={{ cursor: "pointer" }}
           >
             {!isGlobeLoading && !globeError && (
               <Globe
@@ -513,6 +520,10 @@ const LandingPage = () => {
                   alpha: true,
                   preserveDrawingBuffer: true,
                 }}
+                // Add a class to polygons for click detection
+                polygonLabel={() =>
+                  "<div class=&quot;globe-clickable-polygon&quot;></div>"
+                }
               />
             )}
           </div>
@@ -556,24 +567,24 @@ const LandingPage = () => {
                 border: "1px solid rgba(0,0,0,0.1)",
               }}
             >
-              <h3 className="text-lg font-medium mb-2 text-gray-900">
+              <h3 className={"text-lg font-medium mb-2 text-gray-900"}>
                 {hoveredCountry.name}
               </h3>
               <div className="mb-3">
-                <p className="text-sm text-gray-600 mb-1">
+                <p className={"text-sm text-gray-600 mb-1"}>
                   Top Export Commodities:
                 </p>
-                <ul className="list-disc list-inside">
+                <ul className={"list-disc list-inside"}>
                   {hoveredCountry.commodities.map((commodity, index) => (
-                    <li key={index} className="text-sm text-gray-700 ml-2">
+                    <li key={index} className={"text-sm text-gray-700 ml-2"}>
                       {commodity}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="flex items-center mb-3">
-                <span className="text-sm text-gray-600">Export Growth:</span>
-                <span className="ml-2 text-green-600 font-medium">
+              <div className={"flex items-center mb-3"}>
+                <span className={"text-sm text-gray-600"}>Export Growth:</span>
+                <span className={"ml-2 text-green-600 font-medium"}>
                   {hoveredCountry.percentage}% ↗
                 </span>
               </div>
