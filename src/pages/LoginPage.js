@@ -1,5 +1,5 @@
 // src/pages/LoginPage.js
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import cargoBg from "../assets/images/cargo-background.avif";
 import config from "../config";
@@ -26,6 +26,9 @@ const LoginPage = () => {
   const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [redirectPath, setRedirectPath] = useState("/dashboard");
+  // Loading animation states for back to landing page
+  const [isBackLoadingAnimation, setIsBackLoadingAnimation] = useState(false);
+  const [backLoadingProgress, setBackLoadingProgress] = useState(0);
 
   const navigate = useNavigate();
 
@@ -79,6 +82,25 @@ const LoginPage = () => {
       return () => clearInterval(interval);
     }
   }, [isLoadingAnimation, navigate, redirectPath]);
+
+  // Loading animation effect for back to landing page
+  useEffect(() => {
+    if (isBackLoadingAnimation) {
+      const interval = setInterval(() => {
+        setBackLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              navigate("/");
+            }, 100);
+            return 100;
+          }
+          return Math.min(prev + Math.random() * 15 + 5, 100);
+        });
+      }, 80);
+      return () => clearInterval(interval);
+    }
+  }, [isBackLoadingAnimation, navigate]);
 
   // ResizeObserver to track left section height
   useEffect(() => {
@@ -215,6 +237,14 @@ const LoginPage = () => {
     );
   }
 
+  const handleBackToLanding = (event) => {
+    // Prevent any form submission events
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    setIsBackLoadingAnimation(true);
+    setBackLoadingProgress(0);
+  };
+
   return (
     <div
       className="min-h-screen flex"
@@ -309,10 +339,10 @@ const LoginPage = () => {
             {/* Guest Access */}
             <div className="mt-4 text-center">
               <button
-                onClick={() => navigate("/")}
+                onClick={handleBackToLanding}
                 className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-full font-light hover:bg-gray-200 transition-all hover:shadow-lg"
               >
-                Continue as Guest
+                Back to Landing Page
               </button>
             </div>
           </form>
@@ -430,6 +460,35 @@ const LoginPage = () => {
             </h3>
             <p className="text-sm text-gray-600 text-center">
               Please wait while we verify your credentials
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Animation Overlay for Back to Landing Page */}
+      {isBackLoadingAnimation && (
+        <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999] font-['Inter']">
+          <div className="text-center">
+            <div className="mb-8">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-3xl font-light">⚡</span>
+              </div>
+              <h1 className="text-4xl font-light text-gray-900">ExportIn</h1>
+            </div>
+
+            <div className="w-80 bg-gray-200 rounded-full h-2 mb-4">
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-200 ease-out"
+                style={{ width: `${backLoadingProgress}%` }}
+              />
+            </div>
+
+            <p className="text-gray-600 font-light">
+              {backLoadingProgress < 50
+                ? "Initializing..."
+                : backLoadingProgress < 80
+                ? "Redirecting to landing page..."
+                : "Almost ready..."}
             </p>
           </div>
         </div>

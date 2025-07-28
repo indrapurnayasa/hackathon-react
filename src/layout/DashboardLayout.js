@@ -1,5 +1,5 @@
 // src/layout/DashboardLayout.js
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, NavLink, useNavigate } from "react-router-dom";
 import { Settings, LogOut, AlertTriangle } from "lucide-react";
 import PersonalizationModal from "../components/PersonalizationModal";
@@ -19,6 +19,8 @@ export default function DashboardLayout() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
   const [showCautionTooltip, setShowCautionTooltip] = useState(false);
+  const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   // Fetch user info on mount and check for first-time login
   useEffect(() => {
@@ -68,6 +70,33 @@ export default function DashboardLayout() {
 
     fetchUser();
   }, []);
+
+  // Handle logo click for guest users
+  const handleLogoClick = () => {
+    if (isGuest) {
+      setIsLoadingAnimation(true);
+      setLoadingProgress(0);
+    }
+  };
+
+  // Loading animation effect for logo click
+  useEffect(() => {
+    if (isLoadingAnimation) {
+      const interval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              navigate("/");
+            }, 100);
+            return 100;
+          }
+          return Math.min(prev + Math.random() * 15 + 5, 100);
+        });
+      }, 80);
+      return () => clearInterval(interval);
+    }
+  }, [isLoadingAnimation, navigate]);
 
   /* ---------- MAIN NAVIGATION ---------- */
   const menus = [
@@ -218,7 +247,8 @@ export default function DashboardLayout() {
           {/* Logo / Brand */}
           <div
             className="flex items-center space-x-3 bg-white rounded-full px-4 py-3 shadow-sm border border-gray-200"
-            style={{ height: 48 }}
+            style={{ height: 48, cursor: isGuest ? "pointer" : "default" }}
+            onClick={handleLogoClick}
           >
             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
               <span
@@ -474,6 +504,35 @@ export default function DashboardLayout() {
         onClose={handleClosePersonalizationModal}
         userName={userName}
       />
+
+      {/* Loading Animation Overlay for Logo Click */}
+      {isLoadingAnimation && (
+        <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999] font-['Inter']">
+          <div className="text-center">
+            <div className="mb-8">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-3xl font-light">⚡</span>
+              </div>
+              <h1 className="text-4xl font-light text-gray-900">ExportIn</h1>
+            </div>
+
+            <div className="w-80 bg-gray-200 rounded-full h-2 mb-4">
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-200 ease-out"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+
+            <p className="text-gray-600 font-light">
+              {loadingProgress < 50
+                ? "Initializing..."
+                : loadingProgress < 80
+                ? "Redirecting to landing page..."
+                : "Almost ready..."}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

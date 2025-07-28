@@ -72,8 +72,10 @@ CarouselNavigation.propTypes = {
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
+  const [isGlobeLoading, setIsGlobeLoading] = useState(true);
+  const [globeError, setGlobeError] = useState(null);
+  const [hoveredCountry, setHoveredCountry] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   // Globe states
   const globeEl = useRef();
@@ -81,10 +83,9 @@ const LandingPage = () => {
   const [countries, setCountries] = useState({ features: [] });
   const [hoverD] = useState();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  const [isGlobeLoading, setIsGlobeLoading] = useState(true);
-  const [globeError, setGlobeError] = useState(null);
-  const [hoveredCountry, setHoveredCountry] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  // Loading animation states for login
+  const [isLoginLoadingAnimation, setIsLoginLoadingAnimation] = useState(false);
+  const [loginLoadingProgress, setLoginLoadingProgress] = useState(0);
 
   // Get export data for tooltip
   const getExportData = useCallback((countryName) => {
@@ -239,45 +240,20 @@ const LandingPage = () => {
   );
 
   // Handle learn more button click
-  const handleLearnMore = useCallback(() => {
-    setIsLoadingAnimation(true);
-    setLoadingProgress(0);
-  }, []);
+  const handleLearnMore = useCallback(() => {}, []);
 
   const handlePolygonClick = useCallback((polygon) => {
     if (polygon?.properties) {
-      setIsLoadingAnimation(true);
-      setLoadingProgress(0);
     }
   }, []);
 
-  // Loading animation effect
-  useEffect(() => {
-    if (isLoadingAnimation) {
-      const interval = setInterval(() => {
-        setLoadingProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-              navigate("/dashboard/trend"); // Changed from shipping to trend
-            }, 100);
-            return 100;
-          }
-          return Math.min(prev + Math.random() * 15 + 5, 100);
-        });
-      }, 80);
-      return () => clearInterval(interval);
-    }
-  }, [isLoadingAnimation, navigate]);
-
   const handleGetStarted = () => {
-    setIsLoadingAnimation(true);
-    setLoadingProgress(0);
+    navigate("/dashboard/trend");
   };
 
   const handleLogin = () => {
-    setIsLoadingAnimation(true);
-    setLoadingProgress(0);
+    setIsLoginLoadingAnimation(true);
+    setLoginLoadingProgress(0);
   };
 
   // Carousel states for each section
@@ -337,6 +313,25 @@ const LandingPage = () => {
       direction === "next" ? "slideNext" : "slidePrev"
     } 0.5s ease-in-out`,
   });
+
+  // Loading animation effect for login
+  useEffect(() => {
+    if (isLoginLoadingAnimation) {
+      const interval = setInterval(() => {
+        setLoginLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              navigate("/login");
+            }, 100);
+            return 100;
+          }
+          return Math.min(prev + Math.random() * 15 + 5, 100);
+        });
+      }, 80);
+      return () => clearInterval(interval);
+    }
+  }, [isLoginLoadingAnimation, navigate]);
 
   return (
     <>
@@ -484,10 +479,8 @@ const LandingPage = () => {
             onClick={(e) => {
               // Only trigger if not clicking a polygon (i.e., not handled by onPolygonClick)
               if (e.target.closest(".globe-clickable-polygon")) return;
-              setIsLoadingAnimation(true);
-              setLoadingProgress(0);
             }}
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "default" }}
           >
             {!isGlobeLoading && !globeError && (
               <Globe
@@ -545,7 +538,7 @@ const LandingPage = () => {
                     onClick={handleGetStarted}
                     className="bg-black text-white px-8 py-3 rounded-full font-light hover:bg-gray-900 transition-all text-lg"
                   >
-                    Get Started
+                    Try Now
                   </button>
                 </div>
               </div>
@@ -990,8 +983,8 @@ const LandingPage = () => {
           </div>
         </footer>
 
-        {/* Loading Animation Overlay */}
-        {isLoadingAnimation && (
+        {/* Loading Animation Overlay for Login */}
+        {isLoginLoadingAnimation && (
           <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999] font-['Inter']">
             <div className="text-center">
               <div className="mb-8">
@@ -1004,15 +997,15 @@ const LandingPage = () => {
               <div className="w-80 bg-gray-200 rounded-full h-2 mb-4">
                 <div
                   className="bg-green-500 h-2 rounded-full transition-all duration-200 ease-out"
-                  style={{ width: `${loadingProgress}%` }}
+                  style={{ width: `${loginLoadingProgress}%` }}
                 />
               </div>
 
               <p className="text-gray-600 font-light">
-                {loadingProgress < 50
+                {loginLoadingProgress < 50
                   ? "Initializing..."
-                  : loadingProgress < 80
-                  ? "Loading your AI Assistant..."
+                  : loginLoadingProgress < 80
+                  ? "Redirecting to login..."
                   : "Almost ready..."}
               </p>
             </div>

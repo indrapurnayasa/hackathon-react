@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Globe,
   TrendingUp,
@@ -15,7 +15,7 @@ import vectorImage from "../assets/images/vector.png";
 // Import country utilities
 import { getCountryFlag } from "../utils/countryFlags";
 import { getCountryName, capitalizeWords } from "../utils/countryNames";
-import config from '../config';
+import config from "../config";
 
 export default function TrendPage() {
   const location = useLocation();
@@ -32,6 +32,16 @@ export default function TrendPage() {
   const [countryError, setCountryError] = useState(null);
   const countryProductsRefs = useRef({});
   const [showArrows, setShowArrows] = useState({});
+  const [isGuest, setIsGuest] = useState(false);
+  const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+
+  // Check if user is guest
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const isGuestMode = localStorage.getItem("isGuest") === "true";
+    setIsGuest(!token || isGuestMode);
+  }, []);
 
   // Check if navigated from ShippingPage with specific tab
   useEffect(() => {
@@ -69,9 +79,9 @@ export default function TrendPage() {
     const container = countryProductsRefs.current[countryIndex];
     if (container) {
       const isScrollable = container.scrollWidth > container.clientWidth;
-      setShowArrows(prev => ({
+      setShowArrows((prev) => ({
         ...prev,
-        [countryIndex]: isScrollable
+        [countryIndex]: isScrollable,
       }));
     }
   };
@@ -95,39 +105,46 @@ export default function TrendPage() {
     }
   };
 
-
-
   // Fetch seasonal trends from API
   const fetchSeasonalTrends = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${config.API_BASE_URL}/api/v1/export/seasonal-trend?endDate=31-12-2024`);
+      const response = await fetch(
+        `${config.API_BASE_URL}/api/v1/export/seasonal-trend?endDate=31-12-2024`
+      );
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch seasonal trends');
+        throw new Error(
+          data?.detail ||
+            data?.message ||
+            data?.error ||
+            "Failed to fetch seasonal trends"
+        );
       }
-      
+
       // Transform API data to match the expected format
       const transformedData = data.data.map((item, index) => ({
         id: `item-${index}`,
         product: extractProductName(item.comodity),
         season: item.period,
         trend: item.growthPercentage >= 0 ? "up" : "down",
-        percentage: `${item.growthPercentage >= 0 ? '+' : ''}${item.growthPercentage.toFixed(1)}%`,
-        countries: item.countries.map(country => ({
+        percentage: `${
+          item.growthPercentage >= 0 ? "+" : ""
+        }${item.growthPercentage.toFixed(1)}%`,
+        countries: item.countries.map((country) => ({
           name: getCountryName(country.countryId),
           code: country.countryId,
-          flag: getCountryFlag(country.countryId)
+          flag: getCountryFlag(country.countryId),
         })),
-        price: item.averagePrice
+        price: item.averagePrice,
       }));
-      
+
       setSeasonalTrends(transformedData);
       setError(null);
     } catch (err) {
-      console.error('Error fetching seasonal trends:', err);
-      setError(err.message || 'Failed to load seasonal trends data');
+      console.error("Error fetching seasonal trends:", err);
+      setError(err.message || "Failed to load seasonal trends data");
       // Fallback to empty array
       setSeasonalTrends([]);
     } finally {
@@ -145,57 +162,69 @@ export default function TrendPage() {
   useEffect(() => {
     const handleResize = () => {
       // Recheck all country carousels when window resizes
-      Object.keys(countryProductsRefs.current).forEach(index => {
+      Object.keys(countryProductsRefs.current).forEach((index) => {
         checkIfArrowsNeeded(parseInt(index));
       });
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Fetch country demands from API
   const fetchCountryDemands = async () => {
     try {
       setCountryLoading(true);
-      const response = await fetch(`${config.API_BASE_URL}/api/v1/export/country-demand?endDate=31-12-2024`);
+      const response = await fetch(
+        `${config.API_BASE_URL}/api/v1/export/country-demand?endDate=31-12-2024`
+      );
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data?.detail || data?.message || data?.error || 'Failed to fetch country demands');
+        throw new Error(
+          data?.detail ||
+            data?.message ||
+            data?.error ||
+            "Failed to fetch country demands"
+        );
       }
-      
+
       // Transform API data to match the expected format - filter out products with growth <= 0 and countries with no positive growth products
       const transformedData = data.data
         .map((item) => {
           // Filter out products with growth <= 0 (negative or zero growth)
-          const filteredProducts = item.products.filter(product => 
-            product.growth !== null && 
-            product.growth !== undefined && 
-            product.growth > 0
+          const filteredProducts = item.products.filter(
+            (product) =>
+              product.growth !== null &&
+              product.growth !== undefined &&
+              product.growth > 0
           );
-          
-                  return {
-          country: capitalizeWords(getCountryName(item.countryId)),
-          flag: getCountryFlag(item.countryId),
-          code: item.countryId,
-            topProducts: filteredProducts.map(product => ({
+
+          return {
+            country: capitalizeWords(getCountryName(item.countryId)),
+            flag: getCountryFlag(item.countryId),
+            code: item.countryId,
+            topProducts: filteredProducts.map((product) => ({
               name: extractProductName(product.name),
               demand: getDemandLevel(product.growth),
-              growth: `${product.growth >= 0 ? '+' : ''}${product.growth.toFixed(1)}%`,
-              value: product.price || "-"
+              growth: `${
+                product.growth >= 0 ? "+" : ""
+              }${product.growth.toFixed(1)}%`,
+              value: product.price || "-",
             })),
             totalValue: formatCurrency(item.currentTotalTransaction),
-            growth: `${item.growthPercentage >= 0 ? '+' : ''}${item.growthPercentage.toFixed(1)}%`
+            growth: `${
+              item.growthPercentage >= 0 ? "+" : ""
+            }${item.growthPercentage.toFixed(1)}%`,
           };
         })
-        .filter(country => country.topProducts.length > 0); // Only show countries that have at least one product with positive growth
-      
+        .filter((country) => country.topProducts.length > 0); // Only show countries that have at least one product with positive growth
+
       setCountryDemands(transformedData);
       setCountryError(null);
     } catch (err) {
-      console.error('Error fetching country demands:', err);
-      setCountryError(err.message || 'Failed to load country demands data');
+      console.error("Error fetching country demands:", err);
+      setCountryError(err.message || "Failed to load country demands data");
       // Fallback to empty array
       setCountryDemands([]);
     } finally {
@@ -211,8 +240,6 @@ export default function TrendPage() {
     return "Rendah";
   };
 
-
-
   // Helper function to format currency
   const formatCurrency = (amount) => {
     if (amount >= 1000000000000) {
@@ -225,8 +252,6 @@ export default function TrendPage() {
       return `Rp ${amount.toLocaleString()}`;
     }
   };
-
-
 
   // Helper function to extract product name from parentheses
   const extractProductName = (comodityName) => {
@@ -253,6 +278,33 @@ export default function TrendPage() {
     countryCurrentPage * itemsPerCountryPage,
     (countryCurrentPage + 1) * itemsPerCountryPage
   );
+
+  // Handle preview mode sign in
+  const handlePreviewSignIn = () => {
+    setIsLoadingAnimation(true);
+    setLoadingProgress(0);
+  };
+
+  // Loading animation effect for preview sign in
+  useEffect(() => {
+    if (isLoadingAnimation) {
+      const interval = setInterval(() => {
+        setLoadingProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              navigate("/login", {
+                state: { from: location.pathname },
+              });
+            }, 100);
+            return 100;
+          }
+          return Math.min(prev + Math.random() * 15 + 5, 100);
+        });
+      }, 80);
+      return () => clearInterval(interval);
+    }
+  }, [isLoadingAnimation, navigate]);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -303,19 +355,33 @@ export default function TrendPage() {
                     >
                       Market Trend Analysis
                     </h1>
-
-                    <p
-                      className="text-base sm:text-lg lg:text-xl xl:text-2xl mb-6 sm:mb-8 leading-relaxed"
-                      style={{
-                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                        fontWeight: 400,
-                        color: "#4A5568",
-                      }}
-                    >
-                      Analisis mendalam tentang tren pasar ekspor berdasarkan
-                      musim dan permintaan negara. Temukan peluang terbaik untuk
-                      produk Anda di pasar internasional.
-                    </p>
+                    {/* Preview Mode Explanation for Guest Users */}
+                    {isGuest && (
+                      <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 mb-4 border-2 border-amber-300 shadow-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm font-bold">
+                              P
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                              Preview Mode
+                            </h4>
+                            <p className="text-gray-600 mb-3">
+                              Ini adalah preview. Silahkan Sign In untuk full
+                              access.
+                            </p>
+                            <button
+                              onClick={handlePreviewSignIn}
+                              className="bg-green-600 text-white py-2 px-6 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
+                            >
+                              Sign In Sekarang
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Navigation Buttons dengan simbol di kanan */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -417,9 +483,15 @@ export default function TrendPage() {
                             <>
                               <div className="flex items-center space-x-2">
                                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-200 rounded shimmer flex-shrink-0"></div>
-                                <div className="h-8 sm:h-12 bg-gray-200 rounded shimmer" style={{ width: '80px' }}></div>
+                                <div
+                                  className="h-8 sm:h-12 bg-gray-200 rounded shimmer"
+                                  style={{ width: "80px" }}
+                                ></div>
                               </div>
-                              <div className="h-6 sm:h-8 bg-gray-200 rounded shimmer" style={{ width: '150px' }}></div>
+                              <div
+                                className="h-6 sm:h-8 bg-gray-200 rounded shimmer"
+                                style={{ width: "150px" }}
+                              ></div>
                             </>
                           )}
                         </div>
@@ -475,7 +547,9 @@ export default function TrendPage() {
                           <div className="flex items-center space-x-3">
                             {countryDemands.length > 0 ? (
                               <>
-                                <span className="text-3xl">{countryDemands[0].flag}</span>
+                                <span className="text-3xl">
+                                  {countryDemands[0].flag}
+                                </span>
                                 <div
                                   className="text-2xl sm:text-3xl font-bold text-gray-900"
                                   style={{
@@ -490,7 +564,10 @@ export default function TrendPage() {
                             ) : (
                               <>
                                 <div className="w-12 h-12 bg-gray-200 rounded-full shimmer"></div>
-                                <div className="h-8 bg-gray-200 rounded shimmer" style={{ width: '120px' }}></div>
+                                <div
+                                  className="h-8 bg-gray-200 rounded shimmer"
+                                  style={{ width: "120px" }}
+                                ></div>
                               </>
                             )}
                           </div>
@@ -506,7 +583,10 @@ export default function TrendPage() {
                             {countryDemands.length > 0 ? (
                               `Total Ekspor: ${countryDemands[0].totalValue}`
                             ) : (
-                              <div className="h-6 bg-gray-200 rounded shimmer" style={{ width: '200px' }}></div>
+                              <div
+                                className="h-6 bg-gray-200 rounded shimmer"
+                                style={{ width: "200px" }}
+                              ></div>
                             )}
                           </div>
                         </div>
@@ -540,19 +620,33 @@ export default function TrendPage() {
                     >
                       Market Trend Analysis
                     </h1>
-
-                    <p
-                      className="text-base sm:text-lg lg:text-xl xl:text-2xl mb-6 sm:mb-8 leading-relaxed"
-                      style={{
-                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-                        fontWeight: 400,
-                        color: "#4A5568",
-                      }}
-                    >
-                      Analisis mendalam tentang tren pasar ekspor berdasarkan
-                      musim dan permintaan negara. Temukan peluang terbaik untuk
-                      produk Anda di pasar internasional.
-                    </p>
+                    {/* Preview Mode Explanation for Guest Users */}
+                    {isGuest && (
+                      <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 mb-4 border-2 border-amber-300 shadow-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-sm font-bold">
+                              P
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                              Preview Mode
+                            </h4>
+                            <p className="text-gray-600 mb-3">
+                              Ini adalah preview. Silahkan Sign In untuk full
+                              access.
+                            </p>
+                            <button
+                              onClick={handlePreviewSignIn}
+                              className="bg-green-600 text-white py-2 px-6 rounded-full font-medium hover:bg-green-700 transition-colors text-sm"
+                            >
+                              Sign In Sekarang
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Navigation Buttons dengan simbol di kanan */}
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -625,28 +719,49 @@ export default function TrendPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {/* Shimmer for 4 seasonal trend cards */}
                   {[1, 2, 3, 4].map((item) => (
-                    <div key={item} className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6">
+                    <div
+                      key={item}
+                      className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6"
+                    >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
-                          <div className="h-5 bg-gray-200 rounded shimmer mb-2" style={{ width: '80%' }}></div>
-                          <div className="h-4 bg-gray-200 rounded shimmer" style={{ width: '60%' }}></div>
+                          <div
+                            className="h-5 bg-gray-200 rounded shimmer mb-2"
+                            style={{ width: "80%" }}
+                          ></div>
+                          <div
+                            className="h-4 bg-gray-200 rounded shimmer"
+                            style={{ width: "60%" }}
+                          ></div>
                         </div>
                         <div className="w-16 h-6 bg-gray-200 rounded-full shimmer"></div>
                       </div>
 
                       <div className="space-y-3">
                         <div>
-                          <div className="h-3 bg-gray-200 rounded shimmer mb-2" style={{ width: '120px' }}></div>
+                          <div
+                            className="h-3 bg-gray-200 rounded shimmer mb-2"
+                            style={{ width: "120px" }}
+                          ></div>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {[1, 2, 3].map((country) => (
-                              <div key={country} className="w-16 h-6 bg-gray-200 rounded-full shimmer"></div>
+                              <div
+                                key={country}
+                                className="w-16 h-6 bg-gray-200 rounded-full shimmer"
+                              ></div>
                             ))}
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                          <div className="h-4 bg-gray-200 rounded shimmer" style={{ width: '100px' }}></div>
-                          <div className="h-4 bg-gray-200 rounded shimmer" style={{ width: '80px' }}></div>
+                          <div
+                            className="h-4 bg-gray-200 rounded shimmer"
+                            style={{ width: "100px" }}
+                          ></div>
+                          <div
+                            className="h-4 bg-gray-200 rounded shimmer"
+                            style={{ width: "80px" }}
+                          ></div>
                         </div>
                       </div>
                     </div>
@@ -659,7 +774,7 @@ export default function TrendPage() {
                 <div className="flex justify-center items-center py-12">
                   <div className="text-center">
                     <p className="text-red-600 mb-4">{error}</p>
-                    <button 
+                    <button
                       onClick={fetchSeasonalTrends}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
@@ -673,7 +788,7 @@ export default function TrendPage() {
               {!loading && !error && seasonalTrends.length > 0 && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    {currentSeasonalItems.map((item, index) => (
+                    {currentSeasonalItems.map((item) => (
                       <div
                         key={item.id}
                         className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-shadow"
@@ -741,7 +856,9 @@ export default function TrendPage() {
                               {item.countries.map((country, idx) => (
                                 <button
                                   key={idx}
-                                  onClick={() => handleCountryClick(country.code)}
+                                  onClick={() =>
+                                    handleCountryClick(country.code)
+                                  }
                                   className="bg-gray-100 text-gray-700 px-3 py-1 text-xs hover:bg-gray-200 transition-colors cursor-pointer flex items-center space-x-1"
                                   style={{
                                     fontFamily:
@@ -813,7 +930,9 @@ export default function TrendPage() {
                             )
                           )
                         }
-                        disabled={seasonalCurrentPage === totalSeasonalPages - 1}
+                        disabled={
+                          seasonalCurrentPage === totalSeasonalPages - 1
+                        }
                         className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
                       >
                         <span>Next</span>
@@ -828,8 +947,10 @@ export default function TrendPage() {
               {!loading && !error && seasonalTrends.length === 0 && (
                 <div className="flex justify-center items-center py-12">
                   <div className="text-center">
-                    <p className="text-gray-600 mb-4">No seasonal trends data available</p>
-                    <button 
+                    <p className="text-gray-600 mb-4">
+                      No seasonal trends data available
+                    </p>
+                    <button
                       onClick={fetchSeasonalTrends}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
@@ -849,15 +970,24 @@ export default function TrendPage() {
                 <div className="space-y-6">
                   {/* Shimmer for 3 country cards */}
                   {[1, 2, 3].map((item) => (
-                    <div key={item} className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full">
+                    <div
+                      key={item}
+                      className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full"
+                    >
                       {/* Country Header Shimmer */}
                       <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 bg-gray-200 rounded-full shimmer"></div>
                             <div>
-                              <div className="h-5 bg-gray-200 rounded shimmer mb-2" style={{ width: '120px' }}></div>
-                              <div className="h-4 bg-gray-200 rounded shimmer" style={{ width: '180px' }}></div>
+                              <div
+                                className="h-5 bg-gray-200 rounded shimmer mb-2"
+                                style={{ width: "120px" }}
+                              ></div>
+                              <div
+                                className="h-4 bg-gray-200 rounded shimmer"
+                                style={{ width: "180px" }}
+                              ></div>
                             </div>
                           </div>
                           <div className="w-16 h-6 bg-gray-200 rounded-full shimmer"></div>
@@ -866,21 +996,34 @@ export default function TrendPage() {
 
                       {/* Products Section Shimmer */}
                       <div className="p-4 sm:p-6">
-                        <div className="h-5 bg-gray-200 rounded shimmer mb-4" style={{ width: '250px' }}></div>
-                        
+                        <div
+                          className="h-5 bg-gray-200 rounded shimmer mb-4"
+                          style={{ width: "250px" }}
+                        ></div>
+
                         <div className="relative">
                           {/* Product Cards Shimmer */}
                           <div className="flex gap-4 overflow-x-auto pb-4">
                             {[1, 2, 3].map((product) => (
-                              <div key={product} className="flex-shrink-0 p-3 sm:p-4 bg-gray-50 rounded-lg" style={{ minWidth: "250px" }}>
+                              <div
+                                key={product}
+                                className="flex-shrink-0 p-3 sm:p-4 bg-gray-50 rounded-lg"
+                                style={{ minWidth: "250px" }}
+                              >
                                 <div className="flex-1">
-                                  <div className="h-4 bg-gray-200 rounded shimmer mb-2" style={{ width: '80%' }}></div>
+                                  <div
+                                    className="h-4 bg-gray-200 rounded shimmer mb-2"
+                                    style={{ width: "80%" }}
+                                  ></div>
                                   <div className="flex items-center space-x-2 mb-2">
                                     <div className="w-16 h-5 bg-gray-200 rounded-full shimmer"></div>
                                     <div className="w-20 h-4 bg-gray-200 rounded shimmer"></div>
                                   </div>
                                   <div className="text-right">
-                                    <div className="h-4 bg-gray-200 rounded shimmer ml-auto" style={{ width: '60%' }}></div>
+                                    <div
+                                      className="h-4 bg-gray-200 rounded shimmer ml-auto"
+                                      style={{ width: "60%" }}
+                                    ></div>
                                   </div>
                                 </div>
                               </div>
@@ -898,7 +1041,7 @@ export default function TrendPage() {
                 <div className="flex justify-center items-center py-12">
                   <div className="text-center">
                     <p className="text-red-600 mb-4">{countryError}</p>
-                    <button 
+                    <button
                       onClick={fetchCountryDemands}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
@@ -909,239 +1052,288 @@ export default function TrendPage() {
               )}
 
               {/* Data List */}
-              {!countryLoading && !countryError && countryDemands.length > 0 && (
-                <>
-                  {currentCountryItems.map((country, index) => (
-                <div
-                  key={country.code}
-                  className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full"
-                >
-                  {/* Country Header */}
-                  <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl sm:text-2xl">
-                          {country.flag}
-                        </span>
-                        <div>
-                          <h3
-                            className="font-semibold text-gray-900 text-base sm:text-lg"
-                            style={{
-                              fontFamily:
-                                "'Product Sans', 'Google Sans Text', sans-serif",
-                              fontWeight: 500,
-                            }}
-                          >
-                            {country.country}
-                          </h3>
-                          <p
-                            className="text-sm text-gray-600"
-                            style={{
-                              fontFamily:
-                                "'Google Sans Text', 'Roboto', sans-serif",
-                              fontWeight: 400,
-                            }}
-                          >
-                            Total Nilai Ekspor: {country.totalValue}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                        parseFloat(country.growth.replace(/[+%]/g, '')) >= 0 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-red-100 text-red-800"
-                      }`}>
-                        {parseFloat(country.growth.replace(/[+%]/g, '')) >= 0 ? (
-                          <TrendingUp className="w-3 h-3" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3" />
-                        )}
-                        <span
-                          style={{
-                            fontFamily:
-                              "'Product Sans', 'Google Sans Text', sans-serif",
-                            fontWeight: 500,
-                          }}
-                        >
-                          {country.growth}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Products List - Horizontal Scrollable dengan Arrow Navigation */}
-                  <div className="p-4 sm:p-6">
-                    <h4
-                      className="font-medium text-gray-900 mb-4 text-base sm:text-lg"
-                      style={{
-                        fontFamily:
-                          "'Product Sans', 'Google Sans Text', sans-serif",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Produk dengan Permintaan Tertinggi
-                    </h4>
-
-                    <div className="relative">
-                      {/* Product Carousel Navigation - Only show if content is scrollable */}
-                      {showArrows[index] && (
-                        <>
-                          <button
-                            onClick={() => scrollProductsLeft(index)}
-                            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
-                            style={{ marginLeft: "-20px" }}
-                          >
-                            <ChevronLeft className="w-4 h-4 text-gray-600" />
-                          </button>
-
-                          <button
-                            onClick={() => scrollProductsRight(index)}
-                            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
-                            style={{ marginRight: "-20px" }}
-                          >
-                            <ChevronRight className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </>
-                      )}
-
-                      {/* Scrollable Products Container */}
+              {!countryLoading &&
+                !countryError &&
+                countryDemands.length > 0 && (
+                  <>
+                    {currentCountryItems.map((country, index) => (
                       <div
-                        ref={(el) => {
-                          countryProductsRefs.current[index] = el;
-                          // Check if arrows are needed after the element is mounted
-                          if (el) {
-                            setTimeout(() => checkIfArrowsNeeded(index), 100);
-                          }
-                        }}
-                        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                        style={{
-                          scrollbarWidth: "none",
-                          msOverflowStyle: "none",
-                        }}
+                        key={country.code}
+                        className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full"
                       >
-                        {country.topProducts.map((product, idx) => (
-                          <div
-                            key={idx}
-                            className="flex-shrink-0 p-3 sm:p-4 bg-gray-50 rounded-lg"
-                            style={{ minWidth: "250px" }}
-                          >
-                            <div className="flex-1">
-                              <h5
-                                className="font-medium text-gray-900 text-sm sm:text-base mb-2"
-                                style={{
-                                  fontFamily:
-                                    "'Product Sans', 'Google Sans Text', sans-serif",
-                                  fontWeight: 500,
-                                }}
-                              >
-                                {product.name}
-                              </h5>
-                              <div className="flex items-center space-x-2 mb-2">
-                                <span
-                                  className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                    product.demand === "Sangat Tinggi"
-                                      ? "bg-red-100 text-red-800"
-                                      : product.demand === "Tinggi"
-                                      ? "bg-orange-100 text-orange-800"
-                                      : product.demand === "Sedang"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-gray-100 text-gray-800"
-                                  }`}
-                                  style={{
-                                    fontFamily:
-                                      "'Google Sans Text', 'Roboto', sans-serif",
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  {product.demand}
-                                </span>
-                                <span
-                                  className="text-xs text-gray-500"
-                                  style={{
-                                    fontFamily:
-                                      "'Google Sans Text', 'Roboto', sans-serif",
-                                    fontWeight: 400,
-                                  }}
-                                >
-                                  Growth: {product.growth}
-                                </span>
-                              </div>
-                              <div className="text-right">
-                                <span
-                                  className="font-semibold text-gray-900 text-xs sm:text-sm"
+                        {/* Country Header */}
+                        <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-xl sm:text-2xl">
+                                {country.flag}
+                              </span>
+                              <div>
+                                <h3
+                                  className="font-semibold text-gray-900 text-base sm:text-lg"
                                   style={{
                                     fontFamily:
                                       "'Product Sans', 'Google Sans Text', sans-serif",
                                     fontWeight: 500,
                                   }}
                                 >
-                                  {product.value}
-                                </span>
+                                  {country.country}
+                                </h3>
+                                <p
+                                  className="text-sm text-gray-600"
+                                  style={{
+                                    fontFamily:
+                                      "'Google Sans Text', 'Roboto', sans-serif",
+                                    fontWeight: 400,
+                                  }}
+                                >
+                                  Total Nilai Ekspor: {country.totalValue}
+                                </p>
                               </div>
                             </div>
+                            <div
+                              className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                                parseFloat(
+                                  country.growth.replace(/[+%]/g, "")
+                                ) >= 0
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {parseFloat(
+                                country.growth.replace(/[+%]/g, "")
+                              ) >= 0 ? (
+                                <TrendingUp className="w-3 h-3" />
+                              ) : (
+                                <TrendingDown className="w-3 h-3" />
+                              )}
+                              <span
+                                style={{
+                                  fontFamily:
+                                    "'Product Sans', 'Google Sans Text', sans-serif",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {country.growth}
+                              </span>
+                            </div>
                           </div>
-                        ))}
+                        </div>
+
+                        {/* Products List - Horizontal Scrollable dengan Arrow Navigation */}
+                        <div className="p-4 sm:p-6">
+                          <h4
+                            className="font-medium text-gray-900 mb-4 text-base sm:text-lg"
+                            style={{
+                              fontFamily:
+                                "'Product Sans', 'Google Sans Text', sans-serif",
+                              fontWeight: 500,
+                            }}
+                          >
+                            Produk dengan Permintaan Tertinggi
+                          </h4>
+
+                          <div className="relative">
+                            {/* Product Carousel Navigation - Only show if content is scrollable */}
+                            {showArrows[index] && (
+                              <>
+                                <button
+                                  onClick={() => scrollProductsLeft(index)}
+                                  className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
+                                  style={{ marginLeft: "-20px" }}
+                                >
+                                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                                </button>
+
+                                <button
+                                  onClick={() => scrollProductsRight(index)}
+                                  className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
+                                  style={{ marginRight: "-20px" }}
+                                >
+                                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                                </button>
+                              </>
+                            )}
+
+                            {/* Scrollable Products Container */}
+                            <div
+                              ref={(el) => {
+                                countryProductsRefs.current[index] = el;
+                                // Check if arrows are needed after the element is mounted
+                                if (el) {
+                                  setTimeout(
+                                    () => checkIfArrowsNeeded(index),
+                                    100
+                                  );
+                                }
+                              }}
+                              className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
+                              style={{
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                              }}
+                            >
+                              {country.topProducts.map((product, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex-shrink-0 p-3 sm:p-4 bg-gray-50 rounded-lg"
+                                  style={{ minWidth: "250px" }}
+                                >
+                                  <div className="flex-1">
+                                    <h5
+                                      className="font-medium text-gray-900 text-sm sm:text-base mb-2"
+                                      style={{
+                                        fontFamily:
+                                          "'Product Sans', 'Google Sans Text', sans-serif",
+                                        fontWeight: 500,
+                                      }}
+                                    >
+                                      {product.name}
+                                    </h5>
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <span
+                                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                          product.demand === "Sangat Tinggi"
+                                            ? "bg-red-100 text-red-800"
+                                            : product.demand === "Tinggi"
+                                            ? "bg-orange-100 text-orange-800"
+                                            : product.demand === "Sedang"
+                                            ? "bg-yellow-100 text-yellow-800"
+                                            : "bg-gray-100 text-gray-800"
+                                        }`}
+                                        style={{
+                                          fontFamily:
+                                            "'Google Sans Text', 'Roboto', sans-serif",
+                                          fontWeight: 500,
+                                        }}
+                                      >
+                                        {product.demand}
+                                      </span>
+                                      <span
+                                        className="text-xs text-gray-500"
+                                        style={{
+                                          fontFamily:
+                                            "'Google Sans Text', 'Roboto', sans-serif",
+                                          fontWeight: 400,
+                                        }}
+                                      >
+                                        Growth: {product.growth}
+                                      </span>
+                                    </div>
+                                    <div className="text-right">
+                                      <span
+                                        className="font-semibold text-gray-900 text-xs sm:text-sm"
+                                        style={{
+                                          fontFamily:
+                                            "'Product Sans', 'Google Sans Text', sans-serif",
+                                          fontWeight: 500,
+                                        }}
+                                      >
+                                        {product.value}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    ))}
 
-              {/* Pagination Controls for Country */}
-              {totalCountryPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-6">
-                  <button
-                    onClick={() =>
-                      setCountryCurrentPage(Math.max(0, countryCurrentPage - 1))
-                    }
-                    disabled={countryCurrentPage === 0}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span>Previous</span>
-                  </button>
+                    {/* Pagination Controls for Country */}
+                    {totalCountryPages > 1 && (
+                      <div className="flex justify-center items-center space-x-4 mt-6">
+                        <button
+                          onClick={() =>
+                            setCountryCurrentPage(
+                              Math.max(0, countryCurrentPage - 1)
+                            )
+                          }
+                          disabled={countryCurrentPage === 0}
+                          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          <span>Previous</span>
+                        </button>
 
-                  <span className="text-sm text-gray-600">
-                    Page {countryCurrentPage + 1} of {totalCountryPages}
-                  </span>
+                        <span className="text-sm text-gray-600">
+                          Page {countryCurrentPage + 1} of {totalCountryPages}
+                        </span>
 
-                  <button
-                    onClick={() =>
-                      setCountryCurrentPage(
-                        Math.min(totalCountryPages - 1, countryCurrentPage + 1)
-                      )
-                    }
-                    disabled={countryCurrentPage === totalCountryPages - 1}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
-                  >
-                    <span>Next</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-                </>
-              )}
+                        <button
+                          onClick={() =>
+                            setCountryCurrentPage(
+                              Math.min(
+                                totalCountryPages - 1,
+                                countryCurrentPage + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            countryCurrentPage === totalCountryPages - 1
+                          }
+                          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                        >
+                          <span>Next</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
 
               {/* No Data State */}
-              {!countryLoading && !countryError && countryDemands.length === 0 && (
-                <div className="flex justify-center items-center py-12">
-                  <div className="text-center">
-                    <p className="text-gray-600 mb-4">No country demands data available</p>
-                    <button 
-                      onClick={fetchCountryDemands}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                      Refresh
-                    </button>
+              {!countryLoading &&
+                !countryError &&
+                countryDemands.length === 0 && (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="text-center">
+                      <p className="text-gray-600 mb-4">
+                        No country demands data available
+                      </p>
+                      <button
+                        onClick={fetchCountryDemands}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        Refresh
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           )}
         </div>
       </div>
 
+      {/* Loading Animation Overlay for Preview Sign In */}
+      {isLoadingAnimation && (
+        <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999] font-['Inter']">
+          <div className="text-center">
+            <div className="mb-8">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-3xl font-light">⚡</span>
+              </div>
+              <h1 className="text-4xl font-light text-gray-900">ExportIn</h1>
+            </div>
+
+            <div className="w-80 bg-gray-200 rounded-full h-2 mb-4">
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-200 ease-out"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+
+            <p className="text-gray-600 font-light">
+              {loadingProgress < 50
+                ? "Initializing..."
+                : loadingProgress < 80
+                ? "Redirecting to login..."
+                : "Almost ready..."}
+            </p>
+          </div>
+        </div>
+      )}
       {/* CSS untuk hide scrollbar dan shimmer effect */}
       <style jsx>{`
         .scrollbar-hide {
@@ -1151,13 +1343,18 @@ export default function TrendPage() {
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
-        
+
         .shimmer {
-          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background: linear-gradient(
+            90deg,
+            #f0f0f0 25%,
+            #e0e0e0 50%,
+            #f0f0f0 75%
+          );
           background-size: 200% 100%;
           animation: shimmer 1.5s infinite;
         }
-        
+
         @keyframes shimmer {
           0% {
             background-position: -200% 0;
