@@ -355,6 +355,14 @@ export default function TrendPage() {
                     >
                       Market Trend Analysis
                     </h1>
+                    {/* Description for logged in users */}
+                    {!isGuest && (
+                      <p className="text-lg sm:text-xl text-gray-600 font-light mb-6 leading-relaxed">
+                        Analisis mendalam tentang tren pasar ekspor Indonesia
+                        dengan data real-time dan insights yang dapat membantu
+                        Anda membuat keputusan bisnis yang tepat.
+                      </p>
+                    )}
                     {/* Preview Mode Explanation for Guest Users */}
                     {isGuest && (
                       <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 mb-4 border-2 border-amber-300 shadow-lg">
@@ -620,6 +628,14 @@ export default function TrendPage() {
                     >
                       Market Trend Analysis
                     </h1>
+                    {/* Description for logged in users */}
+                    {!isGuest && (
+                      <p className="text-lg sm:text-xl text-gray-600 font-light mb-6 leading-relaxed">
+                        Analisis mendalam tentang tren pasar ekspor Indonesia
+                        dengan data real-time dan insights yang dapat membantu
+                        Anda membuat keputusan bisnis yang tepat.
+                      </p>
+                    )}
                     {/* Preview Mode Explanation for Guest Users */}
                     {isGuest && (
                       <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 mb-4 border-2 border-amber-300 shadow-lg">

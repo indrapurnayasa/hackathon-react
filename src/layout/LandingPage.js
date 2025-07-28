@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Globe from "react-globe.gl";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
+import { getAllCountries } from "../utils/countryData";
 
 // Import carousel images
 import aiImage1 from "../assets/images/carousel/ai-1.jpg";
@@ -76,16 +77,20 @@ const LandingPage = () => {
   const [globeError, setGlobeError] = useState(null);
   const [hoveredCountry, setHoveredCountry] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-
+  const [hoverD] = useState();
   // Globe states
   const globeEl = useRef();
   const containerRef = useRef();
   const [countries, setCountries] = useState({ features: [] });
-  const [hoverD] = useState();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  // Animated country labels state
+  const [animatedLabels, setAnimatedLabels] = useState([]);
   // Loading animation states for login
   const [isLoginLoadingAnimation, setIsLoginLoadingAnimation] = useState(false);
   const [loginLoadingProgress, setLoginLoadingProgress] = useState(0);
+
+  // Get target countries for labels (same as shipping page)
+  const targetCountries = getAllCountries();
 
   // Get export data for tooltip
   const getExportData = useCallback((countryName) => {
@@ -187,19 +192,19 @@ const LandingPage = () => {
         globe.controls().autoRotateSpeed = 0.5;
         globe.controls().dampingFactor = 0.1;
         globe.controls().rotateSpeed = 0.7;
-
-        // Set fixed zoom level
-        globe.pointOfView(
-          {
-            lat: 0,
-            lng: 0,
-            altitude: 1.8,
-          },
-          1000
-        );
       }
+
+      // Set initial view to Indonesia
+      globe.pointOfView(
+        {
+          lat: -0.7893,
+          lng: 113.9213,
+          altitude: 1.8,
+        },
+        2000
+      );
     }
-  }, [countries, isGlobeLoading]);
+  }, [isGlobeLoading, countries.features.length]);
 
   // Resize listener
   useEffect(() => {
@@ -332,6 +337,43 @@ const LandingPage = () => {
       return () => clearInterval(interval);
     }
   }, [isLoginLoadingAnimation, navigate]);
+
+  // Generate animated country labels
+  const generateCountryLabels = useCallback(() => {
+    const labels = [];
+
+    // Add Indonesia
+    labels.push({
+      lat: -0.7893,
+      lng: 113.9213,
+      flag: "🇮🇩",
+      name: "Indonesia",
+      delay: 0,
+    });
+
+    // Add all target countries
+    targetCountries.forEach((country, index) => {
+      labels.push({
+        lat: country.lat,
+        lng: country.lng,
+        flag: country.flag,
+        name: country.name,
+        delay: (index + 1) * 800, // Stagger animation
+      });
+    });
+
+    return labels;
+  }, [targetCountries]);
+
+  // Start label animation
+  useEffect(() => {
+    if (!isGlobeLoading && !globeError) {
+      const labels = generateCountryLabels();
+      setAnimatedLabels(labels);
+
+      // Labels are now shown immediately
+    }
+  }, [isGlobeLoading, globeError, generateCountryLabels]);
 
   return (
     <>
@@ -492,15 +534,20 @@ const LandingPage = () => {
                 polygonsData={countries.features.filter(
                   (d) => d?.properties?.ISO_A2 !== "AQ"
                 )}
-                polygonAltitude={(d) => (d === hoverD ? 0.02 : 0.01)}
-                polygonCapColor={(d) =>
-                  d === hoverD
+                polygonCapColor={(d) => {
+                  return d === hoverD
                     ? "rgba(255, 255, 255, 0.8)"
-                    : "rgba(255, 255, 255, 0.3)"
-                }
-                polygonSideColor={() => "rgba(255, 255, 255, 0.2)"}
-                polygonStrokeColor={() => "#ffffff"}
-                polygonStrokeWidth={1}
+                    : "rgba(255, 255, 255, 0.3)";
+                }}
+                polygonSideColor={(d) => {
+                  return "rgba(255, 255, 255, 0.2)";
+                }}
+                polygonStrokeColor={(d) => {
+                  return "#ffffff";
+                }}
+                polygonAltitude={(d) => {
+                  return d === hoverD ? 0.02 : 0.01;
+                }}
                 atmosphereColor="rgba(200,200,255,0.2)"
                 atmosphereAltitude={0.1}
                 onPolygonHover={handlePolygonHover}
@@ -517,6 +564,51 @@ const LandingPage = () => {
                 polygonLabel={() =>
                   "<div class=&quot;globe-clickable-polygon&quot;></div>"
                 }
+                htmlElementsData={animatedLabels.map((label) => ({
+                  lat: label.lat,
+                  lng: label.lng,
+                  html: `
+                    <div class="country-label-container" style="
+                      transform: translate(-50%, -50%);
+                      position: absolute;
+                      left: 50%;
+                      top: 50%;
+                      opacity: 1;
+                      transform: translate(-50%, -50%) scale(1);
+                    ">
+                      <div class="country-label" style="
+                        background: rgba(255,255,255,0.95);
+                        backdrop-filter: blur(10px);
+                        border: 1px solid rgba(0,0,0,0.1);
+                        border-radius: 12px;
+                        padding: 8px 12px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        font-family: 'Google Sans Text', 'Product Sans', 'Roboto', sans-serif;
+                        font-size: 12px;
+                        font-weight: 500;
+                        color: #1f2937;
+                        white-space: nowrap;
+                        pointer-events: none;
+                        user-select: none;
+                        min-width: 80px;
+                        justify-content: center;
+                      ">
+                        <span style="font-size: 16px;">${label.flag}</span>
+                        <span>${label.name}</span>
+                      </div>
+                    </div>
+                  `,
+                  altitude: 0.01,
+                }))}
+                htmlElement={(d) => {
+                  const el = document.createElement("div");
+                  el.innerHTML = d.html;
+                  return el;
+                }}
+                htmlAltitude={0.01}
               />
             )}
           </div>
