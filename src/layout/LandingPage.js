@@ -520,27 +520,28 @@ const LandingPage = () => {
 
           {/* Content Container */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pointer-events-none">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              {/* Left Content */}
-              <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl lg:max-w-xl pointer-events-auto">
-                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-gray-900 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+              {/* Left Content - Even smaller and more left positioned */}
+              <div className="bg-white/90 backdrop-blur-sm p-3 sm:p-4 rounded-2xl lg:max-w-sm pointer-events-auto">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 mb-3">
                   Revolutionize Your Export Business
                 </h2>
-                <p className="text-lg sm:text-xl text-gray-600 font-light mb-8">
+                <p className="text-sm sm:text-base text-gray-600 font-light mb-4">
                   Unlock global opportunities with AI-powered insights,
                   streamlined documentation, and real-time market analysis.
                 </p>
                 <div className="flex justify-start">
                   <button
                     onClick={handleGetStarted}
-                    className="bg-black text-white px-8 py-3 rounded-full font-light hover:bg-gray-900 transition-all text-lg"
+                    className="bg-black text-white px-5 py-2 rounded-full font-light hover:bg-gray-900 transition-all text-sm"
                   >
                     Try Now
                   </button>
                 </div>
               </div>
 
-              {/* Right Content - Empty to allow globe visibility */}
+              {/* Middle and Right Content - More space for globe */}
+              <div className="hidden lg:block"></div>
               <div className="hidden lg:block"></div>
             </div>
           </div>
