@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
-  FileText,
-  Calculator,
-  Mail,
-  MessageCircle,
   Bot,
   HelpCircle,
+  FileText,
+  Mail,
+  MessageCircle,
+  Calculator,
 } from "lucide-react";
-import { createPortal } from "react-dom";
-// import config from '../config'; // Unused for now
 import ChatInterface from "../components/ai-assistant/ChatInterface";
 import EnhancedChatbotSystem from "../utils/enhancedChatbotSystem";
+
+// Import logo AI Assistant
+import aiAssistantLogo from "../assets/images/ai-assistant-logo.png";
 
 export default function AIAssistantPage() {
   const [input, setInput] = useState("");
@@ -105,7 +107,7 @@ export default function AIAssistantPage() {
     setTimeout(() => {
       setIsTyping(false);
       processUserInput(input);
-    }, 500);
+    }, 1000); // Smooth delay for typing animation
     setInput("");
   };
 
@@ -131,25 +133,9 @@ export default function AIAssistantPage() {
 
       // If no specific enhanced response, provide general response
       if (!response) {
-        setTimeout(() => {
-          const botMessage = {
-            from: "bot",
-            text: `Maaf, saya belum mengerti permintaan Anda. Saya dapat membantu dengan:
-
-💰 **Estimasi Biaya Ekspor** - Ketik "biaya ekspor" atau "kalkulasi"
-📄 **Dokumen Ekspor** - Ketik nama dokumen seperti "PEB", "Commercial Invoice"
-📧 **Email Bisnis** - Ketik "email penawaran" atau "business email"  
-🤝 **Proposal Kerjasama** - Ketik "proposal bisnis"
-
-Silakan coba lagi dengan permintaan yang lebih spesifik!`,
-            timestamp: new Date().toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          };
-          setMessages((prev) => [...prev, botMessage]);
-          setIsGenerating(false);
-        }, 1000);
+        // Immediate response without delay for smoother transition
+        EnhancedChatbotSystem.getGeneralResponse(userInput, setMessages);
+        setIsGenerating(false);
       } else {
         setIsGenerating(false);
       }
@@ -195,12 +181,26 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
   ];
 
   const generalSuggestions = [
-    "Apa saja dokumen yang diperlukan untuk ekspor?",
-    "Bagaimana cara menghitung biaya ekspor?",
-    "Negara mana yang mudah untuk ekspor pemula?",
-    "Bagaimana cara memulai ekspor?",
-    "Apa saja syarat kemasan untuk ekspor makanan?",
-    "Prosedur bea cukai untuk ekspor seperti apa?",
+    // 1. Email generation
+    "Saya ingin membuat email inquiry produk",
+
+    // 2. Proposal generation
+    "Buatkan proposal kerjasama bisnis",
+
+    // 3. Cost estimation
+    "Berapa estimasi biaya ekspor ke Jepang?",
+
+    // 4. Document list request
+    "Saya ingin membuat dokumen ekspor resmi",
+
+    // 5. Customs calculation
+    "Tolong hitung bea cukai",
+
+    // 6. How to questions
+    "Cara membuat email profesional",
+
+    // 7. What is questions
+    "Apa itu FOB?",
   ];
 
   // Tooltip Portal
@@ -241,8 +241,32 @@ Silakan coba lagi dengan permintaan yang lebih spesifik!`,
         {/* Sidebar - AI Assistant */}
         <div className="absolute top-24 left-6 bottom-6 w-80 z-20 bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6 flex flex-col overflow-y-auto overflow-x-hidden">
           <div className="flex items-center space-x-3 mb-4 lg:mb-6">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+            {/* Logo AI Assistant - bisa diganti dengan PNG custom */}
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center overflow-hidden">
+              {/* 
+                Cara menggunakan logo custom:
+                1. Simpan file PNG di: src/assets/images/ai-assistant-logo.png
+                2. Path sudah benar: src="/src/assets/images/ai-assistant-logo.png"
+                3. Jika masih tidak muncul, coba path alternatif di bawah
+              */}
+              <img
+                src={aiAssistantLogo}
+                alt="AI Assistant Logo"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log("Logo tidak ditemukan, menggunakan fallback");
+                  // Fallback ke icon Bot jika gambar tidak ditemukan
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
+                }}
+              />
+              {/* Fallback icon */}
+              <div
+                className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
+                style={{ display: "none" }}
+              >
+                <Bot className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+              </div>
             </div>
             <h1 className="text-lg lg:text-xl font-bold text-gray-900">
               AI Assistant

@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { 
-  fetchCommodityData, 
-  getCommodityDisplayName, 
-  formatGrowthPercentage, 
-  getGrowthTrend 
-} from '../utils/commodityData';
+import React, { useState, useEffect } from "react";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import {
+  fetchCommodityData,
+  getCommodityDisplayName,
+  formatGrowthPercentage,
+  getGrowthTrend,
+} from "../utils/commodityData";
 
 // Commodity emoji mapping
 const getCommodityEmoji = (commodityId) => {
   const emojiMap = {
-    'CPO': '🛢️',   // Crude Palm Oil - oil barrel
-    'CRN': '🌽',    // Corn - corn
-    'RUB': '🛞️',   // Natural Rubber - tire/wheel
-    'ROB': '☕',    // Robusta Coffee - coffee
-    'ARA': '☕',    // Arabica Coffee - coffee
-    'COA': '🍫',    // Cocoa - chocolate
-    'CIL': '🥥',    // Coconut Oil - coconut
-    'OLE': '🛢️',   // Palm Olein - oil barrel
+    CPO: "🛢️", // Crude Palm Oil - oil barrel
+    CRN: "🌽", // Corn - corn
+    RUB: "🛞️", // Natural Rubber - tire/wheel
+    ROB: "☕", // Robusta Coffee - coffee
+    ARA: "☕", // Arabica Coffee - coffee
+    COA: "🍫", // Cocoa - chocolate
+    CIL: "🥥", // Coconut Oil - coconut
+    OLE: "🛢️", // Palm Olein - oil barrel
   };
-  
-  return emojiMap[commodityId] || '🦐'; // Default to shrimp if not found
+
+  return emojiMap[commodityId] || "🦐"; // Default to shrimp if not found
 };
 
 export default function CommodityDisplay({ countryCode = null }) {
@@ -36,11 +36,11 @@ export default function CommodityDisplay({ countryCode = null }) {
         if (data) {
           setCommodityData(data);
         } else {
-          setError('No commodity data available');
+          setError("No commodity data available");
         }
       } catch (err) {
-        setError('Failed to load commodity data');
-        console.error('Error loading commodity data:', err);
+        setError("Failed to load commodity data");
+        console.error("Error loading commodity data:", err);
       } finally {
         setLoading(false);
       }
@@ -55,8 +55,14 @@ export default function CommodityDisplay({ countryCode = null }) {
         <div className="w-8 h-8 bg-gray-200 rounded animate-pulse flex-shrink-0"></div>
         <div className="flex-1 min-w-0">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded mb-2" style={{ width: '60%' }}></div>
-            <div className="h-3 bg-gray-200 rounded" style={{ width: '40%' }}></div>
+            <div
+              className="h-4 bg-gray-200 rounded mb-2"
+              style={{ width: "60%" }}
+            ></div>
+            <div
+              className="h-3 bg-gray-200 rounded"
+              style={{ width: "40%" }}
+            ></div>
           </div>
         </div>
       </div>
@@ -90,12 +96,12 @@ export default function CommodityDisplay({ countryCode = null }) {
   const trend = getGrowthTrend(commodityData.growth);
 
   const commodityEmoji = getCommodityEmoji(commodityData.id);
-  
+
   // Determine font size based on title length
   const getFontSize = (title) => {
-    if (title.length > 20) return 'text-xs';
-    if (title.length > 15) return 'text-sm';
-    return 'text-sm';
+    if (title.length > 20) return "text-xs";
+    if (title.length > 15) return "text-sm";
+    return "text-sm";
   };
 
   return (
@@ -104,7 +110,9 @@ export default function CommodityDisplay({ countryCode = null }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
           <span
-            className={`font-medium text-gray-900 ${getFontSize(displayName)} truncate`}
+            className={`font-medium text-gray-900 ${getFontSize(
+              displayName
+            )} truncate`}
             style={{
               fontFamily:
                 "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -131,11 +139,19 @@ export default function CommodityDisplay({ countryCode = null }) {
           }}
         >
           <span className="text-gray-900">Growth: </span>
-          <span className={trend === "up" ? "text-green-600" : trend === "down" ? "text-red-600" : "text-gray-600"}>
+          <span
+            className={
+              trend === "up"
+                ? "text-green-600"
+                : trend === "down"
+                ? "text-red-600"
+                : "text-gray-600"
+            }
+          >
             {growthPercentage}
           </span>
         </div>
       </div>
     </div>
   );
-} 
+}

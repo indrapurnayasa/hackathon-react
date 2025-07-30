@@ -27,8 +27,13 @@ class EnhancedChatbotSystem {
     // Detect destination or use random
     let selectedDestination =
       this.detectDestinationFromInput(input) ||
-      this.mockData.utils.getRandomElement(
-        this.mockData.costCalculator.destinations
+      this.mockData.costCalculator.destinations.find(
+        (dest) =>
+          input.includes(dest.name.toLowerCase()) ||
+          input.includes(dest.region.toLowerCase()) ||
+          (dest.name === "Amerika Serikat" &&
+            (input.includes("usa") || input.includes("america"))) ||
+          (dest.name === "Jepang" && input.includes("japan"))
       );
 
     // Detect weight/quantity from input
@@ -87,7 +92,8 @@ class EnhancedChatbotSystem {
     userInput,
     setMessages,
     setCurrentFlow,
-    setCompletedDocuments
+    setCompletedDocuments,
+    additionalParams
   ) {
     const input = userInput.toLowerCase();
 
@@ -96,14 +102,40 @@ class EnhancedChatbotSystem {
 
     console.log("Enhanced document generation:", { input, requestedDocument });
 
+    // Check for general document questions that should show document list
+    const generalDocumentQuestions = [
+      "dokumen apa saja",
+      "dokumen yang diperlukan",
+      "dokumen ekspor",
+      "export documents",
+      "what documents",
+      "which documents",
+      "dokumen yang dibutuhkan",
+      "dokumen wajib",
+      "required documents",
+      "mandatory documents",
+      "dokumen ekspor resmi",
+      "buat dokumen ekspor",
+      "generate dokumen ekspor",
+    ];
+
+    const isGeneralDocumentQuestion = generalDocumentQuestions.some(
+      (question) => input.includes(question)
+    );
+
     if (requestedDocument) {
       // Generate specific document with enhanced data
       console.log("Generating specific document:", requestedDocument);
       this.generateEnhancedDocument(
         requestedDocument,
         setMessages,
-        setCompletedDocuments
+        setCompletedDocuments,
+        additionalParams.setIsTyping
       );
+    } else if (isGeneralDocumentQuestion) {
+      // Show enhanced document list with recommendations
+      console.log("Showing document list for general question");
+      this.showEnhancedDocumentList(setMessages, setCurrentFlow, input);
     } else {
       // Show enhanced document list with recommendations
       console.log("Showing document list");
@@ -114,7 +146,8 @@ class EnhancedChatbotSystem {
   static generateEnhancedDocument(
     documentType,
     setMessages,
-    setCompletedDocuments
+    setCompletedDocuments,
+    setIsTyping
   ) {
     const document = DocumentGenerator.exportDocuments.find(
       (doc) =>
@@ -123,10 +156,16 @@ class EnhancedChatbotSystem {
 
     if (!document) return;
 
-    // Get enhanced dummy data based on context
-    const enhancedData = this.generateEnhancedDocumentData(document);
+    // Show typing animation
+    setIsTyping(true);
 
+    // Simulate processing time
     setTimeout(() => {
+      setIsTyping(false);
+
+      // Get enhanced dummy data based on context
+      const enhancedData = this.generateEnhancedDocumentData(document);
+
       const content = this.createEnhancedDocumentContent(
         document,
         enhancedData
@@ -158,7 +197,7 @@ class EnhancedChatbotSystem {
       };
 
       setMessages((prev) => [...prev, completedMessage]);
-    }, 2000);
+    }, 2000); // 2 second delay for typing animation
   }
 
   // ===== ENHANCED EMAIL GENERATOR =====
@@ -177,26 +216,24 @@ class EnhancedChatbotSystem {
     const enhancedEmailData = this.generateEnhancedEmailData(template, input);
     const content = this.generateEnhancedEmail(template, enhancedEmailData);
 
-    setTimeout(() => {
-      const completedMessage = {
-        from: "bot",
-        text: `✅ ${template.name} telah dibuat dengan konten yang disesuaikan untuk kebutuhan ekspor Anda!`,
-        timestamp: new Date().toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        type: "enhanced-email-ready",
-        content: content,
-        emailType: template.category,
-        smartFeatures: {
-          contextAware: true,
-          industrySpecific: true,
-          professionalTone: true,
-        },
-      };
+    const completedMessage = {
+      from: "bot",
+      text: `✅ ${template.name} telah dibuat dengan konten yang disesuaikan untuk kebutuhan ekspor Anda!`,
+      timestamp: new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      type: "enhanced-email-ready",
+      content: content,
+      emailType: template.category,
+      smartFeatures: {
+        contextAware: true,
+        industrySpecific: true,
+        professionalTone: true,
+      },
+    };
 
-      setMessages((prev) => [...prev, completedMessage]);
-    }, 1500);
+    setMessages((prev) => [...prev, completedMessage]);
   }
 
   // ===== ENHANCED PROPOSAL GENERATOR =====
@@ -222,27 +259,25 @@ class EnhancedChatbotSystem {
       enhancedProposalData
     );
 
-    setTimeout(() => {
-      const completedMessage = {
-        from: "bot",
-        text: `✅ ${template.name} telah dibuat dengan proyeksi finansial dan strategi bisnis yang komprehensif!`,
-        timestamp: new Date().toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        type: "enhanced-proposal-ready",
-        content: content,
-        proposalName: template.name,
-        businessInsights: {
-          marketAnalysis: true,
-          financialProjections: true,
-          riskAssessment: true,
-          competitiveAdvantage: true,
-        },
-      };
+    const completedMessage = {
+      from: "bot",
+      text: `✅ ${template.name} telah dibuat dengan proyeksi finansial dan strategi bisnis yang komprehensif!`,
+      timestamp: new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      type: "enhanced-proposal-ready",
+      content: content,
+      proposalName: template.name,
+      businessInsights: {
+        marketAnalysis: true,
+        financialProjections: true,
+        riskAssessment: true,
+        competitiveAdvantage: true,
+      },
+    };
 
-      setMessages((prev) => [...prev, completedMessage]);
-    }, 2500);
+    setMessages((prev) => [...prev, completedMessage]);
   }
 
   // ===== UTILITY METHODS =====
@@ -281,12 +316,56 @@ class EnhancedChatbotSystem {
 
   static detectDocumentFromInput(input) {
     const documents = {
-      peb: ["peb", "pemberitahuan ekspor"],
-      invoice: ["invoice", "commercial invoice", "tagihan"],
-      ska: ["ska", "certificate of origin", "surat keterangan asal"],
-      packinglist: ["packing list", "daftar kemasan"],
-      bl: ["bill of lading", "b/l", "konosemen"],
-      insurance: ["insurance", "asuransi"],
+      peb: [
+        "peb",
+        "pemberitahuan ekspor",
+        "export declaration",
+        "buat peb",
+        "generate peb",
+        "cara buat peb",
+      ],
+      invoice: [
+        "invoice",
+        "commercial invoice",
+        "tagihan",
+        "buat invoice",
+        "generate invoice",
+        "cara buat invoice",
+      ],
+      ska: [
+        "ska",
+        "certificate of origin",
+        "surat keterangan asal",
+        "buat ska",
+        "generate ska",
+        "cara buat ska",
+        "preferensi tarif",
+        "tariff preference",
+      ],
+      packinglist: [
+        "packing list",
+        "daftar kemasan",
+        "buat packing list",
+        "generate packing list",
+        "cara buat packing list",
+      ],
+      bl: [
+        "bill of lading",
+        "b/l",
+        "konosemen",
+        "bl",
+        "buat bl",
+        "generate bl",
+        "cara buat bl",
+      ],
+      insurance: [
+        "insurance",
+        "asuransi",
+        "marine insurance",
+        "buat insurance",
+        "generate insurance",
+        "cara buat insurance",
+      ],
     };
 
     for (const [docType, keywords] of Object.entries(documents)) {
@@ -591,7 +670,8 @@ class EnhancedChatbotSystem {
         userInput,
         setMessages,
         additionalParams.setCurrentFlow,
-        additionalParams.setCompletedDocuments
+        additionalParams.setCompletedDocuments,
+        additionalParams
       );
       return true;
     } else if (this.isEmailRequest(input)) {
@@ -599,6 +679,9 @@ class EnhancedChatbotSystem {
       return true;
     } else if (this.isProposalRequest(input)) {
       this.enhancedProposalGeneration(userInput, setMessages);
+      return true;
+    } else if (this.isGeneralQuestion(input)) {
+      this.handleGeneralQuestion(userInput, setMessages);
       return true;
     } else {
       // Return false to let main system handle general response
@@ -627,6 +710,32 @@ class EnhancedChatbotSystem {
       "certificate",
       "invoice",
       "peb",
+      "packing list",
+      "bill of lading",
+      "ska",
+      "certificate of origin",
+      "asuransi",
+      "insurance",
+      "buat dokumen",
+      "generate document",
+      "cara buat",
+      "how to make",
+      "template",
+      "form",
+      "formulir",
+      "sertifikat",
+      "konosemen",
+      "bl",
+      "b/l",
+      "tagihan",
+      "commercial invoice",
+      "daftar kemasan",
+      "marine insurance",
+      "export declaration",
+      "pemberitahuan ekspor",
+      "surat keterangan asal",
+      "preferensi tarif",
+      "tariff preference",
     ];
     return keywords.some((keyword) => input.includes(keyword));
   }
@@ -641,8 +750,169 @@ class EnhancedChatbotSystem {
     return keywords.some((keyword) => input.includes(keyword));
   }
 
+  static isGeneralQuestion(input) {
+    const generalKeywords = [
+      "apa",
+      "bagaimana",
+      "kapan",
+      "dimana",
+      "siapa",
+      "mengapa",
+      "kenapa",
+      "jelaskan",
+      "pengertian",
+      "definisi",
+      "arti",
+      "apa itu",
+      "apa sih",
+      "gimana",
+      "cara",
+      "tips",
+      "saran",
+      "rekomendasi",
+      "bantuan",
+      "help",
+      "what",
+      "how",
+      "when",
+      "where",
+      "why",
+      "who",
+      "explain",
+      "definition",
+      "meaning",
+      "tips",
+      "advice",
+      "recommendation",
+      "help",
+    ];
+    return generalKeywords.some((keyword) => input.includes(keyword));
+  }
+
+  static handleGeneralQuestion(userInput, setMessages) {
+    const input = userInput.toLowerCase();
+
+    // Check if it's actually a document request first
+    const requestedDocument = this.detectDocumentFromInput(input);
+    if (requestedDocument) {
+      // This is actually a document request, not a general question
+      return false; // Let the main system handle it as document request
+    }
+
+    // Check for general document questions that should be handled by document system
+    const generalDocumentQuestions = [
+      "dokumen apa saja",
+      "dokumen yang diperlukan",
+      "dokumen ekspor",
+      "export documents",
+      "what documents",
+      "which documents",
+      "dokumen yang dibutuhkan",
+      "dokumen wajib",
+      "required documents",
+      "mandatory documents",
+      "dokumen ekspor resmi",
+      "buat dokumen ekspor",
+      "generate dokumen ekspor",
+    ];
+
+    const isGeneralDocumentQuestion = generalDocumentQuestions.some(
+      (question) => input.includes(question)
+    );
+
+    if (isGeneralDocumentQuestion) {
+      // This should be handled by document system, not general questions
+      return false;
+    }
+
+    // Define only 7 essential general questions
+    const mockResponses = {
+      // 1. Email generation
+      email:
+        "Saya dapat membuat email bisnis profesional untuk inquiry, penawaran, dan perkenalan bisnis ekspor. Silakan sebutkan jenis email yang Anda butuhkan.",
+
+      // 2. Proposal generation
+      proposal:
+        "Saya dapat membuat proposal bisnis lengkap untuk partnership, kerjasama ekspor, dan presentasi perusahaan. Silakan sebutkan jenis proposal yang Anda butuhkan.",
+
+      // 3. Cost estimation
+      biaya:
+        "Saya dapat menghitung estimasi biaya ekspor secara detail. Termasuk FOB, freight, asuransi, handling, dokumentasi, dan pajak. Silakan berikan detail produk dan tujuan.",
+
+      // 4. Document list request
+      "dokumen ekspor resmi":
+        "Saya dapat membantu membuat dokumen ekspor resmi. Berikut adalah dokumen yang tersedia: PEB (Pemberitahuan Ekspor Barang), Commercial Invoice, Packing List, Bill of Lading, SKA/Certificate of Origin, dan Marine Insurance. Silakan pilih dokumen yang Anda butuhkan.",
+
+      // 5. Customs calculation
+      "bea cukai":
+        "Berdasarkan perhitungan bea cukai untuk ekspor, estimasi biaya yang diperlukan: PPh Ekspor 2.5% dari nilai FOB, Pungutan Ekspor 0.5% dari nilai FOB, Bea Masuk 0% (untuk sebagian besar produk), dan PPN 0% untuk ekspor. Total estimasi bea cukai sekitar 3% dari nilai FOB.",
+
+      // 6. How to questions
+      cara: "Saya dapat membantu menjelaskan cara membuat email, proposal, dan menghitung biaya ekspor. Silakan sebutkan yang spesifik yang ingin Anda ketahui.",
+
+      // 7. What is questions
+      "apa itu":
+        "Saya dapat menjelaskan berbagai aspek ekspor seperti email bisnis, proposal, dan komponen biaya. Silakan sebutkan yang ingin Anda ketahui.",
+    };
+
+    // Find the most relevant response
+    let bestResponse = null;
+    let bestMatch = 0;
+
+    for (const [keyword, response] of Object.entries(mockResponses)) {
+      if (input.includes(keyword) && keyword.length > bestMatch) {
+        bestResponse = response;
+        bestMatch = keyword.length;
+      }
+    }
+
+    // If no specific match found, provide a general helpful response
+    if (!bestResponse) {
+      bestResponse = this.mockData.utils.getRandomElement([
+        "Saya dapat membantu Anda dengan tiga fitur utama: 📧 Generate Email (inquiry, penawaran), 🤝 Generate Proposal (partnership), dan 💰 Estimasi Biaya (FOB, freight, dll). Silakan sebutkan yang Anda butuhkan!",
+        "Untuk ekspor, saya dapat membantu dengan: email bisnis profesional, proposal kerjasama, dan kalkulasi biaya detail. Fitur mana yang ingin Anda gunakan?",
+        "Saya siap membantu dengan semua kebutuhan ekspor: pembuatan email bisnis, proposal partnership, dan estimasi biaya. Silakan pilih layanan yang Anda butuhkan.",
+      ]);
+    }
+
+    // Create bot message with typing delay
+    const botMessage = {
+      from: "bot",
+      text: bestResponse,
+      timestamp: new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+
+    setMessages((prev) => [...prev, botMessage]);
+  }
+
   static getGeneralResponse(userInput, setMessages) {
-    // Get contextual response from mock data
+    const input = userInput.toLowerCase();
+
+    // Try to find a matching question from commonQA
+    const matchingQA = this.mockData.chatbotResponses.commonQA.find(
+      (qa) =>
+        input.includes(qa.question.toLowerCase().replace(/[?]/g, "")) ||
+        qa.question.toLowerCase().includes(input)
+    );
+
+    if (matchingQA) {
+      // Use the specific answer from mock data
+      const botMessage = {
+        from: "bot",
+        text: matchingQA.answer,
+        timestamp: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+      return;
+    }
+
+    // If no specific match, get contextual response from mock data
     const response = this.mockData.utils.getRandomElement(
       this.mockData.chatbotResponses.welcomeMessages
     );

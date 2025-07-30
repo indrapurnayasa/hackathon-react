@@ -70,16 +70,25 @@ const TypingIndicator = () => (
       >
         <div className="flex space-x-1">
           <div
-            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-            style={{ animationDelay: "0ms" }}
+            className="w-2 h-2 bg-gray-400 rounded-full"
+            style={{
+              animation: "typing-dot 1.4s ease-in-out infinite",
+              animationDelay: "0ms",
+            }}
           ></div>
           <div
-            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-            style={{ animationDelay: "150ms" }}
+            className="w-2 h-2 bg-gray-400 rounded-full"
+            style={{
+              animation: "typing-dot 1.4s ease-in-out infinite",
+              animationDelay: "200ms",
+            }}
           ></div>
           <div
-            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-            style={{ animationDelay: "300ms" }}
+            className="w-2 h-2 bg-gray-400 rounded-full"
+            style={{
+              animation: "typing-dot 1.4s ease-in-out infinite",
+              animationDelay: "400ms",
+            }}
           ></div>
         </div>
 
@@ -94,6 +103,21 @@ const TypingIndicator = () => (
         />
       </div>
     </div>
+
+    <style jsx>{`
+      @keyframes typing-dot {
+        0%,
+        60%,
+        100% {
+          opacity: 0.3;
+          transform: scale(0.8);
+        }
+        30% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    `}</style>
   </div>
 );
 
@@ -497,11 +521,50 @@ const ChatInterface = ({
                   <button
                     key={doc.id}
                     onClick={() => {
-                      DocumentGenerator.generateDocument(
-                        doc.id,
-                        setMessages,
-                        setCompletedDocuments
-                      );
+                      // First add user message showing the selected document with actual data
+                      const getDocumentData = (doc) => {
+                        const dummyData =
+                          DocumentGenerator.generateDummyData(doc);
+
+                        switch (doc.id) {
+                          case "peb":
+                            return `dengan data: Eksportir ${dummyData["Nama Eksportir"]}, Penerima ${dummyData["Nama Penerima"]}, Barang ${dummyData["Deskripsi Barang"]}, Kode HS ${dummyData["Kode HS"]}`;
+                          case "invoice":
+                            return `dengan data: Invoice ${dummyData["Nomor Invoice"]}, Tanggal ${dummyData["Tanggal Invoice"]}, Penjual ${dummyData["Nama Penjual"]}, Pembeli ${dummyData["Nama Pembeli"]}, Nilai ${dummyData["Total Nilai"]}`;
+                          case "ska":
+                            return `dengan data: Eksportir ${dummyData["Nama Eksportir"]}, Penerima ${dummyData["Nama Penerima"]}, Barang ${dummyData["Deskripsi Barang"]}, Kode HS ${dummyData["Kode HS"]}, Kriteria Asal ${dummyData["Kriteria Asal"]}`;
+                          case "packinglist":
+                            return `dengan data: Packing List ${dummyData["Nomor Packing List"]}, Pengirim ${dummyData["Nama Pengirim"]}, Penerima ${dummyData["Nama Penerima"]}, Kemasan ${dummyData["Jumlah Kemasan"]} ${dummyData["Jenis Kemasan"]}, Berat ${dummyData["Berat Bersih"]}`;
+                          case "bl":
+                            return `dengan data: B/L ${dummyData["Nomor B/L"]}, Kapal ${dummyData["Nama Kapal"]}, Muat ${dummyData["Pelabuhan Muat"]}, Bongkar ${dummyData["Pelabuhan Bongkar"]}, Container ${dummyData["Jumlah Container"]}`;
+                          case "insurance":
+                            return `dengan data: Polis ${dummyData["Nomor Polis"]}, Tertanggung ${dummyData["Nama Tertanggung"]}, Barang ${dummyData["Jenis Barang"]}, Nilai ${dummyData["Nilai Pertanggungan"]}, Rute ${dummyData["Rute Pengangkutan"]}`;
+                          default:
+                            return "dengan data lengkap sesuai standar ekspor";
+                        }
+                      };
+
+                      const userMessage = {
+                        from: "user",
+                        text: `Saya ingin membuat ${doc.name} ${getDocumentData(
+                          doc
+                        )}`,
+                        timestamp: new Date().toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }),
+                      };
+                      setMessages((prev) => [...prev, userMessage]);
+
+                      // Then trigger document generation with typing animation
+                      setTimeout(() => {
+                        DocumentGenerator.generateDocument(
+                          doc.id,
+                          setMessages,
+                          setCompletedDocuments,
+                          setIsTyping
+                        );
+                      }, 500); // Small delay to show user message first
                     }}
                     className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
                   >

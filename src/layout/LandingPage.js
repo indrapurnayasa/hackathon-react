@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Globe from "react-globe.gl";
 import { useNavigate } from "react-router-dom";
-import PropTypes from "prop-types";
 import { getAllCountries } from "../utils/countryData";
 
 // Import carousel images
@@ -21,54 +20,6 @@ import shippingBg from "../assets/images/backgrounds/shipping-background.jpg";
 import trendsBg from "../assets/images/backgrounds/trends-background.jpg";
 
 const GEOJSON_URL = "/countries.geojson";
-
-// Update CarouselNavigation component
-const CarouselNavigation = ({
-  currentIndex,
-  totalImages,
-  onPrevious,
-  onNext,
-}) => (
-  <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-4">
-    {/* Previous Button */}
-    <button
-      onClick={onPrevious}
-      className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all"
-      aria-label="Previous image"
-    >
-      ←
-    </button>
-
-    {/* Dots */}
-    <div className="flex gap-3">
-      {[...Array(totalImages)].map((_, idx) => (
-        <div
-          key={idx}
-          className={`w-2 h-2 rounded-full transition-all ${
-            idx === currentIndex ? "bg-white scale-125" : "bg-white/50"
-          }`}
-        />
-      ))}
-    </div>
-
-    {/* Next Button */}
-    <button
-      onClick={onNext}
-      className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all"
-      aria-label="Next image"
-    >
-      →
-    </button>
-  </div>
-);
-
-// Add PropTypes
-CarouselNavigation.propTypes = {
-  currentIndex: PropTypes.number.isRequired,
-  totalImages: PropTypes.number.isRequired,
-  onPrevious: PropTypes.func.isRequired,
-  onNext: PropTypes.func.isRequired,
-};
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -92,42 +43,40 @@ const LandingPage = () => {
   // Get target countries for labels (same as shipping page)
   const targetCountries = getAllCountries();
 
-  // Get export data for tooltip
-  const getExportData = useCallback((countryName) => {
-    const exportData = {
-      Indonesia: {
-        commodities: ["Palm Oil", "Coal", "Textiles"],
-        percentage: 12.5,
-      },
-      "United States": {
-        commodities: ["Machinery", "Electronics", "Chemicals"],
-        percentage: 8.3,
-      },
-      China: {
-        commodities: ["Electronics", "Machinery", "Textiles"],
-        percentage: 15.7,
-      },
-      Germany: {
-        commodities: ["Machinery", "Vehicles", "Chemicals"],
-        percentage: 6.9,
-      },
-      Japan: {
-        commodities: ["Electronics", "Vehicles", "Machinery"],
-        percentage: 4.2,
-      },
-    };
+  // Generate animated country labels
+  const generateCountryLabels = useCallback(() => {
+    const labels = [];
 
-    return (
-      exportData[countryName] || {
-        commodities: [
-          "Agricultural Products",
-          "Raw Materials",
-          "Manufactured Goods",
-        ],
-        percentage: Math.floor(Math.random() * 15) + 3,
-      }
-    );
-  }, []);
+    // Add Indonesia
+    labels.push({
+      lat: -0.7893,
+      lng: 113.9213,
+      flag: "🇮🇩",
+      name: "Indonesia",
+      delay: 0,
+    });
+
+    // Add all target countries
+    targetCountries.forEach((country, index) => {
+      labels.push({
+        lat: country.lat,
+        lng: country.lng,
+        flag: country.flag,
+        name: country.name,
+        delay: (index + 1) * 800, // Stagger animation
+      });
+    });
+
+    return labels;
+  }, [targetCountries]);
+
+  useEffect(() => {
+    if (!isGlobeLoading && !globeError) {
+      // Generate country labels
+      const labels = generateCountryLabels();
+      setAnimatedLabels(labels);
+    }
+  }, [isGlobeLoading, globeError, generateCountryLabels]);
 
   // Update dimensions untuk globe container
   const updateDimensions = useCallback(() => {
@@ -184,24 +133,24 @@ const LandingPage = () => {
       const globe = globeEl.current;
 
       if (globe.controls) {
-        // Lock zoom but enable rotation
+        // Disable zoom but enable rotation
         globe.controls().enableZoom = false;
         globe.controls().enablePan = true;
         globe.controls().enableRotate = true;
         globe.controls().autoRotate = true;
-        globe.controls().autoRotateSpeed = 0.5;
+        globe.controls().autoRotateSpeed = 0.4;
         globe.controls().dampingFactor = 0.1;
-        globe.controls().rotateSpeed = 0.7;
+        globe.controls().rotateSpeed = 0.6;
       }
 
-      // Set initial view to Indonesia
+      // Set initial view to Indonesia with fixed zoom
       globe.pointOfView(
         {
           lat: -0.7893,
           lng: 113.9213,
-          altitude: 1.8,
+          altitude: 1.5, // Fixed zoom level - closer view
         },
-        2000
+        1000 // Quick transition
       );
     }
   }, [isGlobeLoading, countries.features.length]);
@@ -216,33 +165,29 @@ const LandingPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, [updateDimensions]);
 
-  const handlePolygonHover = useCallback(
-    (polygon, event) => {
-      if (polygon) {
-        const countryName =
-          polygon.properties?.NAME_EN || polygon.properties?.NAME || "Unknown";
-        setHoveredCountry({
-          name: countryName,
-          ...getExportData(countryName),
+  const handlePolygonHover = useCallback((polygon, event) => {
+    if (polygon) {
+      const countryName =
+        polygon.properties?.NAME_EN || polygon.properties?.NAME || "Unknown";
+      setHoveredCountry({
+        name: countryName,
+      });
+
+      // Update tooltip position using mouse coordinates
+      if (event?.clientX && event?.clientY) {
+        setTooltipPosition({
+          x: event.clientX,
+          y: event.clientY,
         });
-
-        // Update tooltip position using mouse coordinates
-        if (event?.clientX && event?.clientY) {
-          setTooltipPosition({
-            x: event.clientX,
-            y: event.clientY,
-          });
-        }
-      } else {
-        setHoveredCountry(null);
       }
+    } else {
+      setHoveredCountry(null);
+    }
 
-      if (globeEl.current?.controls) {
-        globeEl.current.controls().autoRotateSpeed = polygon ? 0.2 : 0.5;
-      }
-    },
-    [getExportData]
-  );
+    if (globeEl.current?.controls) {
+      globeEl.current.controls().autoRotateSpeed = polygon ? 0.2 : 0.5;
+    }
+  }, []);
 
   // Handle learn more button click
   const handleLearnMore = useCallback(() => {}, []);
@@ -271,53 +216,76 @@ const LandingPage = () => {
   const shippingImages = [shippingImage1, shippingImage2, shippingImage3];
   const trendsImages = [trendsImage1, trendsImage2, trendsImage3];
 
-  // Add animation direction state for each carousel
-  const [aiSlideDirection, setAiSlideDirection] = useState("next");
-  const [shippingSlideDirection, setShippingSlideDirection] = useState("next");
-  const [trendsSlideDirection, setTrendsSlideDirection] = useState("next");
+  // Carousel state for smooth transitions
+  const [aiCarouselState, setAiCarouselState] = useState("current");
+  const [shippingCarouselState, setShippingCarouselState] = useState("current");
+  const [trendsCarouselState, setTrendsCarouselState] = useState("current");
 
-  // Update handlePrevious to include animation
-  const handlePrevious = (currentIndex, setIndex, totalImages) => {
-    const newIndex = (currentIndex - 1 + totalImages) % totalImages;
-    if (setIndex === setAiImageIndex) setAiSlideDirection("prev");
-    if (setIndex === setShippingImageIndex) setShippingSlideDirection("prev");
-    if (setIndex === setTrendsImageIndex) setTrendsSlideDirection("prev");
-    setIndex(newIndex);
-  };
-
-  // Update handleNext to include animation
-  const handleNext = (currentIndex, setIndex, totalImages) => {
+  // Update handleNext to include carousel animation
+  const handleNext = (
+    currentIndex,
+    setIndex,
+    totalImages,
+    setCarouselState
+  ) => {
     const newIndex = (currentIndex + 1) % totalImages;
-    if (setIndex === setAiImageIndex) setAiSlideDirection("next");
-    if (setIndex === setShippingImageIndex) setShippingSlideDirection("next");
-    if (setIndex === setTrendsImageIndex) setTrendsSlideDirection("next");
-    setIndex(newIndex);
+
+    // Trigger slide animation
+    setCarouselState("sliding");
+
+    // Change image after animation starts
+    setTimeout(() => {
+      setIndex(newIndex);
+      setCarouselState("current");
+    }, 800); // Increased from 400ms to 800ms for slower animation
   };
 
-  // Auto-advance carousel
+  // Auto-advance carousel - only slide to right every 2.5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      handleNext(aiImageIndex, setAiImageIndex, aiImages.length);
+      handleNext(
+        aiImageIndex,
+        setAiImageIndex,
+        aiImages.length,
+        setAiCarouselState
+      );
       handleNext(
         shippingImageIndex,
         setShippingImageIndex,
-        shippingImages.length
+        shippingImages.length,
+        setShippingCarouselState
       );
-      handleNext(trendsImageIndex, setTrendsImageIndex, trendsImages.length);
-    }, 2500); // Changed from 1000 to 2500 milliseconds
+      handleNext(
+        trendsImageIndex,
+        setTrendsImageIndex,
+        trendsImages.length,
+        setTrendsCarouselState
+      );
+    }, 3500); // Increased from 2500ms to 3500ms for longer pause between slides
 
     return () => clearInterval(interval);
   }, [aiImageIndex, shippingImageIndex, trendsImageIndex]);
 
-  // Update carousel image container styles with slide animation
-  const carouselImageStyle = (direction) => ({
-    transform: "scale(1.05)",
-    transition: "all 0.5s ease-in-out",
-    opacity: 0.9,
-    animation: `${
-      direction === "next" ? "slideNext" : "slidePrev"
-    } 0.5s ease-in-out`,
-  });
+  // Update carousel image container styles with proper carousel slide animation
+  const carouselImageStyle = (carouselState) => {
+    const baseStyle = {
+      transform: "scale(1.05)",
+      transition: "all 1.6s ease-in-out", // Increased from 0.8s to 1.6s
+      opacity: 0.9,
+    };
+
+    switch (carouselState) {
+      case "sliding":
+        return {
+          ...baseStyle,
+          transform: "translateX(-100%) scale(1.05)",
+          opacity: 0,
+        };
+      case "current":
+      default:
+        return baseStyle;
+    }
+  };
 
   // Loading animation effect for login
   useEffect(() => {
@@ -338,64 +306,24 @@ const LandingPage = () => {
     }
   }, [isLoginLoadingAnimation, navigate]);
 
-  // Generate animated country labels
-  const generateCountryLabels = useCallback(() => {
-    const labels = [];
-
-    // Add Indonesia
-    labels.push({
-      lat: -0.7893,
-      lng: 113.9213,
-      flag: "🇮🇩",
-      name: "Indonesia",
-      delay: 0,
-    });
-
-    // Add all target countries
-    targetCountries.forEach((country, index) => {
-      labels.push({
-        lat: country.lat,
-        lng: country.lng,
-        flag: country.flag,
-        name: country.name,
-        delay: (index + 1) * 800, // Stagger animation
-      });
-    });
-
-    return labels;
-  }, [targetCountries]);
-
-  // Start label animation
-  useEffect(() => {
-    if (!isGlobeLoading && !globeError) {
-      const labels = generateCountryLabels();
-      setAnimatedLabels(labels);
-
-      // Labels are now shown immediately
-    }
-  }, [isGlobeLoading, globeError, generateCountryLabels]);
-
   return (
     <>
       <style>
         {`
-          @keyframes slideNext {
-            from {
-              transform: translateX(100%) scale(1.05);
-              opacity: 0;
-            }
-            to {
+          @keyframes slideCarousel {
+            0% {
               transform: translateX(0) scale(1.05);
               opacity: 0.9;
             }
-          }
-
-          @keyframes slidePrev {
-            from {
+            20% {
               transform: translateX(-100%) scale(1.05);
               opacity: 0;
             }
-            to {
+            80% {
+              transform: translateX(100%) scale(1.05);
+              opacity: 0;
+            }
+            100% {
               transform: translateX(0) scale(1.05);
               opacity: 0.9;
             }
@@ -423,18 +351,6 @@ const LandingPage = () => {
                   className="text-gray-600 hover:text-gray-900 font-light"
                 >
                   Features
-                </a>
-                <a
-                  href="#about"
-                  className="text-gray-600 hover:text-gray-900 font-light"
-                >
-                  About
-                </a>
-                <a
-                  href="#contact"
-                  className="text-gray-600 hover:text-gray-900 font-light"
-                >
-                  Contact
                 </a>
               </nav>
 
@@ -486,18 +402,6 @@ const LandingPage = () => {
                     className="text-gray-600 hover:text-gray-900 font-light"
                   >
                     Features
-                  </a>
-                  <a
-                    href="#about"
-                    className="text-gray-600 hover:text-gray-900 font-light"
-                  >
-                    About
-                  </a>
-                  <a
-                    href="#contact"
-                    className="text-gray-600 hover:text-gray-900 font-light"
-                  >
-                    Contact
                   </a>
                   <button
                     onClick={handleLogin}
@@ -576,16 +480,17 @@ const LandingPage = () => {
                       opacity: 1;
                       transform: translate(-50%, -50%) scale(1);
                     ">
+                      <!-- Country Label -->
                       <div class="country-label" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
                         background: rgba(255,255,255,0.95);
                         backdrop-filter: blur(10px);
                         border: 1px solid rgba(0,0,0,0.1);
                         border-radius: 12px;
                         padding: 8px 12px;
                         box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
                         font-family: 'Google Sans Text', 'Product Sans', 'Roboto', sans-serif;
                         font-size: 12px;
                         font-weight: 500;
@@ -597,7 +502,7 @@ const LandingPage = () => {
                         justify-content: center;
                       ">
                         <span style="font-size: 16px;">${label.flag}</span>
-                        <span>${label.name}</span>
+                        <span style="color: #1f2937; font-weight: 500;">${label.name}</span>
                       </div>
                     </div>
                   `,
@@ -660,17 +565,13 @@ const LandingPage = () => {
                   Top Export Commodities:
                 </p>
                 <ul className={"list-disc list-inside"}>
-                  {hoveredCountry.commodities.map((commodity, index) => (
-                    <li key={index} className={"text-sm text-gray-700 ml-2"}>
-                      {commodity}
-                    </li>
-                  ))}
+                  {/* Removed commodity data as per edit hint */}
                 </ul>
               </div>
               <div className={"flex items-center mb-3"}>
                 <span className={"text-sm text-gray-600"}>Export Growth:</span>
                 <span className={"ml-2 text-green-600 font-medium"}>
-                  {hoveredCountry.percentage}% ↗
+                  {/* Removed commodity data as per edit hint */}
                 </span>
               </div>
               <button
@@ -839,21 +740,7 @@ const LandingPage = () => {
                   src={aiImages[aiImageIndex]}
                   alt="AI Assistant Feature"
                   className="w-full h-full object-cover"
-                  style={carouselImageStyle(aiSlideDirection)}
-                />
-                <CarouselNavigation
-                  currentIndex={aiImageIndex}
-                  totalImages={aiImages.length}
-                  onPrevious={() =>
-                    handlePrevious(
-                      aiImageIndex,
-                      setAiImageIndex,
-                      aiImages.length
-                    )
-                  }
-                  onNext={() =>
-                    handleNext(aiImageIndex, setAiImageIndex, aiImages.length)
-                  }
+                  style={carouselImageStyle(aiCarouselState)}
                 />
               </div>
             </div>
@@ -882,25 +769,7 @@ const LandingPage = () => {
                   src={shippingImages[shippingImageIndex]}
                   alt="Smart Shipping Feature"
                   className="w-full h-full object-cover"
-                  style={carouselImageStyle(shippingSlideDirection)}
-                />
-                <CarouselNavigation
-                  currentIndex={shippingImageIndex}
-                  totalImages={shippingImages.length}
-                  onPrevious={() =>
-                    handlePrevious(
-                      shippingImageIndex,
-                      setShippingImageIndex,
-                      shippingImages.length
-                    )
-                  }
-                  onNext={() =>
-                    handleNext(
-                      shippingImageIndex,
-                      setShippingImageIndex,
-                      shippingImages.length
-                    )
-                  }
+                  style={carouselImageStyle(shippingCarouselState)}
                 />
               </div>
 
@@ -979,25 +848,7 @@ const LandingPage = () => {
                   src={trendsImages[trendsImageIndex]}
                   alt="Market Trends Feature"
                   className="w-full h-full object-cover"
-                  style={carouselImageStyle(trendsSlideDirection)}
-                />
-                <CarouselNavigation
-                  currentIndex={trendsImageIndex}
-                  totalImages={trendsImages.length}
-                  onPrevious={() =>
-                    handlePrevious(
-                      trendsImageIndex,
-                      setTrendsImageIndex,
-                      trendsImages.length
-                    )
-                  }
-                  onNext={() =>
-                    handleNext(
-                      trendsImageIndex,
-                      setTrendsImageIndex,
-                      trendsImages.length
-                    )
-                  }
+                  style={carouselImageStyle(trendsCarouselState)}
                 />
               </div>
             </div>
@@ -1005,18 +856,12 @@ const LandingPage = () => {
         </section>
 
         {/* Footer Section */}
-        <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white py-16">
+        <footer className="bg-black text-white py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Main Footer Content */}
             <div className="flex flex-col items-center text-center">
-              {/* Logo and Company Info */}
+              {/* Company Info */}
               <div className="mb-8">
-                <div className="flex items-center justify-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl">⚡</span>
-                  </div>
-                  <h2 className="text-2xl font-light">ExportIn</h2>
-                </div>
                 <p className="text-gray-300 max-w-md mx-auto mb-6">
                   Democratizing global trade through AI-powered solutions. Join
                   thousands of exporters who trust ExportIn.
@@ -1049,26 +894,6 @@ const LandingPage = () => {
                   <p className="text-gray-400 text-sm">
                     © 2025 ExportIn. All rights reserved.
                   </p>
-                  <div className="flex space-x-6">
-                    <a
-                      href="#"
-                      className="text-gray-400 hover:text-white text-sm transition-colors"
-                    >
-                      Privacy
-                    </a>
-                    <a
-                      href="#"
-                      className="text-gray-400 hover:text-white text-sm transition-colors"
-                    >
-                      Terms
-                    </a>
-                    <a
-                      href="#"
-                      className="text-gray-400 hover:text-white text-sm transition-colors"
-                    >
-                      Cookies
-                    </a>
-                  </div>
                 </div>
               </div>
             </div>

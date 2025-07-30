@@ -23,28 +23,28 @@ const PersonalizationModal = ({ isOpen, onClose, userName = "User" }) => {
     { id: "crn", label: "Jagung", icon: "🌽" },
   ];
 
-  // Data untuk halaman kedua - Country Options
+  // Data untuk halaman kedua - Country Options (matching countryData)
   const countryOptions = [
-    { id: "bd", label: "Bangladesh", icon: "🇧🇩" },
-    { id: "ca", label: "Canada", icon: "🇨🇦" },
-    { id: "cn", label: "China", icon: "🇨🇳" },
-    { id: "eg", label: "Egypt", icon: "🇪🇬" },
-    { id: "fr", label: "France", icon: "🇫🇷" },
-    { id: "de", label: "Germany", icon: "🇩🇪" },
-    { id: "in", label: "India", icon: "🇮🇳" },
-    { id: "jp", label: "Japan", icon: "🇯🇵" },
-    { id: "my", label: "Malaysia", icon: "🇲🇾" },
-    { id: "mx", label: "Mexico", icon: "🇲🇽" },
-    { id: "mm", label: "Myanmar", icon: "🇲🇲" },
-    { id: "pk", label: "Pakistan", icon: "🇵🇰" },
-    { id: "ph", label: "Philippines", icon: "🇵🇭" },
-    { id: "ru", label: "Russia", icon: "🇷🇺" },
-    { id: "sa", label: "Saudi Arabia", icon: "🇸🇦" },
-    { id: "es", label: "Spain", icon: "🇪🇸" },
-    { id: "tz", label: "Tanzania", icon: "🇹🇿" },
-    { id: "ae", label: "United Arab Emirates", icon: "🇦🇪" },
-    { id: "us", label: "United States", icon: "🇺🇸" },
-    { id: "vn", label: "Vietnam", icon: "🇻🇳" },
+    { id: "BE", label: "Belgium", icon: "🇧🇪" },
+    { id: "MY", label: "Malaysia", icon: "🇲🇾" },
+    { id: "DJ", label: "Djibouti", icon: "🇩🇯" },
+    { id: "EE", label: "Estonia", icon: "🇪🇪" },
+    { id: "AE", label: "United Arab Emirates", icon: "🇦🇪" },
+    { id: "TZ", label: "Tanzania", icon: "🇹🇿" },
+    { id: "NL", label: "Netherlands", icon: "🇳🇱" },
+    { id: "MM", label: "Myanmar", icon: "🇲🇲" },
+    { id: "OM", label: "Oman", icon: "🇴🇲" },
+    { id: "RU", label: "Russia", icon: "🇷🇺" },
+    { id: "VN", label: "Vietnam", icon: "🇻🇳" },
+    { id: "JP", label: "Japan", icon: "🇯🇵" },
+    { id: "PK", label: "Pakistan", icon: "🇵🇰" },
+    { id: "CN", label: "China", icon: "🇨🇳" },
+    { id: "PH", label: "Philippines", icon: "🇵🇭" },
+    { id: "EG", label: "Egypt", icon: "🇪🇬" },
+    { id: "SA", label: "Saudi Arabia", icon: "🇸🇦" },
+    { id: "BD", label: "Bangladesh", icon: "🇧🇩" },
+    { id: "US", label: "United States", icon: "🇺🇸" },
+    { id: "IN", label: "India", icon: "🇮🇳" },
   ];
 
   // Selection handlers
@@ -94,6 +94,18 @@ const PersonalizationModal = ({ isOpen, onClose, userName = "User" }) => {
     // Save to localStorage that profile is completed
     localStorage.setItem("profileCompleted", "true");
     localStorage.setItem("profileSkipped", "false");
+
+    // Save selected country to localStorage
+    if (selectedCountry) {
+      localStorage.setItem("selectedCountry", selectedCountry);
+    }
+
+    // Dispatch custom event to notify other components about the change
+    window.dispatchEvent(
+      new CustomEvent("countrySelectionChanged", {
+        detail: { selectedCountry },
+      })
+    );
   };
 
   // Enhanced handleCloseThankYou function

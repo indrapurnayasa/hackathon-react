@@ -379,39 +379,38 @@ This certificate is evidence of insurance coverage.`;
     if (setCurrentFlow) setCurrentFlow("document-list");
   }
 
-  static async generateDocument(docId, setMessages, setCompletedDocuments) {
-    // First show typing animation
-    const typingMessage = {
-      from: "bot",
-      text: "Generating document...",
-      timestamp: new Date().toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      type: "typing",
-    };
-    setMessages((prev) => [...prev, typingMessage]);
+  static async generateDocument(
+    docId,
+    setMessages,
+    setCompletedDocuments,
+    setIsTyping
+  ) {
+    // Show typing animation
+    setIsTyping(true);
 
     // Wait for 2 seconds to simulate processing
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Remove typing message and show document
-    setMessages((prev) => {
-      const newMessages = prev.filter((msg) => msg.type !== "typing");
-      const document = this.exportDocuments.find((doc) => doc.id === docId);
+    // Hide typing animation
+    setIsTyping(false);
 
-      if (document) {
-        // Mark document as completed
-        if (setCompletedDocuments) {
-          setCompletedDocuments((prev) => {
-            const newCompleted = new Set(prev);
-            newCompleted.add(docId);
-            return newCompleted;
-          });
-        }
+    // Show document
+    const document = this.exportDocuments.find((doc) => doc.id === docId);
 
-        // Add document ready message
-        newMessages.push({
+    if (document) {
+      // Mark document as completed
+      if (setCompletedDocuments) {
+        setCompletedDocuments((prev) => {
+          const newCompleted = new Set(prev);
+          newCompleted.add(docId);
+          return newCompleted;
+        });
+      }
+
+      // Add document ready message
+      setMessages((prev) => [
+        ...prev,
+        {
           from: "bot",
           text: `✅ ${document.name} telah berhasil dibuat!`,
           timestamp: new Date().toLocaleTimeString("id-ID", {
@@ -424,11 +423,9 @@ This certificate is evidence of insurance coverage.`;
             this.generateDummyData(document)
           ),
           documentName: document.name,
-        });
-      }
-
-      return newMessages;
-    });
+        },
+      ]);
+    }
   }
 
   static handleCopy(content) {

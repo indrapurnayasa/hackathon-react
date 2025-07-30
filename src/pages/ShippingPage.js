@@ -34,6 +34,56 @@ export default function ShippingPage() {
   // UPDATED NEGARA TUJUAN - 20 negara dengan Malaysia sebagai rekomendasi
   const countries = getAllCountries();
 
+  // State to track user's selected country for real-time updates
+  const [userSelectedCountry, setUserSelectedCountry] = useState(() => {
+    const savedCountry = localStorage.getItem("selectedCountry");
+    return savedCountry || "MY"; // Default to Malaysia if no country selected
+  });
+
+  // Function to check if a country should show recommendation label
+  const shouldShowRecommendation = (countryCode) => {
+    return countryCode.toLowerCase() === userSelectedCountry.toLowerCase();
+  };
+
+  // Listen for changes in localStorage and custom events
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedCountry = localStorage.getItem("selectedCountry");
+      setUserSelectedCountry(savedCountry || "MY");
+    };
+
+    const handleCountrySelectionChange = (event) => {
+      const { selectedCountry: newCountry } = event.detail;
+      setUserSelectedCountry(newCountry || "MY");
+    };
+
+    // Listen for storage events (when localStorage changes in other tabs/windows)
+    window.addEventListener("storage", handleStorageChange);
+
+    // Listen for custom event when country selection changes
+    window.addEventListener(
+      "countrySelectionChanged",
+      handleCountrySelectionChange
+    );
+
+    // Also check for changes periodically (for same-tab updates)
+    const interval = setInterval(() => {
+      const savedCountry = localStorage.getItem("selectedCountry");
+      if (savedCountry !== userSelectedCountry) {
+        setUserSelectedCountry(savedCountry || "MY");
+      }
+    }, 1000); // Check every second
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "countrySelectionChanged",
+        handleCountrySelectionChange
+      );
+      clearInterval(interval);
+    };
+  }, [userSelectedCountry]);
+
   // Data alur pengiriman sebagai milestone edukasi
   const shippingMilestones = [
     { step: "Warehouse", description: "Barang disimpan di gudang forwarder" },
@@ -208,20 +258,20 @@ export default function ShippingPage() {
 
   // Handle recommendation tooltip
   const handleRecommendationMouseEnter = (event, country) => {
-    if (country.recommended) {
+    if (shouldShowRecommendation(country.code)) {
       setShowRecommendationTooltip(true);
       updateRecommendationTooltipPosition(event);
     }
   };
 
   const handleRecommendationMouseMove = (event, country) => {
-    if (country.recommended && showRecommendationTooltip) {
+    if (shouldShowRecommendation(country.code) && showRecommendationTooltip) {
       updateRecommendationTooltipPosition(event);
     }
   };
 
   const handleRecommendationMouseLeave = (country) => {
-    if (country.recommended) {
+    if (shouldShowRecommendation(country.code)) {
       setShowRecommendationTooltip(false);
     }
   };
@@ -733,8 +783,8 @@ export default function ShippingPage() {
                       </div>
                     </div>
 
-                    {/* Label Rekomendasi untuk Malaysia */}
-                    {country.recommended && (
+                    {/* Label Rekomendasi berdasarkan negara yang dipilih user */}
+                    {shouldShowRecommendation(country.code) && (
                       <div
                         className="absolute px-3 py-1 text-xs font-bold"
                         style={{

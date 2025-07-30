@@ -35,6 +35,8 @@ export default function TrendPage() {
   const [isGuest, setIsGuest] = useState(false);
   const [isLoadingAnimation, setIsLoadingAnimation] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isSeasonalTransitioning, setIsSeasonalTransitioning] = useState(false);
+  const [isCountryTransitioning, setIsCountryTransitioning] = useState(false);
 
   // Check if user is guest
   useEffect(() => {
@@ -70,6 +72,32 @@ export default function TrendPage() {
         setTimeout(() => {
           setIsTransitioning(false);
         }, 100);
+      }, 200);
+    }
+  };
+
+  // Handle seasonal page change with animation
+  const handleSeasonalPageChange = (newPage) => {
+    if (newPage !== seasonalCurrentPage && !isSeasonalTransitioning) {
+      setIsSeasonalTransitioning(true);
+      setTimeout(() => {
+        setSeasonalCurrentPage(newPage);
+        setTimeout(() => {
+          setIsSeasonalTransitioning(false);
+        }, 300);
+      }, 200);
+    }
+  };
+
+  // Handle country page change with animation
+  const handleCountryPageChange = (newPage) => {
+    if (newPage !== countryCurrentPage && !isCountryTransitioning) {
+      setIsCountryTransitioning(true);
+      setTimeout(() => {
+        setCountryCurrentPage(newPage);
+        setTimeout(() => {
+          setIsCountryTransitioning(false);
+        }, 300);
       }, 200);
     }
   };
@@ -234,10 +262,10 @@ export default function TrendPage() {
 
   // Helper function to determine demand level based on growth
   const getDemandLevel = (growth) => {
-    if (growth >= -50) return "Sangat Tinggi";
-    if (growth >= -70) return "Tinggi";
-    if (growth >= -80) return "Sedang";
-    return "Rendah";
+    if (growth > 100) return "Sangat Tinggi";
+    if (growth >= 60) return "Tinggi";
+    if (growth >= 20) return "Medium";
+    return "Low";
   };
 
   // Helper function to format currency
@@ -395,7 +423,7 @@ export default function TrendPage() {
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       <button
                         onClick={() => handleTabChange("seasonal")}
-                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                           activeTab === "seasonal"
                             ? "bg-gray-800 text-white shadow-lg"
                             : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
@@ -412,7 +440,7 @@ export default function TrendPage() {
 
                       <button
                         onClick={() => handleTabChange("country")}
-                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                           activeTab === "country"
                             ? "bg-gray-800 text-white shadow-lg"
                             : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
@@ -668,7 +696,7 @@ export default function TrendPage() {
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       <button
                         onClick={() => handleTabChange("seasonal")}
-                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                           activeTab === "seasonal"
                             ? "bg-gray-800 text-white shadow-lg"
                             : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
@@ -685,7 +713,7 @@ export default function TrendPage() {
 
                       <button
                         onClick={() => handleTabChange("country")}
-                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                        className={`px-4 sm:px-6 py-3 rounded-full font-semibold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
                           activeTab === "country"
                             ? "bg-gray-800 text-white shadow-lg"
                             : "bg-white/60 text-gray-800 border border-gray-300 hover:bg-white/80"
@@ -714,7 +742,7 @@ export default function TrendPage() {
             style={{ borderRadius: "50px" }}
           >
             <h2
-              className="text-lg sm:text-xl lg:text-2xl xl:text-2xl 2xl:text-3xl font-bold text-gray-900"
+              className="text-base sm:text-lg lg:text-xl xl:text-xl 2xl:text-2xl font-bold text-gray-900"
               style={{
                 fontFamily: "'Product Sans', 'Google Sans Text', sans-serif",
                 fontWeight: 700,
@@ -803,7 +831,13 @@ export default function TrendPage() {
               {/* Data Grid 2x2 Layout */}
               {!loading && !error && seasonalTrends.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div
+                    className={`grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 transition-all duration-300 ${
+                      isSeasonalTransitioning
+                        ? "opacity-50 scale-95"
+                        : "opacity-100 scale-100"
+                    }`}
+                  >
                     {currentSeasonalItems.map((item) => (
                       <div
                         key={item.id}
@@ -919,18 +953,17 @@ export default function TrendPage() {
 
                   {/* Pagination Controls for Seasonal */}
                   {totalSeasonalPages > 1 && (
-                    <div className="flex justify-center items-center space-x-4 mt-6">
+                    <div className="flex justify-center items-center space-x-6 mt-6">
                       <button
                         onClick={() =>
-                          setSeasonalCurrentPage(
+                          handleSeasonalPageChange(
                             Math.max(0, seasonalCurrentPage - 1)
                           )
                         }
                         disabled={seasonalCurrentPage === 0}
-                        className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                        className="w-10 h-10 rounded-full border-2 border-gray-800 bg-white text-gray-800 hover:bg-gray-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400 flex items-center justify-center transition-colors"
                       >
-                        <ChevronLeft className="w-4 h-4" />
-                        <span>Previous</span>
+                        <ChevronLeft className="w-5 h-5" />
                       </button>
 
                       <span className="text-sm text-gray-600">
@@ -939,7 +972,7 @@ export default function TrendPage() {
 
                       <button
                         onClick={() =>
-                          setSeasonalCurrentPage(
+                          handleSeasonalPageChange(
                             Math.min(
                               totalSeasonalPages - 1,
                               seasonalCurrentPage + 1
@@ -949,10 +982,9 @@ export default function TrendPage() {
                         disabled={
                           seasonalCurrentPage === totalSeasonalPages - 1
                         }
-                        className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
+                        className="w-10 h-10 rounded-full bg-gray-800 text-white hover:bg-gray-700 disabled:bg-gray-300 disabled:text-gray-400 flex items-center justify-center transition-colors"
                       >
-                        <span>Next</span>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-5 h-5" />
                       </button>
                     </div>
                   )}
@@ -1072,230 +1104,236 @@ export default function TrendPage() {
                 !countryError &&
                 countryDemands.length > 0 && (
                   <>
-                    {currentCountryItems.map((country, index) => (
-                      <div
-                        key={country.code}
-                        className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full"
-                      >
-                        {/* Country Header */}
-                        <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <span className="text-xl sm:text-2xl">
-                                {country.flag}
-                              </span>
-                              <div>
-                                <h3
-                                  className="font-semibold text-gray-900 text-base sm:text-lg"
+                    <div
+                      className={`transition-all duration-300 ${
+                        isCountryTransitioning
+                          ? "opacity-50 scale-95"
+                          : "opacity-100 scale-100"
+                      }`}
+                    >
+                      {currentCountryItems.map((country, index) => (
+                        <div
+                          key={country.code}
+                          className="bg-white rounded-xl border border-gray-100 overflow-hidden w-full"
+                        >
+                          {/* Country Header */}
+                          <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <span className="text-xl sm:text-2xl">
+                                  {country.flag}
+                                </span>
+                                <div>
+                                  <h3
+                                    className="font-semibold text-gray-900 text-base sm:text-lg"
+                                    style={{
+                                      fontFamily:
+                                        "'Product Sans', 'Google Sans Text', sans-serif",
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    {country.country}
+                                  </h3>
+                                  <p
+                                    className="text-sm text-gray-600"
+                                    style={{
+                                      fontFamily:
+                                        "'Google Sans Text', 'Roboto', sans-serif",
+                                      fontWeight: 400,
+                                    }}
+                                  >
+                                    Total Nilai Ekspor: {country.totalValue}
+                                  </p>
+                                </div>
+                              </div>
+                              <div
+                                className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                                  parseFloat(
+                                    country.growth.replace(/[+%]/g, "")
+                                  ) >= 0
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {parseFloat(
+                                  country.growth.replace(/[+%]/g, "")
+                                ) >= 0 ? (
+                                  <TrendingUp className="w-3 h-3" />
+                                ) : (
+                                  <TrendingDown className="w-3 h-3" />
+                                )}
+                                <span
                                   style={{
                                     fontFamily:
                                       "'Product Sans', 'Google Sans Text', sans-serif",
                                     fontWeight: 500,
                                   }}
                                 >
-                                  {country.country}
-                                </h3>
-                                <p
-                                  className="text-sm text-gray-600"
-                                  style={{
-                                    fontFamily:
-                                      "'Google Sans Text', 'Roboto', sans-serif",
-                                    fontWeight: 400,
-                                  }}
-                                >
-                                  Total Nilai Ekspor: {country.totalValue}
-                                </p>
+                                  {country.growth}
+                                </span>
                               </div>
                             </div>
-                            <div
-                              className={`flex items-center space-x-1 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                                parseFloat(
-                                  country.growth.replace(/[+%]/g, "")
-                                ) >= 0
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
+                          </div>
+
+                          {/* Products List - Horizontal Scrollable dengan Arrow Navigation */}
+                          <div className="p-4 sm:p-6">
+                            <h4
+                              className="font-medium text-gray-900 mb-4 text-base sm:text-lg"
+                              style={{
+                                fontFamily:
+                                  "'Product Sans', 'Google Sans Text', sans-serif",
+                                fontWeight: 500,
+                              }}
                             >
-                              {parseFloat(
-                                country.growth.replace(/[+%]/g, "")
-                              ) >= 0 ? (
-                                <TrendingUp className="w-3 h-3" />
-                              ) : (
-                                <TrendingDown className="w-3 h-3" />
+                              Produk dengan Permintaan Tertinggi
+                            </h4>
+
+                            <div className="relative">
+                              {/* Product Carousel Navigation - Only show if content is scrollable */}
+                              {showArrows[index] && (
+                                <>
+                                  <button
+                                    onClick={() => scrollProductsLeft(index)}
+                                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
+                                    style={{ marginLeft: "-20px" }}
+                                  >
+                                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => scrollProductsRight(index)}
+                                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
+                                    style={{ marginRight: "-20px" }}
+                                  >
+                                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                                  </button>
+                                </>
                               )}
-                              <span
+
+                              {/* Scrollable Products Container */}
+                              <div
+                                ref={(el) => {
+                                  countryProductsRefs.current[index] = el;
+                                  // Check if arrows are needed after the element is mounted
+                                  if (el) {
+                                    setTimeout(
+                                      () => checkIfArrowsNeeded(index),
+                                      100
+                                    );
+                                  }
+                                }}
+                                className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
                                 style={{
-                                  fontFamily:
-                                    "'Product Sans', 'Google Sans Text', sans-serif",
-                                  fontWeight: 500,
+                                  scrollbarWidth: "none",
+                                  msOverflowStyle: "none",
                                 }}
                               >
-                                {country.growth}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Products List - Horizontal Scrollable dengan Arrow Navigation */}
-                        <div className="p-4 sm:p-6">
-                          <h4
-                            className="font-medium text-gray-900 mb-4 text-base sm:text-lg"
-                            style={{
-                              fontFamily:
-                                "'Product Sans', 'Google Sans Text', sans-serif",
-                              fontWeight: 500,
-                            }}
-                          >
-                            Produk dengan Permintaan Tertinggi
-                          </h4>
-
-                          <div className="relative">
-                            {/* Product Carousel Navigation - Only show if content is scrollable */}
-                            {showArrows[index] && (
-                              <>
-                                <button
-                                  onClick={() => scrollProductsLeft(index)}
-                                  className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
-                                  style={{ marginLeft: "-20px" }}
-                                >
-                                  <ChevronLeft className="w-4 h-4 text-gray-600" />
-                                </button>
-
-                                <button
-                                  onClick={() => scrollProductsRight(index)}
-                                  className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
-                                  style={{ marginRight: "-20px" }}
-                                >
-                                  <ChevronRight className="w-4 h-4 text-gray-600" />
-                                </button>
-                              </>
-                            )}
-
-                            {/* Scrollable Products Container */}
-                            <div
-                              ref={(el) => {
-                                countryProductsRefs.current[index] = el;
-                                // Check if arrows are needed after the element is mounted
-                                if (el) {
-                                  setTimeout(
-                                    () => checkIfArrowsNeeded(index),
-                                    100
-                                  );
-                                }
-                              }}
-                              className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
-                              style={{
-                                scrollbarWidth: "none",
-                                msOverflowStyle: "none",
-                              }}
-                            >
-                              {country.topProducts.map((product, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex-shrink-0 p-3 sm:p-4 bg-gray-50 rounded-lg"
-                                  style={{ minWidth: "250px" }}
-                                >
-                                  <div className="flex-1">
-                                    <h5
-                                      className="font-medium text-gray-900 text-sm sm:text-base mb-2"
-                                      style={{
-                                        fontFamily:
-                                          "'Product Sans', 'Google Sans Text', sans-serif",
-                                        fontWeight: 500,
-                                      }}
-                                    >
-                                      {product.name}
-                                    </h5>
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <span
-                                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                          product.demand === "Sangat Tinggi"
-                                            ? "bg-red-100 text-red-800"
-                                            : product.demand === "Tinggi"
-                                            ? "bg-orange-100 text-orange-800"
-                                            : product.demand === "Sedang"
-                                            ? "bg-yellow-100 text-yellow-800"
-                                            : "bg-gray-100 text-gray-800"
-                                        }`}
-                                        style={{
-                                          fontFamily:
-                                            "'Google Sans Text', 'Roboto', sans-serif",
-                                          fontWeight: 500,
-                                        }}
-                                      >
-                                        {product.demand}
-                                      </span>
-                                      <span
-                                        className="text-xs text-gray-500"
-                                        style={{
-                                          fontFamily:
-                                            "'Google Sans Text', 'Roboto', sans-serif",
-                                          fontWeight: 400,
-                                        }}
-                                      >
-                                        Growth: {product.growth}
-                                      </span>
-                                    </div>
-                                    <div className="text-right">
-                                      <span
-                                        className="font-semibold text-gray-900 text-xs sm:text-sm"
+                                {country.topProducts.map((product, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex-shrink-0 p-3 sm:p-4 bg-gray-50 rounded-lg"
+                                    style={{ minWidth: "250px" }}
+                                  >
+                                    <div className="flex-1">
+                                      <h5
+                                        className="font-medium text-gray-900 text-sm sm:text-base mb-2"
                                         style={{
                                           fontFamily:
                                             "'Product Sans', 'Google Sans Text', sans-serif",
                                           fontWeight: 500,
                                         }}
                                       >
-                                        {product.value}
-                                      </span>
+                                        {product.name}
+                                      </h5>
+                                      <div className="flex items-center space-x-2 mb-2">
+                                        <span
+                                          className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                            product.demand === "Sangat Tinggi"
+                                              ? "bg-red-100 text-red-800"
+                                              : product.demand === "Tinggi"
+                                              ? "bg-green-100 text-green-800"
+                                              : product.demand === "Medium"
+                                              ? "bg-yellow-100 text-yellow-800"
+                                              : "bg-gray-100 text-gray-800"
+                                          }`}
+                                          style={{
+                                            fontFamily:
+                                              "'Google Sans Text', 'Roboto', sans-serif",
+                                            fontWeight: 500,
+                                          }}
+                                        >
+                                          {product.demand}
+                                        </span>
+                                        <span
+                                          className="text-xs text-gray-500"
+                                          style={{
+                                            fontFamily:
+                                              "'Google Sans Text', 'Roboto', sans-serif",
+                                            fontWeight: 400,
+                                          }}
+                                        >
+                                          Growth: {product.growth}
+                                        </span>
+                                      </div>
+                                      <div className="text-right">
+                                        <span
+                                          className="font-semibold text-gray-900 text-xs sm:text-sm"
+                                          style={{
+                                            fontFamily:
+                                              "'Product Sans', 'Google Sans Text', sans-serif",
+                                            fontWeight: 500,
+                                          }}
+                                        >
+                                          {product.value}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
 
-                    {/* Pagination Controls for Country */}
-                    {totalCountryPages > 1 && (
-                      <div className="flex justify-center items-center space-x-4 mt-6">
-                        <button
-                          onClick={() =>
-                            setCountryCurrentPage(
-                              Math.max(0, countryCurrentPage - 1)
-                            )
-                          }
-                          disabled={countryCurrentPage === 0}
-                          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                          <span>Previous</span>
-                        </button>
-
-                        <span className="text-sm text-gray-600">
-                          Page {countryCurrentPage + 1} of {totalCountryPages}
-                        </span>
-
-                        <button
-                          onClick={() =>
-                            setCountryCurrentPage(
-                              Math.min(
-                                totalCountryPages - 1,
-                                countryCurrentPage + 1
+                      {/* Pagination Controls for Country */}
+                      {totalCountryPages > 1 && (
+                        <div className="flex justify-center items-center space-x-6 mt-6">
+                          <button
+                            onClick={() =>
+                              handleCountryPageChange(
+                                Math.max(0, countryCurrentPage - 1)
                               )
-                            )
-                          }
-                          disabled={
-                            countryCurrentPage === totalCountryPages - 1
-                          }
-                          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-400 rounded-lg transition-colors"
-                        >
-                          <span>Next</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+                            }
+                            disabled={countryCurrentPage === 0}
+                            className="w-10 h-10 rounded-full border-2 border-gray-800 bg-white text-gray-800 hover:bg-gray-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-400 flex items-center justify-center transition-colors"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+
+                          <span className="text-sm text-gray-600">
+                            Page {countryCurrentPage + 1} of {totalCountryPages}
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              handleCountryPageChange(
+                                Math.min(
+                                  totalCountryPages - 1,
+                                  countryCurrentPage + 1
+                                )
+                              )
+                            }
+                            disabled={
+                              countryCurrentPage === totalCountryPages - 1
+                            }
+                            className="w-10 h-10 rounded-full bg-gray-800 text-white hover:bg-gray-700 disabled:bg-gray-300 disabled:text-gray-400 flex items-center justify-center transition-colors"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 )}
 
