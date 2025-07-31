@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import PropTypes from "prop-types";
+import TwemojiFlag from "./TwemojiFlag";
 
 const PersonalizationModal = ({ isOpen, onClose, userName = "User" }) => {
   const [currentPage, setCurrentPage] = useState(-1); // Start at -1 for welcome screen
@@ -359,7 +360,11 @@ const PersonalizationModal = ({ isOpen, onClose, userName = "User" }) => {
                       }`}
                     >
                       <div className="text-lg sm:text-2xl md:text-3xl mb-1 sm:mb-2">
-                        {option.icon}
+                        {currentPage === 1 ? (
+                          <TwemojiFlag countryCode={option.id} />
+                        ) : (
+                          option.icon
+                        )}
                       </div>
                       <div className="text-xs sm:text-sm font-medium text-gray-900 leading-tight">
                         {option.label}

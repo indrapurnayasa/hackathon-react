@@ -36,7 +36,7 @@ export const countryData = [
     flag: "🇪🇪",
     distance: "9,800 km",
     lat: 58.3776,
-    lng: 26.7290,
+    lng: 26.729,
     recommended: false,
   },
   {
@@ -53,7 +53,7 @@ export const countryData = [
     name: "Tanzania",
     flag: "🇹🇿",
     distance: "8,900 km",
-    lat: -6.3690,
+    lat: -6.369,
     lng: 34.8888,
     recommended: false,
   },
@@ -72,7 +72,7 @@ export const countryData = [
     flag: "🇲🇲",
     distance: "2,800 km",
     lat: 21.9162,
-    lng: 95.9560,
+    lng: 95.956,
     recommended: false,
   },
   {
@@ -89,7 +89,7 @@ export const countryData = [
     name: "Russia",
     flag: "🇷🇺",
     distance: "8,500 km",
-    lat: 61.5240,
+    lat: 61.524,
     lng: 105.3188,
     recommended: false,
   },
@@ -135,7 +135,7 @@ export const countryData = [
     flag: "🇵🇭",
     distance: "2,100 km",
     lat: 12.8797,
-    lng: 121.7740,
+    lng: 121.774,
     recommended: false,
   },
   {
@@ -161,7 +161,7 @@ export const countryData = [
     name: "Bangladesh",
     flag: "🇧🇩",
     distance: "4,200 km",
-    lat: 23.6850,
+    lat: 23.685,
     lng: 90.3563,
     recommended: false,
   },
@@ -187,7 +187,7 @@ export const countryData = [
 
 // Function to get country data by code
 export const getCountryData = (countryCode) => {
-  return countryData.find(country => country.code === countryCode) || null;
+  return countryData.find((country) => country.code === countryCode) || null;
 };
 
 // Function to get all countries
@@ -197,13 +197,13 @@ export const getAllCountries = () => {
 
 // Function to get recommended countries
 export const getRecommendedCountries = () => {
-  return countryData.filter(country => country.recommended);
+  return countryData.filter((country) => country.recommended);
 };
 
 // Function to get countries by distance range
 export const getCountriesByDistance = (minDistance, maxDistance) => {
-  return countryData.filter(country => {
-    const distance = parseInt(country.distance.replace(/[^\d]/g, ''));
+  return countryData.filter((country) => {
+    const distance = parseInt(country.distance.replace(/[^\d]/g, ""));
     return distance >= minDistance && distance <= maxDistance;
   });
-}; 
+};

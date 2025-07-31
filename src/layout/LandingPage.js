@@ -2,6 +2,8 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import Globe from "react-globe.gl";
 import { useNavigate } from "react-router-dom";
 import { getAllCountries } from "../utils/countryData";
+import TwemojiFlag from "../components/TwemojiFlag";
+import { getCountryFlagHTML } from "../utils/countryFlags";
 
 // Import carousel images
 import aiImage1 from "../assets/images/carousel/ai-1.jpg";
@@ -53,6 +55,7 @@ const LandingPage = () => {
       lng: 113.9213,
       flag: "🇮🇩",
       name: "Indonesia",
+      code: "ID",
       delay: 0,
     });
 
@@ -63,6 +66,7 @@ const LandingPage = () => {
         lng: country.lng,
         flag: country.flag,
         name: country.name,
+        code: country.code,
         delay: (index + 1) * 800, // Stagger animation
       });
     });
@@ -501,8 +505,14 @@ const LandingPage = () => {
                         min-width: 80px;
                         justify-content: center;
                       ">
-                        <span style="font-size: 16px;">${label.flag}</span>
-                        <span style="color: #1f2937; font-weight: 500;">${label.name}</span>
+                        <span style="font-size: 16px;">${getCountryFlagHTML(
+                          label.code
+                        )
+                          .replace(/<div[^>]*>/, "<span>")
+                          .replace(/<\/div>/, "</span>")}</span>
+                        <span style="color: #1f2937; font-weight: 500;">${
+                          label.name
+                        }</span>
                       </div>
                     </div>
                   `,

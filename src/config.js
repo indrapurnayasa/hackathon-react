@@ -1,4 +1,4 @@
 const config = {
-  API_BASE_URL: "https://dev-ngurah.fun/api",
+  API_BASE_URL: "https://service-exportin.vercel.app",
 };
 export default config;

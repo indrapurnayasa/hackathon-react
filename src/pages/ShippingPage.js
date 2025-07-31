@@ -12,6 +12,8 @@ import Globe from "react-globe.gl";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getAllCountries } from "../utils/countryData";
 import CommodityDisplay from "../components/CommodityDisplay";
+import TwemojiFlag from "../components/TwemojiFlag";
+import { getCountryFlagHTML } from "../utils/countryFlags";
 
 export default function ShippingPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -180,7 +182,7 @@ export default function ShippingPage() {
     elements.push(
       {
         ...getFlagLatLng("ID"),
-        html: `<div style="font-size:24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); transform: translate(-50%, -50%); position: absolute; left: 50%; top: 50%;">🇮🇩</div>`,
+        html: getCountryFlagHTML("ID"),
         altitude: 0.01,
       },
       {
@@ -195,7 +197,7 @@ export default function ShippingPage() {
       elements.push(
         {
           ...getFlagLatLng(country.code),
-          html: `<div style="font-size:24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); transform: translate(-50%, -50%); position: absolute; left: 50%; top: 50%;">${country.flag}</div>`,
+          html: getCountryFlagHTML(country.code),
           altitude: 0.01,
         },
         {
@@ -758,7 +760,10 @@ export default function ShippingPage() {
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <span className="text-xl">{country.flag}</span>
+                      <TwemojiFlag
+                        countryCode={country.code}
+                        className="text-xl"
+                      />
                       <div className="flex-1">
                         <h3
                           className="font-medium text-gray-900 text-sm"
