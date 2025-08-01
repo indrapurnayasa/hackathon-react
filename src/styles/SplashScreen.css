@@ -1,28 +1,28 @@
 /* src/styles/SplashScreen.css */
 
 /* Import Inter Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 /* CSS Variables untuk Color Palette */
 :root {
-  --bg-primary: #E5E7EB;
-  --bg-secondary: #F9FAFB;
-  --bg-card: #FFFFFF;
-  --bg-hover: #F3F4F6;
+  --bg-primary: #e5e7eb;
+  --bg-secondary: #f9fafb;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
   --text-primary: #000000;
   --text-secondary: #374151;
-  --text-muted: #6B7280;
-  --text-light: #9CA3AF;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
   --accent-dark: #111827;
-  --accent-hover: #1F2937;
-  --border: #D1D5DB;
+  --accent-hover: #1f2937;
+  --border: #d1d5db;
 }
 
 /* Main SplashScreen Container */
 .splash-screen {
   min-height: 100vh;
   background-color: var(--bg-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   transition: all 0.6s ease-in-out;
 }
 
@@ -217,7 +217,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg-primary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--bg-hover) 0%,
+    var(--bg-primary) 100%
+  );
 }
 
 .placeholder-content {
@@ -266,15 +270,15 @@
   .splash-container {
     padding: 2rem 1rem 1rem;
   }
-  
+
   .splash-title {
     font-size: 4rem;
   }
-  
+
   .feature-title {
     font-size: 1.875rem;
   }
-  
+
   .splash-header {
     margin-bottom: 2rem;
   }

@@ -1,0 +1,177 @@
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden;
+  background: #000000;
+}
+
+.animated-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: #000000;
+}
+
+.splash-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Container untuk logo dan percentage */
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.buffering-logo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Globe Container - Tanpa border lingkaran */
+.globe-container {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+/* Dark overlay untuk globe */
+.globe-dark-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Percentage Container di depan Globe dengan glow */
+.percentage-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.percentage-inside {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+/* P1ONEERS Label - Hanya P1ONEERS */
+.pioneers-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: auto;
+  text-align: center;
+}
+
+.pioneers-badge {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.pioneers-text {
+  font-family: "Arial", sans-serif;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #fff;
+  letter-spacing: 2px;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Smooth fade out animation */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.splash-screen.fade-out {
+  animation: fadeOut 2s ease-in-out forwards;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .globe-container {
+    width: 150px;
+    height: 150px;
+  }
+
+  .percentage-inside {
+    font-size: 1.2rem;
+  }
+
+  .pioneers-text {
+    font-size: 0.9rem;
+  }
+
+  .pioneers-badge {
+    padding: 0.4rem 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .globe-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  .percentage-inside {
+    font-size: 1rem;
+  }
+}

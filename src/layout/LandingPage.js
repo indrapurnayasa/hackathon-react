@@ -139,8 +139,8 @@ const LandingPage = () => {
       if (globe.controls) {
         // Disable zoom but enable rotation
         globe.controls().enableZoom = false;
-        globe.controls().enablePan = true;
-        globe.controls().enableRotate = true;
+        globe.controls().enablePan = false; // Disable pan to prevent interruption
+        globe.controls().enableRotate = false; // Disable manual rotation to keep auto-rotate smooth
         globe.controls().autoRotate = true;
         globe.controls().autoRotateSpeed = 0.4;
         globe.controls().dampingFactor = 0.1;
@@ -188,9 +188,10 @@ const LandingPage = () => {
       setHoveredCountry(null);
     }
 
-    if (globeEl.current?.controls) {
-      globeEl.current.controls().autoRotateSpeed = polygon ? 0.2 : 0.5;
-    }
+    // Keep auto-rotate consistent - don't change speed on hover
+    // if (globeEl.current?.controls) {
+    //   globeEl.current.controls().autoRotateSpeed = polygon ? 0.2 : 0.5;
+    // }
   }, []);
 
   // Handle learn more button click
@@ -463,6 +464,8 @@ const LandingPage = () => {
                 polygonsTransitionDuration={200}
                 enablePointerInteraction={true}
                 pointerEventsFilter={() => true}
+                // Ensure pointer events don't interrupt auto-rotate
+                onGlobeClick={() => {}} // Prevent globe click from interrupting rotation
                 rendererConfig={{
                   antialias: true,
                   alpha: true,
@@ -867,32 +870,32 @@ const LandingPage = () => {
         </section>
 
         {/* Footer Section */}
-        <footer className="bg-black text-white py-16">
+        <footer className="bg-white text-black py-16">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Main Footer Content */}
             <div className="flex flex-col items-center text-center">
               {/* Company Info */}
               <div className="mb-8">
-                <p className="text-gray-300 max-w-md mx-auto mb-6">
+                <p className="text-gray-600 max-w-md mx-auto mb-6">
                   Democratizing global trade through AI-powered solutions. Join
                   thousands of exporters who trust ExportIn.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <a
                     href="#"
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="text-gray-600 hover:text-black transition-colors"
                   >
                     <span className="text-xl">📱</span>
                   </a>
                   <a
                     href="#"
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="text-gray-600 hover:text-black transition-colors"
                   >
                     <span className="text-xl">💼</span>
                   </a>
                   <a
                     href="#"
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="text-gray-600 hover:text-black transition-colors"
                   >
                     <span className="text-xl">🌐</span>
                   </a>
@@ -900,9 +903,9 @@ const LandingPage = () => {
               </div>
 
               {/* Bottom Bar */}
-              <div className="w-full max-w-2xl mx-auto pt-8 border-t border-gray-800">
+              <div className="w-full max-w-2xl mx-auto pt-8 border-t border-gray-300">
                 <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-500 text-sm">
                     © 2025 ExportIn. All rights reserved.
                   </p>
                 </div>
