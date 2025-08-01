@@ -92,7 +92,7 @@ const LoginPage = () => {
           if (prev >= 100) {
             clearInterval(interval);
             setTimeout(() => {
-              navigate("/");
+              navigate("/", { state: { fromNavigation: true } });
             }, 100);
             return 100;
           }
@@ -437,7 +437,7 @@ const LoginPage = () => {
       <div
         className="hidden lg:block lg:w-1/2 bg-gray-50 relative overflow-hidden cursor-pointer"
         style={{ height: leftSectionHeight }}
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/", { state: { fromNavigation: true } })}
       >
         {/* Background */}
         <div

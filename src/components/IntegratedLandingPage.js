@@ -2,13 +2,35 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Globe from "react-globe.gl";
 import LandingPage from "../layout/LandingPage";
+import { useLocation } from "react-router-dom";
 
 const GEOJSON_URL = "/countries.geojson";
 
 const IntegratedLandingPage = () => {
-  // Check if user has seen splash screen before
-  const hasSeenSplash = localStorage.getItem("hasSeenSplash");
-  const [showSplash, setShowSplash] = useState(!hasSeenSplash);
+  const location = useLocation();
+
+  // Check if this is a page refresh
+  const isPageRefresh =
+    !window.performance.getEntriesByType("navigation")[0]?.type ||
+    window.performance.getEntriesByType("navigation")[0]?.type === "reload";
+
+  // Check if user is coming from manual navigation (Back to LandingPage button)
+  const isManualNavigation = location.state?.fromNavigation === true;
+
+  // Show splash screen on page refresh, skip on manual navigation
+  const shouldShowSplash = isPageRefresh || !isManualNavigation;
+
+  // Debug logging
+  console.log("IntegratedLandingPage Debug:", {
+    isManualNavigation,
+    isPageRefresh,
+    shouldShowSplash,
+    locationState: location.state,
+    pathname: location.pathname,
+    navigationType: window.performance.getEntriesByType("navigation")[0]?.type,
+  });
+
+  const [showSplash, setShowSplash] = useState(shouldShowSplash);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
   // Globe states
@@ -18,16 +40,25 @@ const IntegratedLandingPage = () => {
   const [isGlobeLoading, setIsGlobeLoading] = useState(true);
   const [globeError, setGlobeError] = useState(null);
 
-  // Function to reset splash screen (for testing purposes)
-  const resetSplashScreen = () => {
-    localStorage.removeItem("hasSeenSplash");
-    setShowSplash(true);
-    setLoadingProgress(0);
-  };
+  // Clean up location state after reading it
+  useEffect(() => {
+    if (location.state?.fromNavigation) {
+      // Clear the state to prevent it from persisting
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => {
-    // Only show splash screen if user hasn't seen it before
-    if (!hasSeenSplash) {
+    console.log("Splash screen effect triggered:", {
+      showSplash,
+      isManualNavigation,
+      isPageRefresh,
+      shouldShowSplash,
+    });
+
+    // Only show splash screen if it should be shown
+    if (showSplash) {
+      console.log("Starting splash screen animation");
       // Simulate loading progress
       const progressInterval = setInterval(() => {
         setLoadingProgress((prev) => {
@@ -40,17 +71,17 @@ const IntegratedLandingPage = () => {
       }, 50);
 
       return () => clearInterval(progressInterval);
+    } else {
+      console.log("Skipping splash screen - manual navigation detected");
     }
-  }, [hasSeenSplash]);
+  }, [showSplash]);
 
   useEffect(() => {
     if (loadingProgress >= 100) {
+      console.log("Splash screen completed, starting fadeout");
       // Start exit animation immediately after 100%
-      // Call onFinish after exit animation completes
       setTimeout(() => {
         setShowSplash(false);
-        // Mark that user has seen splash screen
-        localStorage.setItem("hasSeenSplash", "true");
       }, 800); // Reduced duration for faster fadeout
     }
   }, [loadingProgress]);
@@ -119,6 +150,11 @@ const IntegratedLandingPage = () => {
       );
     }
   }, [isGlobeLoading, countries.features.length]);
+
+  console.log("Rendering IntegratedLandingPage:", {
+    showSplash,
+    loadingProgress,
+  });
 
   return (
     <>

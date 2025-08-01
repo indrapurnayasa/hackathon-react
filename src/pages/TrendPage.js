@@ -16,7 +16,6 @@ import vectorImage from "../assets/images/vector.png";
 import { getCountryFlag } from "../utils/countryFlags";
 import { getCountryName, capitalizeWords } from "../utils/countryNames";
 import config from "../config";
-import TwemojiFlag from "../components/TwemojiFlag";
 
 export default function TrendPage() {
   const location = useLocation();
@@ -919,7 +918,9 @@ export default function TrendPage() {
                                   }}
                                 >
                                   <span>{country.name}</span>
-                                  <TwemojiFlag countryCode={country.code} />
+                                  <span className="text-sm">
+                                    {country.flag}
+                                  </span>
                                 </button>
                               ))}
                             </div>
@@ -1121,10 +1122,9 @@ export default function TrendPage() {
                           <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
-                                <TwemojiFlag
-                                  countryCode={country.code}
-                                  className="text-xl sm:text-2xl"
-                                />
+                                <span className="text-xl sm:text-2xl">
+                                  {country.flag}
+                                </span>
                                 <div>
                                   <h3
                                     className="font-semibold text-gray-900 text-base sm:text-lg"
@@ -1391,7 +1391,7 @@ export default function TrendPage() {
         </div>
       )}
       {/* CSS untuk hide scrollbar dan shimmer effect */}
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;

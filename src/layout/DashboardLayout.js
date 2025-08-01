@@ -87,7 +87,7 @@ export default function DashboardLayout() {
           if (prev >= 100) {
             clearInterval(interval);
             setTimeout(() => {
-              navigate("/");
+              navigate("/", { state: { fromNavigation: true } });
             }, 100);
             return 100;
           }

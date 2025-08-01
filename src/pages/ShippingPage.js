@@ -1,5 +1,5 @@
 // src/pages/ShippingPage.js
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
   Star,
@@ -12,8 +12,7 @@ import Globe from "react-globe.gl";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getAllCountries } from "../utils/countryData";
 import CommodityDisplay from "../components/CommodityDisplay";
-import TwemojiFlag from "../components/TwemojiFlag";
-import { getCountryFlagHTML } from "../utils/countryFlags";
+import { getCountryFlag } from "../utils/countryFlags";
 
 export default function ShippingPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -25,7 +24,6 @@ export default function ShippingPage() {
   const [recommendationTooltipPosition, setRecommendationTooltipPosition] =
     useState({ x: 0, y: 0 });
   const [isExiting, setIsExiting] = useState(false);
-  const [isScrollLocked, setIsScrollLocked] = useState(true);
   const helpIconRef = useRef(null);
   const globeEl = useRef();
   const [isGlobeReady, setIsGlobeReady] = useState(false);
@@ -182,7 +180,7 @@ export default function ShippingPage() {
     elements.push(
       {
         ...getFlagLatLng("ID"),
-        html: getCountryFlagHTML("ID"),
+        html: getCountryFlag("ID"),
         altitude: 0.01,
       },
       {
@@ -197,7 +195,7 @@ export default function ShippingPage() {
       elements.push(
         {
           ...getFlagLatLng(country.code),
-          html: getCountryFlagHTML(country.code),
+          html: getCountryFlag(country.code),
           altitude: 0.01,
         },
         {
@@ -760,10 +758,9 @@ export default function ShippingPage() {
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <TwemojiFlag
-                        countryCode={country.code}
-                        className="text-xl"
-                      />
+                      <span className="text-xl">
+                        {getCountryFlag(country.code)}
+                      </span>
                       <div className="flex-1">
                         <h3
                           className="font-medium text-gray-900 text-sm"
