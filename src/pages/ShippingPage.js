@@ -92,57 +92,467 @@ export default function ShippingPage() {
     { step: "Penerimaan", description: "Last mile delivery ke penerima" },
   ];
 
-  // Data kurir dengan estimasi biaya
-  const courierOptions = [
-    {
-      id: "dhl",
-      name: "DHL Express",
-      type: "Udara",
-      duration: "3-5 hari",
-      totalCost: "Rp 4,200,000",
-      icon: "✈️",
-      breakdown: [
-        { item: "Pengemasan", cost: "Rp 500,000" },
-        { item: "Pengangkutan domestik", cost: "Rp 300,000" },
-        { item: "Bea cukai", cost: "Rp 400,000" },
-        { item: "Pengiriman internasional", cost: "Rp 2,500,000" },
-        { item: "Asuransi", cost: "Rp 200,000" },
-        { item: "Delivery terakhir", cost: "Rp 300,000" },
+  // Data kurir dengan estimasi biaya berdasarkan negara
+  const getCourierOptions = (countryCode) => {
+    const courierData = {
+      // Malaysia - Neighboring country, many options
+      MY: [
+        {
+          id: "poslaju",
+          name: "Pos Laju Malaysia",
+          type: "Udara",
+          duration: "2-3 hari",
+          totalCost: "Rp 1,800,000",
+          icon: "✈️",
+          rating: 4.8,
+          features: [
+            "Tracking real-time",
+            "Insurance included",
+            "Express delivery",
+          ],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 300,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 200,000" },
+            { item: "Bea cukai", cost: "Rp 250,000" },
+            { item: "Pengiriman internasional", cost: "Rp 800,000" },
+            { item: "Asuransi", cost: "Rp 150,000" },
+            { item: "Delivery terakhir", cost: "Rp 100,000" },
+          ],
+        },
+        {
+          id: "dhl-malaysia",
+          name: "DHL Express Malaysia",
+          type: "Udara",
+          duration: "1-2 hari",
+          totalCost: "Rp 2,500,000",
+          icon: "✈️",
+          rating: 4.9,
+          features: ["Premium service", "Priority handling", "Full insurance"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 400,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 300,000" },
+            { item: "Bea cukai", cost: "Rp 350,000" },
+            { item: "Pengiriman internasional", cost: "Rp 1,200,000" },
+            { item: "Asuransi", cost: "Rp 200,000" },
+            { item: "Delivery terakhir", cost: "Rp 50,000" },
+          ],
+        },
+        {
+          id: "sea-malaysia",
+          name: "Sea Freight Malaysia",
+          type: "Laut",
+          duration: "7-10 hari",
+          totalCost: "Rp 1,200,000",
+          icon: "🚢",
+          rating: 4.5,
+          features: ["Economical", "Bulk shipping", "Container service"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 200,000" },
+            { item: "Pengangkutan ke pelabuhan", cost: "Rp 150,000" },
+            { item: "Bea cukai", cost: "Rp 200,000" },
+            { item: "Pengiriman laut", cost: "Rp 500,000" },
+            { item: "Asuransi", cost: "Rp 100,000" },
+            { item: "Delivery terakhir", cost: "Rp 50,000" },
+          ],
+        },
       ],
-    },
-    {
-      id: "fedex",
-      name: "FedEx International",
-      type: "Udara",
-      duration: "4-6 hari",
-      totalCost: "Rp 3,900,000",
-      icon: "✈️",
-      breakdown: [
-        { item: "Pengemasan", cost: "Rp 450,000" },
-        { item: "Pengangkutan domestik", cost: "Rp 280,000" },
-        { item: "Bea cukai", cost: "Rp 380,000" },
-        { item: "Pengiriman internasional", cost: "Rp 2,300,000" },
-        { item: "Asuransi", cost: "Rp 190,000" },
-        { item: "Delivery terakhir", cost: "Rp 300,000" },
+
+      // Singapore - Major logistics hub
+      SG: [
+        {
+          id: "singpost",
+          name: "Singapore Post",
+          type: "Udara",
+          duration: "2-3 hari",
+          totalCost: "Rp 2,200,000",
+          icon: "✈️",
+          rating: 4.7,
+          features: ["Reliable service", "Good tracking", "Competitive price"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 350,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 250,000" },
+            { item: "Bea cukai", cost: "Rp 300,000" },
+            { item: "Pengiriman internasional", cost: "Rp 1,000,000" },
+            { item: "Asuransi", cost: "Rp 180,000" },
+            { item: "Delivery terakhir", cost: "Rp 120,000" },
+          ],
+        },
+        {
+          id: "fedex-singapore",
+          name: "FedEx Singapore",
+          type: "Udara",
+          duration: "1-2 hari",
+          totalCost: "Rp 3,100,000",
+          icon: "✈️",
+          rating: 4.9,
+          features: ["Express delivery", "Premium handling", "Full coverage"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 450,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 350,000" },
+            { item: "Bea cukai", cost: "Rp 400,000" },
+            { item: "Pengiriman internasional", cost: "Rp 1,500,000" },
+            { item: "Asuransi", cost: "Rp 250,000" },
+            { item: "Delivery terakhir", cost: "Rp 150,000" },
+          ],
+        },
+        {
+          id: "dhl-singapore",
+          name: "DHL Express Singapore",
+          type: "Udara",
+          duration: "1-2 hari",
+          totalCost: "Rp 2,900,000",
+          icon: "✈️",
+          rating: 4.8,
+          features: ["Global network", "Priority service", "Advanced tracking"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 400,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 300,000" },
+            { item: "Bea cukai", cost: "Rp 350,000" },
+            { item: "Pengiriman internasional", cost: "Rp 1,400,000" },
+            { item: "Asuransi", cost: "Rp 200,000" },
+            { item: "Delivery terakhir", cost: "Rp 250,000" },
+          ],
+        },
       ],
-    },
-    {
-      id: "sea",
-      name: "Sea Freight",
-      type: "Laut",
-      duration: "14-21 hari",
-      totalCost: "Rp 2,100,000",
-      icon: "🚢",
-      breakdown: [
-        { item: "Pengemasan", cost: "Rp 400,000" },
-        { item: "Pengangkutan ke pelabuhan", cost: "Rp 250,000" },
-        { item: "Bea cukai", cost: "Rp 350,000" },
-        { item: "Pengiriman laut", cost: "Rp 800,000" },
-        { item: "Asuransi", cost: "Rp 150,000" },
-        { item: "Delivery terakhir", cost: "Rp 150,000" },
+
+      // Japan - Premium market
+      JP: [
+        {
+          id: "japan-post",
+          name: "Japan Post EMS",
+          type: "Udara",
+          duration: "3-5 hari",
+          totalCost: "Rp 4,500,000",
+          icon: "✈️",
+          rating: 4.6,
+          features: ["Reliable service", "Good for documents", "Economical"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 500,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 400,000" },
+            { item: "Bea cukai", cost: "Rp 600,000" },
+            { item: "Pengiriman internasional", cost: "Rp 2,200,000" },
+            { item: "Asuransi", cost: "Rp 300,000" },
+            { item: "Delivery terakhir", cost: "Rp 500,000" },
+          ],
+        },
+        {
+          id: "dhl-japan",
+          name: "DHL Express Japan",
+          type: "Udara",
+          duration: "2-3 hari",
+          totalCost: "Rp 6,200,000",
+          icon: "✈️",
+          rating: 4.9,
+          features: ["Premium service", "Fast delivery", "Full insurance"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 600,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 500,000" },
+            { item: "Bea cukai", cost: "Rp 800,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,500,000" },
+            { item: "Asuransi", cost: "Rp 400,000" },
+            { item: "Delivery terakhir", cost: "Rp 400,000" },
+          ],
+        },
+        {
+          id: "fedex-japan",
+          name: "FedEx Japan",
+          type: "Udara",
+          duration: "2-4 hari",
+          totalCost: "Rp 5,800,000",
+          icon: "✈️",
+          rating: 4.8,
+          features: [
+            "Express delivery",
+            "Priority handling",
+            "Advanced tracking",
+          ],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 550,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 450,000" },
+            { item: "Bea cukai", cost: "Rp 750,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,200,000" },
+            { item: "Asuransi", cost: "Rp 350,000" },
+            { item: "Delivery terakhir", cost: "Rp 500,000" },
+          ],
+        },
+        {
+          id: "sea-japan",
+          name: "Sea Freight Japan",
+          type: "Laut",
+          duration: "14-21 hari",
+          totalCost: "Rp 3,200,000",
+          icon: "🚢",
+          rating: 4.4,
+          features: ["Economical", "Bulk shipping", "Container service"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 400,000" },
+            { item: "Pengangkutan ke pelabuhan", cost: "Rp 300,000" },
+            { item: "Bea cukai", cost: "Rp 500,000" },
+            { item: "Pengiriman laut", cost: "Rp 1,500,000" },
+            { item: "Asuransi", cost: "Rp 200,000" },
+            { item: "Delivery terakhir", cost: "Rp 300,000" },
+          ],
+        },
       ],
-    },
-  ];
+
+      // USA - Major market
+      US: [
+        {
+          id: "usps",
+          name: "USPS Priority Mail",
+          type: "Udara",
+          duration: "6-10 hari",
+          totalCost: "Rp 3,800,000",
+          icon: "✈️",
+          rating: 4.5,
+          features: ["Reliable service", "Good tracking", "Competitive price"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 450,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 350,000" },
+            { item: "Bea cukai", cost: "Rp 500,000" },
+            { item: "Pengiriman internasional", cost: "Rp 2,000,000" },
+            { item: "Asuransi", cost: "Rp 250,000" },
+            { item: "Delivery terakhir", cost: "Rp 250,000" },
+          ],
+        },
+        {
+          id: "fedex-us",
+          name: "FedEx International",
+          type: "Udara",
+          duration: "3-5 hari",
+          totalCost: "Rp 5,500,000",
+          icon: "✈️",
+          rating: 4.8,
+          features: ["Express delivery", "Premium service", "Full coverage"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 600,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 500,000" },
+            { item: "Bea cukai", cost: "Rp 700,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,000,000" },
+            { item: "Asuransi", cost: "Rp 400,000" },
+            { item: "Delivery terakhir", cost: "Rp 300,000" },
+          ],
+        },
+        {
+          id: "dhl-us",
+          name: "DHL Express USA",
+          type: "Udara",
+          duration: "2-4 hari",
+          totalCost: "Rp 6,200,000",
+          icon: "✈️",
+          rating: 4.9,
+          features: ["Premium service", "Fast delivery", "Advanced tracking"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 650,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 550,000" },
+            { item: "Bea cukai", cost: "Rp 800,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,500,000" },
+            { item: "Asuransi", cost: "Rp 450,000" },
+            { item: "Delivery terakhir", cost: "Rp 350,000" },
+          ],
+        },
+        {
+          id: "sea-us",
+          name: "Sea Freight USA",
+          type: "Laut",
+          duration: "21-30 hari",
+          totalCost: "Rp 2,800,000",
+          icon: "🚢",
+          rating: 4.3,
+          features: ["Economical", "Bulk shipping", "Container service"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 350,000" },
+            { item: "Pengangkutan ke pelabuhan", cost: "Rp 250,000" },
+            { item: "Bea cukai", cost: "Rp 400,000" },
+            { item: "Pengiriman laut", cost: "Rp 1,300,000" },
+            { item: "Asuransi", cost: "Rp 200,000" },
+            { item: "Delivery terakhir", cost: "Rp 300,000" },
+          ],
+        },
+      ],
+
+      // Australia - Premium market
+      AU: [
+        {
+          id: "auspost",
+          name: "Australia Post",
+          type: "Udara",
+          duration: "5-8 hari",
+          totalCost: "Rp 4,200,000",
+          icon: "✈️",
+          rating: 4.6,
+          features: ["Reliable service", "Good tracking", "Competitive price"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 500,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 400,000" },
+            { item: "Bea cukai", cost: "Rp 600,000" },
+            { item: "Pengiriman internasional", cost: "Rp 2,200,000" },
+            { item: "Asuransi", cost: "Rp 300,000" },
+            { item: "Delivery terakhir", cost: "Rp 200,000" },
+          ],
+        },
+        {
+          id: "dhl-australia",
+          name: "DHL Express Australia",
+          type: "Udara",
+          duration: "3-5 hari",
+          totalCost: "Rp 5,800,000",
+          icon: "✈️",
+          rating: 4.8,
+          features: ["Express delivery", "Premium service", "Full coverage"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 600,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 500,000" },
+            { item: "Bea cukai", cost: "Rp 700,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,200,000" },
+            { item: "Asuransi", cost: "Rp 400,000" },
+            { item: "Delivery terakhir", cost: "Rp 400,000" },
+          ],
+        },
+        {
+          id: "fedex-australia",
+          name: "FedEx Australia",
+          type: "Udara",
+          duration: "3-6 hari",
+          totalCost: "Rp 5,500,000",
+          icon: "✈️",
+          rating: 4.7,
+          features: ["Reliable service", "Good tracking", "Competitive price"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 550,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 450,000" },
+            { item: "Bea cukai", cost: "Rp 650,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,000,000" },
+            { item: "Asuransi", cost: "Rp 350,000" },
+            { item: "Delivery terakhir", cost: "Rp 500,000" },
+          ],
+        },
+      ],
+
+      // Germany - European market
+      DE: [
+        {
+          id: "dhl-germany",
+          name: "DHL Express Germany",
+          type: "Udara",
+          duration: "3-5 hari",
+          totalCost: "Rp 5,500,000",
+          icon: "✈️",
+          rating: 4.9,
+          features: ["Premium service", "Fast delivery", "Advanced tracking"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 600,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 500,000" },
+            { item: "Bea cukai", cost: "Rp 700,000" },
+            { item: "Pengiriman internasional", cost: "Rp 3,000,000" },
+            { item: "Asuransi", cost: "Rp 400,000" },
+            { item: "Delivery terakhir", cost: "Rp 300,000" },
+          ],
+        },
+        {
+          id: "fedex-germany",
+          name: "FedEx Germany",
+          type: "Udara",
+          duration: "3-6 hari",
+          totalCost: "Rp 5,200,000",
+          icon: "✈️",
+          rating: 4.7,
+          features: ["Express delivery", "Good tracking", "Reliable service"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 550,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 450,000" },
+            { item: "Bea cukai", cost: "Rp 650,000" },
+            { item: "Pengiriman internasional", cost: "Rp 2,800,000" },
+            { item: "Asuransi", cost: "Rp 350,000" },
+            { item: "Delivery terakhir", cost: "Rp 400,000" },
+          ],
+        },
+        {
+          id: "sea-germany",
+          name: "Sea Freight Germany",
+          type: "Laut",
+          duration: "25-35 hari",
+          totalCost: "Rp 3,500,000",
+          icon: "🚢",
+          rating: 4.4,
+          features: ["Economical", "Bulk shipping", "Container service"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 400,000" },
+            { item: "Pengangkutan ke pelabuhan", cost: "Rp 300,000" },
+            { item: "Bea cukai", cost: "Rp 500,000" },
+            { item: "Pengiriman laut", cost: "Rp 1,800,000" },
+            { item: "Asuransi", cost: "Rp 250,000" },
+            { item: "Delivery terakhir", cost: "Rp 250,000" },
+          ],
+        },
+      ],
+
+      // Default options for other countries
+      default: [
+        {
+          id: "dhl-default",
+          name: "DHL Express",
+          type: "Udara",
+          duration: "3-5 hari",
+          totalCost: "Rp 4,200,000",
+          icon: "✈️",
+          rating: 4.8,
+          features: ["Global service", "Reliable delivery", "Good tracking"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 500,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 300,000" },
+            { item: "Bea cukai", cost: "Rp 400,000" },
+            { item: "Pengiriman internasional", cost: "Rp 2,500,000" },
+            { item: "Asuransi", cost: "Rp 200,000" },
+            { item: "Delivery terakhir", cost: "Rp 300,000" },
+          ],
+        },
+        {
+          id: "fedex-default",
+          name: "FedEx International",
+          type: "Udara",
+          duration: "4-6 hari",
+          totalCost: "Rp 3,900,000",
+          icon: "✈️",
+          rating: 4.7,
+          features: ["Express service", "Good coverage", "Reliable delivery"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 450,000" },
+            { item: "Pengangkutan domestik", cost: "Rp 280,000" },
+            { item: "Bea cukai", cost: "Rp 380,000" },
+            { item: "Pengiriman internasional", cost: "Rp 2,300,000" },
+            { item: "Asuransi", cost: "Rp 190,000" },
+            { item: "Delivery terakhir", cost: "Rp 300,000" },
+          ],
+        },
+        {
+          id: "sea-default",
+          name: "Sea Freight",
+          type: "Laut",
+          duration: "14-21 hari",
+          totalCost: "Rp 2,100,000",
+          icon: "🚢",
+          rating: 4.5,
+          features: ["Economical", "Bulk shipping", "Container service"],
+          breakdown: [
+            { item: "Pengemasan", cost: "Rp 400,000" },
+            { item: "Pengangkutan ke pelabuhan", cost: "Rp 250,000" },
+            { item: "Bea cukai", cost: "Rp 350,000" },
+            { item: "Pengiriman laut", cost: "Rp 800,000" },
+            { item: "Asuransi", cost: "Rp 150,000" },
+            { item: "Delivery terakhir", cost: "Rp 150,000" },
+          ],
+        },
+      ],
+    };
+
+    return courierData[countryCode] || courierData.default;
+  };
+
+  // Get courier options based on selected country
+  const courierOptions = getCourierOptions(
+    selectedCountry || userSelectedCountry
+  );
 
   const indonesiaCoords = { lat: -0.7893, lng: 113.9213 };
   const GLOBE_ALTITUDE = 0.75;
@@ -964,19 +1374,21 @@ export default function ShippingPage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-3">
                           <span className="text-lg">{courier.icon}</span>
-                          <div>
-                            <h3
-                              className="font-medium text-gray-900 text-sm"
-                              style={{
-                                fontFamily:
-                                  "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
-                                fontWeight: 500,
-                              }}
-                            >
-                              {courier.name}
-                            </h3>
+                          <div className="flex-1">
+                            <div className="mb-1">
+                              <h3
+                                className="font-medium text-gray-900 text-sm"
+                                style={{
+                                  fontFamily:
+                                    "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {courier.name}
+                              </h3>
+                            </div>
                             <p
-                              className="text-xs text-gray-500"
+                              className="text-xs text-gray-500 mb-1"
                               style={{
                                 fontFamily:
                                   "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -985,6 +1397,37 @@ export default function ShippingPage() {
                             >
                               {courier.type} • {courier.duration}
                             </p>
+                            {courier.features && (
+                              <div className="flex flex-wrap gap-1">
+                                {courier.features
+                                  .slice(0, 2)
+                                  .map((feature, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full"
+                                      style={{
+                                        fontFamily:
+                                          "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                                        fontWeight: 400,
+                                      }}
+                                    >
+                                      {feature}
+                                    </span>
+                                  ))}
+                                {courier.features.length > 2 && (
+                                  <span
+                                    className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full"
+                                    style={{
+                                      fontFamily:
+                                        "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
+                                      fontWeight: 400,
+                                    }}
+                                  >
+                                    +{courier.features.length - 2} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">

@@ -48,43 +48,64 @@ class EnhancedChatbotSystem {
       selectedDestination
     );
 
-    // Create detailed response message
-    const botMessage = {
-      from: "bot",
-      text: `Berdasarkan analisis input Anda, berikut estimasi biaya ekspor untuk ${selectedProduct.name} ke ${selectedDestination.name}:`,
-      type: "enhanced-cost-estimation",
-      content: {
-        productInfo: {
-          name: selectedProduct.name,
-          category: selectedProduct.category,
-          hsCode: selectedProduct.hsCode,
-          weight: `${selectedProduct.weight.toLocaleString()} kg`,
-          value: this.mockData.utils.formatCurrency(
-            selectedProduct.baseValue * selectedDestination.multiplier
-          ),
-          destination: selectedDestination.name,
-          region: selectedDestination.region,
-        },
-        costs: calculation.costs,
-        taxes: calculation.taxes,
-        total: calculation.total,
-        additionalInfo: {
-          shippingTime: this.getEstimatedShippingTime(
-            selectedDestination.region
-          ),
-          documentation: this.getRequiredDocuments(selectedProduct.category),
-          paymentTerms: this.getRecommendedPaymentTerms(
-            selectedDestination.region
-          ),
-        },
-      },
+    // Add typing animation first
+    const typingMessage = {
+      type: "typing",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }),
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setMessages((prev) => [...prev, botMessage]);
+    // Calculate typing delay based on response complexity
+    const responseText = `Berdasarkan analisis input Anda, berikut estimasi biaya ekspor untuk ${selectedProduct.name} ke ${selectedDestination.name}:`;
+    const responseLength = responseText.length;
+    const typingDelay = Math.min(Math.max(responseLength * 30, 1500), 4000);
+
+    // Show response after typing animation
+    setTimeout(() => {
+      // Remove typing message
+      setMessages((prev) => prev.filter((msg) => msg.type !== "typing"));
+
+      // Create detailed response message
+      const botMessage = {
+        from: "bot",
+        text: responseText,
+        type: "enhanced-cost-estimation",
+        content: {
+          productInfo: {
+            name: selectedProduct.name,
+            category: selectedProduct.category,
+            hsCode: selectedProduct.hsCode,
+            weight: `${selectedProduct.weight.toLocaleString()} kg`,
+            value: this.mockData.utils.formatCurrency(
+              selectedProduct.baseValue * selectedDestination.multiplier
+            ),
+            destination: selectedDestination.name,
+            region: selectedDestination.region,
+          },
+          costs: calculation.costs,
+          taxes: calculation.taxes,
+          total: calculation.total,
+          additionalInfo: {
+            shippingTime: this.getEstimatedShippingTime(
+              selectedDestination.region
+            ),
+            documentation: this.getRequiredDocuments(selectedProduct.category),
+            paymentTerms: this.getRecommendedPaymentTerms(
+              selectedDestination.region
+            ),
+          },
+        },
+        timestamp: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    }, typingDelay);
   }
 
   // ===== ENHANCED DOCUMENT GENERATOR =====
@@ -216,24 +237,45 @@ class EnhancedChatbotSystem {
     const enhancedEmailData = this.generateEnhancedEmailData(template, input);
     const content = this.generateEnhancedEmail(template, enhancedEmailData);
 
-    const completedMessage = {
-      from: "bot",
-      text: `✅ ${template.name} telah dibuat dengan konten yang disesuaikan untuk kebutuhan ekspor Anda!`,
+    // Add typing animation first
+    const typingMessage = {
+      type: "typing",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }),
-      type: "enhanced-email-ready",
-      content: content,
-      emailType: template.category,
-      smartFeatures: {
-        contextAware: true,
-        industrySpecific: true,
-        professionalTone: true,
-      },
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setMessages((prev) => [...prev, completedMessage]);
+    // Calculate typing delay based on response complexity
+    const responseText = `✅ ${template.name} telah dibuat dengan konten yang disesuaikan untuk kebutuhan ekspor Anda!`;
+    const responseLength = responseText.length;
+    const typingDelay = Math.min(Math.max(responseLength * 30, 1500), 4000);
+
+    // Show response after typing animation
+    setTimeout(() => {
+      // Remove typing message
+      setMessages((prev) => prev.filter((msg) => msg.type !== "typing"));
+
+      const completedMessage = {
+        from: "bot",
+        text: responseText,
+        timestamp: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        type: "enhanced-email-ready",
+        content: content,
+        emailType: template.category,
+        smartFeatures: {
+          contextAware: true,
+          industrySpecific: true,
+          professionalTone: true,
+        },
+      };
+
+      setMessages((prev) => [...prev, completedMessage]);
+    }, typingDelay);
   }
 
   // ===== ENHANCED PROPOSAL GENERATOR =====
@@ -259,25 +301,46 @@ class EnhancedChatbotSystem {
       enhancedProposalData
     );
 
-    const completedMessage = {
-      from: "bot",
-      text: `✅ ${template.name} telah dibuat dengan proyeksi finansial dan strategi bisnis yang komprehensif!`,
+    // Add typing animation first
+    const typingMessage = {
+      type: "typing",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }),
-      type: "enhanced-proposal-ready",
-      content: content,
-      proposalName: template.name,
-      businessInsights: {
-        marketAnalysis: true,
-        financialProjections: true,
-        riskAssessment: true,
-        competitiveAdvantage: true,
-      },
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setMessages((prev) => [...prev, completedMessage]);
+    // Calculate typing delay based on response complexity
+    const responseText = `✅ ${template.name} telah dibuat dengan proyeksi finansial dan strategi bisnis yang komprehensif!`;
+    const responseLength = responseText.length;
+    const typingDelay = Math.min(Math.max(responseLength * 30, 1500), 4000);
+
+    // Show response after typing animation
+    setTimeout(() => {
+      // Remove typing message
+      setMessages((prev) => prev.filter((msg) => msg.type !== "typing"));
+
+      const completedMessage = {
+        from: "bot",
+        text: responseText,
+        timestamp: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        type: "enhanced-proposal-ready",
+        content: content,
+        proposalName: template.name,
+        businessInsights: {
+          marketAnalysis: true,
+          financialProjections: true,
+          riskAssessment: true,
+          competitiveAdvantage: true,
+        },
+      };
+
+      setMessages((prev) => [...prev, completedMessage]);
+    }, typingDelay);
   }
 
   // ===== UTILITY METHODS =====
@@ -875,17 +938,36 @@ class EnhancedChatbotSystem {
       ]);
     }
 
-    // Create bot message with typing delay
-    const botMessage = {
-      from: "bot",
-      text: bestResponse,
+    // Add typing animation first
+    const typingMessage = {
+      type: "typing",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }),
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setMessages((prev) => [...prev, botMessage]);
+    // Calculate typing delay based on response length
+    const responseLength = bestResponse.length;
+    const typingDelay = Math.min(Math.max(responseLength * 30, 1000), 3000);
+
+    // Show response after typing animation
+    setTimeout(() => {
+      // Remove typing message
+      setMessages((prev) => prev.filter((msg) => msg.type !== "typing"));
+
+      // Add bot response
+      const botMessage = {
+        from: "bot",
+        text: bestResponse,
+        timestamp: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    }, typingDelay);
   }
 
   static getGeneralResponse(userInput, setMessages) {
@@ -899,16 +981,36 @@ class EnhancedChatbotSystem {
     );
 
     if (matchingQA) {
-      // Use the specific answer from mock data
-      const botMessage = {
-        from: "bot",
-        text: matchingQA.answer,
+      // Add typing animation first
+      const typingMessage = {
+        type: "typing",
         timestamp: new Date().toLocaleTimeString("id-ID", {
           hour: "2-digit",
           minute: "2-digit",
         }),
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [...prev, typingMessage]);
+
+      // Calculate typing delay based on response length
+      const responseLength = matchingQA.answer.length;
+      const typingDelay = Math.min(Math.max(responseLength * 30, 1000), 3000); // 30ms per character, min 1s, max 3s
+
+      // Show response after typing animation
+      setTimeout(() => {
+        // Remove typing message
+        setMessages((prev) => prev.filter((msg) => msg.type !== "typing"));
+
+        // Add bot response
+        const botMessage = {
+          from: "bot",
+          text: matchingQA.answer,
+          timestamp: new Date().toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      }, typingDelay);
       return;
     }
 
@@ -917,18 +1019,40 @@ class EnhancedChatbotSystem {
       this.mockData.chatbotResponses.welcomeMessages
     );
 
-    const botMessage = {
-      from: "bot",
-      text:
-        response +
-        " Silakan jelaskan kebutuhan ekspor Anda, dan saya akan membantu dengan solusi yang tepat!",
+    const fullResponse =
+      response +
+      " Silakan jelaskan kebutuhan ekspor Anda, dan saya akan membantu dengan solusi yang tepat!";
+
+    // Add typing animation first
+    const typingMessage = {
+      type: "typing",
       timestamp: new Date().toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       }),
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setMessages((prev) => [...prev, botMessage]);
+    // Calculate typing delay based on response length
+    const responseLength = fullResponse.length;
+    const typingDelay = Math.min(Math.max(responseLength * 30, 1000), 3000);
+
+    // Show response after typing animation
+    setTimeout(() => {
+      // Remove typing message
+      setMessages((prev) => prev.filter((msg) => msg.type !== "typing"));
+
+      // Add bot response
+      const botMessage = {
+        from: "bot",
+        text: fullResponse,
+        timestamp: new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    }, typingDelay);
   }
 }
 
