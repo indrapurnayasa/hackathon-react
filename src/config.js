@@ -1,4 +1,4 @@
 const config = {
-  API_BASE_URL: "https://dev-ngurah.fun",
+  API_BASE_URL: "http://localhost:8000",
 };
 export default config;
