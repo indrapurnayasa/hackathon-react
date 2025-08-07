@@ -35,8 +35,8 @@ export default function AIAssistantPage() {
   const [completedProposals, setCompletedProposals] = useState(new Set());
   const [chatHistory, setChatHistory] = useState([]);
   const [showTooltip, setShowTooltip] = useState(false);
-    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
- 
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
   const helpIconRef = useRef(null);
@@ -60,7 +60,7 @@ export default function AIAssistantPage() {
         console.error("❌ Error testing chatbot API:", error);
       }
     };
-    
+
     testAPI();
   }, []);
 
@@ -109,73 +109,8 @@ export default function AIAssistantPage() {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    // Instead of auto-sending, just fill the input box
     setInput(suggestion);
-  };
-
-  // Test function to simulate document template response
-  const testDocumentTemplate = () => {
-    const testMessage = {
-      from: "bot",
-      text: "Berikut adalah template dokumen PEB yang telah dibuat sesuai dengan data yang Anda berikan:",
-      timestamp: new Date().toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      documentTemplate: true,
-      htmlTemplate: `
-        <div style="font-family: 'Times New Roman', serif; font-size: 12px; line-height: 1.4; padding: 20px;">
-          <h2 style="text-align: center; margin-bottom: 20px;">PEMBERITAHUAN EKSPOR BARANG (PEB)</h2>
-          
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <tr>
-              <td style="border: 1px solid #000; padding: 8px; font-weight: bold; width: 30%;">Nomor PEB</td>
-              <td style="border: 1px solid #000; padding: 8px;">PEB-2024-001234</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Tanggal</td>
-              <td style="border: 1px solid #000; padding: 8px;">15 Januari 2024</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Eksportir</td>
-              <td style="border: 1px solid #000; padding: 8px;">PT. Contoh Eksportir Indonesia</td>
-            </tr>
-            <tr>
-              <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Penerima</td>
-              <td style="border: 1px solid #000; padding: 8px;">ABC Trading Co., Ltd.</td>
-            </tr>
-          </table>
-          
-          <h3 style="margin-bottom: 10px;">Detail Barang:</h3>
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background-color: #f0f0f0;">
-                <th style="border: 1px solid #000; padding: 8px;">Deskripsi</th>
-                <th style="border: 1px solid #000; padding: 8px;">Kode HS</th>
-                <th style="border: 1px solid #000; padding: 8px;">Jumlah</th>
-                <th style="border: 1px solid #000; padding: 8px;">Nilai</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="border: 1px solid #000; padding: 8px;">Kopi Robusta</td>
-                <td style="border: 1px solid #000; padding: 8px;">0901.11.00</td>
-                <td style="border: 1px solid #000; padding: 8px;">1,000 kg</td>
-                <td style="border: 1px solid #000; padding: 8px;">USD 5,000</td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <div style="margin-top: 20px; text-align: center;">
-            <p style="font-style: italic;">Dokumen ini dibuat secara otomatis oleh AI Assistant</p>
-          </div>
-        </div>
-      `,
-      documentType: "PEB"
-    };
-    setMessages((prev) => [...prev, testMessage]);
-    
-
+    handleSend();
   };
 
   const handleSend = () => {
@@ -200,26 +135,35 @@ export default function AIAssistantPage() {
     try {
       // Determine if this is a new chat session
       const isNewChat = messages.length <= 1; // Only welcome message exists
-      
+
       // Call the real chatbot API with session management
-      console.log("Processing user input with API:", userInput, "New chat:", isNewChat);
-      const apiResponse = await chatbotAPI.processUserInput(userInput, isNewChat);
+      console.log(
+        "Processing user input with API:",
+        userInput,
+        "New chat:",
+        isNewChat
+      );
+      const apiResponse = await chatbotAPI.processUserInput(
+        userInput,
+        isNewChat
+      );
       console.log("API response:", apiResponse);
       console.log("Document template fields:", {
         documentTemplate: apiResponse.documentTemplate,
         htmlTemplate: apiResponse.htmlTemplate,
-        documentType: apiResponse.documentType
+        documentType: apiResponse.documentType,
       });
       chatbotAPI.logSessionState();
 
       if (apiResponse.success) {
         // Check if this is a document-related query and create mock document if needed
-        const isDocumentQuery = userInput.toLowerCase().includes('dokumen') || 
-                               userInput.toLowerCase().includes('document') ||
-                               userInput.toLowerCase().includes('peb') ||
-                               userInput.toLowerCase().includes('invoice') ||
-                               userInput.toLowerCase().includes('template');
-        
+        const isDocumentQuery =
+          userInput.toLowerCase().includes("dokumen") ||
+          userInput.toLowerCase().includes("document") ||
+          userInput.toLowerCase().includes("peb") ||
+          userInput.toLowerCase().includes("invoice") ||
+          userInput.toLowerCase().includes("template");
+
         // Add bot response with smooth typing animation
         const responseLength = apiResponse.answer.length;
         const typingDelay = Math.min(Math.max(responseLength * 15, 1000), 3000); // Smooth typing speed
@@ -235,7 +179,10 @@ export default function AIAssistantPage() {
             }),
             // Add document template data if present in API response or create mock for document queries
             documentTemplate: apiResponse.documentTemplate || isDocumentQuery,
-            htmlTemplate: apiResponse.htmlTemplate || (isDocumentQuery ? `
+            htmlTemplate:
+              apiResponse.htmlTemplate ||
+              (isDocumentQuery
+                ? `
               <div style="font-family: 'Times New Roman', serif; font-size: 10px; line-height: 1.2; padding: 10px;">
                 <h3 style="text-align: center; margin-bottom: 10px; font-size: 12px;">PEMBERITAHUAN EKSPOR BARANG (PEB)</h3>
                 
@@ -282,13 +229,13 @@ export default function AIAssistantPage() {
                   <p style="font-style: italic; font-size: 8px;">Dokumen ini dibuat secara otomatis oleh AI Assistant</p>
                 </div>
               </div>
-            ` : null),
-            documentType: apiResponse.documentType || (isDocumentQuery ? "PEB" : null),
+            `
+                : null),
+            documentType:
+              apiResponse.documentType || (isDocumentQuery ? "PEB" : null),
           };
           setMessages((prev) => [...prev, botMessage]);
-          
 
-          
           setIsTyping(false); // Only stop typing after response is added
         }, typingDelay);
       } else {
@@ -307,10 +254,10 @@ export default function AIAssistantPage() {
       }
     } catch (error) {
       console.error("Error in processUserInput:", error);
-      
+
       // Fallback to mock system if API fails completely
       console.log("Falling back to mock system");
-      
+
       // Add a smooth delay to show typing animation for fallback
       setTimeout(() => {
         const response = EnhancedChatbotSystem.getIntelligentResponse(
@@ -328,7 +275,7 @@ export default function AIAssistantPage() {
         if (!response) {
           EnhancedChatbotSystem.getGeneralResponse(userInput, setMessages);
         }
-        
+
         setIsTyping(false);
       }, 5000); // Show typing animation for at least 1.5 seconds
     }
@@ -424,11 +371,11 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <div className="h-screen flex">
+    <div className="h-full flex overflow-hidden max-w-full">
       <TooltipPortal />
       {/* Sidebar - AI Assistant */}
-      <div className="w-80 bg-white border-r border-gray-200 p-4 lg:p-6 flex flex-col overflow-y-auto">
-        <div className="flex items-center space-x-3 mb-4 lg:mb-6">
+      <div className="w-80 p-6 pb-6 rounded-xl shadow-lg border border-gray-200 bg-white/95 backdrop-blur-sm ml-6 mb-6 flex flex-col overflow-y-auto flex-shrink-0">
+        <div className="flex items-center space-x-3 mb-6">
           {/* Logo AI Assistant - bisa diganti dengan PNG custom */}
           <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center overflow-hidden">
             {/* 
@@ -472,37 +419,29 @@ export default function AIAssistantPage() {
             <h3 className="text-sm font-semibold text-gray-700">
               Quick Actions
             </h3>
-            <div className="flex space-x-2">
-              <button
-                onClick={clearChatHistory}
-                className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-full transition-colors"
-              >
-                Clear Chat
-              </button>
-              <button
-                onClick={testDocumentTemplate}
-                className="text-xs bg-green-50 hover:bg-green-100 text-green-600 px-3 py-1 rounded-full transition-colors"
-              >
-                Test Document
-              </button>
-            </div>
+            <button
+              onClick={clearChatHistory}
+              className="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-1 rounded-full transition-colors"
+            >
+              Clear Chat
+            </button>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 lg:gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {featureSuggestions.map((feature) => (
               <button
                 key={feature.id}
                 onClick={() => handleFeatureSelect(feature)}
-                className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full p-3 lg:p-4 transition-all text-left group"
+                className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl p-4 transition-all text-left group"
               >
-                <div className="flex items-center space-x-2 lg:space-x-3">
+                <div className="flex items-center space-x-3">
                   <div className="text-gray-600 flex-shrink-0">
                     {feature.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-gray-900 text-xs lg:text-sm truncate">
+                    <div className="font-semibold text-gray-900 text-sm truncate">
                       {feature.title}
                     </div>
-                    <div className="text-xs text-gray-600 mt-1 hidden lg:block">
+                    <div className="text-xs text-gray-600 mt-1">
                       {feature.description}
                     </div>
                   </div>
@@ -511,16 +450,16 @@ export default function AIAssistantPage() {
             ))}
           </div>
         </div>
-        <div className="pt-4 border-t border-gray-100 mt-4 lg:mt-6 hidden lg:block">
+        <div className="pt-4 border-t border-gray-100 mt-6">
           <p className="text-xs text-gray-500">
-            💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung
-            di chat
+            💡 Tip: Klik quick action di atas atau ketik pertanyaan langsung di
+            chat
           </p>
         </div>
       </div>
 
       {/* Chat Container */}
-      <div className="flex-1 h-full">
+      <div className="flex-1 h-full min-h-0 pl-6 pr-6 pb-6 max-w-full overflow-hidden">
         <ChatInterface
           messages={messages}
           setMessages={setMessages}

@@ -1,22 +1,8 @@
 // src/components/ai-assistant/ChatInterface.js
-import React, { useRef, useState } from "react";
-import {
-  Send,
-  Lightbulb,
-  CheckCircle,
-  Circle,
-  Copy,
-  Download,
-  ChevronRight,
-  X,
-  FileText,
-} from "lucide-react";
-import { jsPDF } from "jspdf";
-import DocumentGenerator from "./DocumentGenerator";
-import EmailGenerator from "./EmailGenerator";
-import ProposalGenerator from "./ProposalGenerator";
-import EnhancedChatbotSystem from "../../utils/enhancedChatbotSystem";
+import { useState } from "react";
+import { Send, Lightbulb, CheckCircle, FileText } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import jsPDF from "jspdf";
 
 // TAMBAH FUNGSI FORMAT TANGGAL
 const formatDate = (date) => {
@@ -42,9 +28,274 @@ const formatDate = (date) => {
   return `${day} ${month} ${year}`;
 };
 
+// Fungsi untuk format response dari Backend
+const formatResponse = (text) => {
+  if (!text) return "";
+
+  // Replace /n dengan line break
+  let formatted = text.replace(/\/n/g, "\n");
+
+  // Replace **text** dengan <strong>text</strong>
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+  // Replace *text* dengan <em>text</em>
+  formatted = formatted.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+  // Replace __text__ dengan <u>text</u>
+  formatted = formatted.replace(/__(.*?)__/g, "<u>$1</u>");
+
+  // Replace ~~text~~ dengan <del>text</del>
+  formatted = formatted.replace(/~~(.*?)~~/g, "<del>$1</del>");
+
+  // Split by line breaks and wrap in paragraphs
+  const lines = formatted.split("\n");
+  return lines
+    .map((line, index) =>
+      line.trim() ? `<p key="${index}">${line}</p>` : "<br/>"
+    )
+    .join("");
+};
+
+const generatePDFfromIframe = async (iframe, documentType) => {
+  try {
+    const jsPDF = (await import("jspdf")).default;
+    const html2canvas = (await import("html2canvas")).default;
+
+    // Wait for iframe to load
+    await new Promise((resolve) => {
+      if (
+        iframe.contentDocument &&
+        iframe.contentDocument.readyState === "complete"
+      ) {
+        resolve();
+      } else {
+        iframe.onload = resolve;
+      }
+    });
+
+    const doc = iframe.contentDocument;
+    const body = doc.body;
+
+    // Use the same wrapper as fitIframeContent
+    let wrapper = body.querySelector("#pdf-center-wrapper");
+    if (!wrapper) {
+      // If wrapper doesn't exist, create it with same structure as fitIframeContent
+      wrapper = doc.createElement("div");
+      wrapper.id = "pdf-center-wrapper";
+      wrapper.style.cssText = `
+        width: 794px !important;
+        min-width: 794px !important;
+        max-width: 794px !important;
+        background: white !important;
+        box-sizing: border-box !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        padding-bottom: 32px !important;
+      `;
+
+      // Move all body content to wrapper
+      while (body.firstChild) {
+        wrapper.appendChild(body.firstChild);
+      }
+      body.appendChild(wrapper);
+    }
+
+    // Reset scaling for PDF generation (remove any transform from preview)
+    const originalTransform = wrapper.style.transform;
+    const originalHeight = wrapper.style.height;
+    wrapper.style.transform = "none";
+    wrapper.style.height = "auto";
+
+    const canvas = await html2canvas(wrapper, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      width: 794,
+      height: wrapper.scrollHeight + 32,
+      windowWidth: 794,
+      windowHeight: wrapper.scrollHeight + 32,
+    });
+
+    // Restore original styles
+    wrapper.style.transform = originalTransform;
+    wrapper.style.height = originalHeight;
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const imgWidth = 794;
+    const imgHeight = (794 * canvas.height) / canvas.width;
+    const x = (pdfWidth - imgWidth) / 2;
+
+    pdf.addImage(imgData, "PNG", x, 0, imgWidth, imgHeight);
+    return pdf;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    throw error;
+  }
+};
+
+// Fungsi untuk inject CSS agar dokumen fit di iframe preview
+const fitIframeContent = (iframe, maxHeight = 400) => {
+  if (!iframe) return;
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    const style = doc.createElement("style");
+    style.innerHTML = `
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 794px !important;
+        min-width: 794px !important;
+        max-width: 794px !important;
+        height: auto !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        background: white !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        font-family: 'Times New Roman', Arial, sans-serif !important;
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box !important;
+        max-width: 100% !important;
+        word-break: break-word !important;
+      }
+      #pdf-center-wrapper {
+        width: 794px !important;
+        min-width: 794px !important;
+        max-width: 794px !important;
+        background: white !important;
+        box-sizing: border-box !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        padding-bottom: 32px !important;
+      }
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        table-layout: auto !important;
+      }
+      th, td {
+        padding: 6px 10px !important;
+        border: 1.5px solid #222 !important;
+        vertical-align: top !important;
+        background: white !important;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        margin: 0 0 8px 0 !important;
+        font-weight: bold !important;
+      }
+      div, p, span, tr {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+      }
+      tr {
+        border: none !important;
+      }
+      .pdf-field-row {
+        margin-bottom: 8px !important;
+        padding-bottom: 4px !important;
+      }
+    `;
+    doc.head.appendChild(style);
+    // Center content horizontally
+    doc.body.style.display = "flex";
+    doc.body.style.justifyContent = "center";
+    doc.body.style.alignItems = "flex-start";
+    // Wrap content in a container with fixed width (A4)
+    let wrapper = doc.getElementById("pdf-center-wrapper");
+    if (!wrapper) {
+      wrapper = doc.createElement("div");
+      wrapper.id = "pdf-center-wrapper";
+      wrapper.style.width = "794px";
+      wrapper.style.minWidth = "794px";
+      wrapper.style.maxWidth = "794px";
+      wrapper.style.background = "white";
+      wrapper.style.boxSizing = "border-box";
+      wrapper.style.paddingLeft = "16px";
+      wrapper.style.paddingRight = "16px";
+      wrapper.style.paddingBottom = "32px";
+      // Move all children into wrapper
+      while (doc.body.firstChild) {
+        wrapper.appendChild(doc.body.firstChild);
+      }
+      doc.body.appendChild(wrapper);
+    } else {
+      wrapper.style.paddingBottom = "32px";
+    }
+    // --- SCALING FOR PREVIEW ONLY ---
+    const previewWidth = iframe.offsetWidth || 400;
+    const previewHeight = maxHeight;
+    const contentWidth = wrapper.scrollWidth;
+    const contentHeight = wrapper.scrollHeight;
+    const scaleX = previewWidth / contentWidth;
+    const scaleY = previewHeight / contentHeight;
+    const scale = Math.min(scaleX, scaleY, 1);
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.transformOrigin = "top left";
+    wrapper.style.height = scale < 1 ? `${100 / scale}%` : "auto";
+  } catch (e) {}
+};
+
+// WhatsApp-style PDF Preview Card
+const PDFCardPreview = ({ fileName, onPreview, onDownload }) => (
+  <div
+    className="flex flex-row items-center bg-white rounded-xl shadow-lg border border-gray-200 p-4 w-full max-w-sm mx-auto"
+    style={{ minHeight: 80, marginBottom: 16, marginTop: 8 }}
+  >
+    {/* Logo PDF di kiri */}
+    <div className="flex-shrink-0 mr-4">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="8" fill="#F44336" />
+        <text
+          x="20"
+          y="25"
+          textAnchor="middle"
+          fontSize="14"
+          fontWeight="bold"
+          fill="#fff"
+        >
+          PDF
+        </text>
+      </svg>
+    </div>
+
+    {/* Deskripsi di kanan */}
+    <div className="flex-1 min-w-0">
+      <div
+        className="font-semibold text-sm text-gray-900 truncate mb-1"
+        title={fileName}
+      >
+        {fileName}
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-gray-500">PDF Document</div>
+        <div className="flex flex-row items-center gap-2">
+          <button
+            onClick={onPreview}
+            className="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-1 rounded-full transition-colors font-medium"
+          >
+            Preview
+          </button>
+          <button
+            onClick={onDownload}
+            className="text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-1 rounded-full transition-colors font-medium"
+          >
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 // Typing Animation Component
 const TypingIndicator = () => (
-  <div className="flex items-end space-x-2 mb-4">
+  <div className="flex items-end space-x-3 mb-4">
     <div
       className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mb-1"
       style={{
@@ -54,7 +305,6 @@ const TypingIndicator = () => (
     >
       <span style={{ fontSize: "22px" }}>🌶️</span>
     </div>
-
     <div className="max-w-xs lg:max-w-md relative">
       <div
         className="px-4 py-3 text-sm leading-5 text-black relative"
@@ -72,58 +322,21 @@ const TypingIndicator = () => (
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
             <div
-              className="w-2 h-2 bg-gray-400 rounded-full"
-              style={{
-                animation: "typing-dot 1.4s ease-in-out infinite",
-                animationDelay: "0ms",
-              }}
+              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: "0ms" }}
             ></div>
             <div
-              className="w-2 h-2 bg-gray-400 rounded-full"
-              style={{
-                animation: "typing-dot 1.4s ease-in-out infinite",
-                animationDelay: "200ms",
-              }}
+              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: "200ms" }}
             ></div>
             <div
-              className="w-2 h-2 bg-gray-400 rounded-full"
-              style={{
-                animation: "typing-dot 1.4s ease-in-out infinite",
-                animationDelay: "400ms",
-              }}
+              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: "400ms" }}
             ></div>
           </div>
           <span className="text-xs text-gray-500">AI sedang mengetik...</span>
         </div>
-        <span
-          className="inline-block w-0.5 h-4 bg-gray-600 ml-1 animate-pulse"
-          style={{ animation: "blink 1s infinite" }}
-        />
       </div>
-
-      <div
-        className="absolute bottom-0 w-0 h-0"
-        style={{
-          left: "0",
-          borderRight: "8px solid #ffffff",
-          borderBottom: "8px solid transparent",
-          transform: "translateX(-2px)",
-        }}
-      />
-    </div>
-
-    <div
-      className="text-xs mt-1 text-left text-gray-500"
-      style={{
-        fontSize: "11px",
-        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
-        fontWeight: 400,
-      }}
-    >
-      {new Date().toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}
     </div>
   </div>
 );
@@ -146,6 +359,19 @@ const SuccessPopup = ({ message, onClose }) => (
     </div>
   </div>
 );
+
+// Generate filename with template name and timestamp
+const generateFileName = (templateName) => {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  const timestamp = `${day}${month}${year} ${hours}.${minutes}`;
+  return `${templateName} - ${timestamp}.pdf`;
+};
 
 const ChatInterface = ({
   messages,
@@ -190,161 +416,20 @@ const ChatInterface = ({
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
-  // Update copy handler
-  const handleCopy = (content) => {
-    navigator.clipboard.writeText(content);
-    setSuccessMessage("Content berhasil disalin ke clipboard!");
-    setShowSuccessPopup(true);
-  };
-
-  // Update download handler
-  const handleDownload = (content, filename) => {
-    try {
-      console.log("Creating PDF from frontend HTML...");
-      const doc = new jsPDF();
-
-      // Check if content is HTML (from enhanced document generator)
-      if (content.includes("<div") || content.includes("<table")) {
-        // Parse HTML exactly as shown in frontend
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = content;
-
-        let yPosition = 20;
-        const margin = 15;
-
-        // Extract title
-        const titleEl = tempDiv.querySelector("h1, h2");
-        if (titleEl) {
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(16);
-          doc.text(titleEl.textContent.trim().toUpperCase(), margin, yPosition);
-          yPosition += 15;
-        }
-
-        // Extract subtitle
-        const subtitleEl = tempDiv.querySelector("p");
-        if (
-          subtitleEl &&
-          (subtitleEl.textContent.includes("Export") ||
-            subtitleEl.textContent.includes("Document"))
-        ) {
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(10);
-          doc.text(subtitleEl.textContent.trim(), margin, yPosition);
-          yPosition += 10;
-        }
-
-        // Extract document info (PEB number, Invoice number, etc.)
-        const docInfoDivs = tempDiv.querySelectorAll("div");
-        docInfoDivs.forEach((div) => {
-          const style = div.getAttribute("style") || "";
-          if (
-            style.includes("background: #f8f9fa") &&
-            style.includes("text-align: center")
-          ) {
-            const strongEl = div.querySelector("strong");
-            const spanEl = div.querySelector("span");
-            if (strongEl && spanEl) {
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(12);
-              doc.text(strongEl.textContent.trim(), margin, yPosition);
-              yPosition += 8;
-
-              doc.setFont("helvetica", "normal");
-              doc.setFontSize(10);
-              doc.text(spanEl.textContent.trim(), margin, yPosition);
-              yPosition += 10;
-            }
-          }
-        });
-
-        // Extract tables
-        const tables = tempDiv.querySelectorAll("table");
-        tables.forEach((table) => {
-          const rows = table.querySelectorAll("tr");
-          rows.forEach((row, rowIndex) => {
-            const cells = row.querySelectorAll("td, th");
-            let xPosition = margin;
-            cells.forEach((cell, cellIndex) => {
-              const cellText = cell.textContent.trim();
-              if (cellText) {
-                doc.setFont("helvetica", rowIndex === 0 ? "bold" : "normal");
-                doc.setFontSize(10);
-                doc.text(cellText, xPosition, yPosition);
-                xPosition += 40; // Adjust based on your table structure
-              }
-            });
-            yPosition += 8;
-          });
-          yPosition += 5;
-        });
-
-        // Extract footer
-        const footerEl = tempDiv.querySelector("p[style*='font-style: italic']");
-        if (footerEl) {
-          doc.setFont("helvetica", "italic");
-          doc.setFontSize(8);
-          doc.text(footerEl.textContent.trim(), margin, yPosition);
-        }
-      } else {
-        // Handle plain text content
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(12);
-        const lines = content.split("\n");
-        lines.forEach((line, index) => {
-          if (line.trim()) {
-            doc.text(line.trim(), 15, 20 + index * 10);
-          }
-        });
-      }
-
-      doc.save(filename);
-      setSuccessMessage("File PDF berhasil diunduh!");
-      setShowSuccessPopup(true);
-    } catch (error) {
-      console.error("Error creating PDF:", error);
-      setSuccessMessage("Gagal membuat PDF. Silakan coba lagi.");
-      setShowSuccessPopup(true);
-    }
-  };
-
-  // Render frontend table for document generation
-  const renderFrontendTable = (doc, table, startX, startY) => {
-    const tableData = table.data || [];
-    const headers = table.headers || [];
-
-    let html = '<table style="width: 100%; border-collapse: collapse; margin: 10px 0;">';
-    
-    // Add headers
-    if (headers.length > 0) {
-      html += '<thead><tr>';
-      headers.forEach(header => {
-        html += `<th style="border: 1px solid #ddd; padding: 8px; background-color: #f8f9fa; font-weight: bold; text-align: left;">${header}</th>`;
-      });
-      html += '</tr></thead>';
-    }
-    
-    // Add data rows
-    html += '<tbody>';
-    tableData.forEach(row => {
-      html += '<tr>';
-      row.forEach(cell => {
-        html += `<td style="border: 1px solid #ddd; padding: 8px;">${cell}</td>`;
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-    
-    return html;
-  };
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [modalDocHtml, setModalDocHtml] = useState("");
+  const [modalDocIndex, setModalDocIndex] = useState(null);
 
   const renderMessage = (message, index) => {
     const isUser = message.from === "user";
-    const isBot = message.from === "bot";
 
     return (
-      <div key={index} className="flex items-end space-x-2 mb-4">
+      <div
+        key={index}
+        className={`flex items-end space-x-3 mb-4 ${
+          isUser ? "justify-end" : "justify-start"
+        }`}
+      >
         <div
           className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 mb-1 ${
             isUser ? "order-2" : "order-1"
@@ -355,26 +440,29 @@ const ChatInterface = ({
           }}
         >
           {isUser ? (
-            <span style={{ fontSize: "22px" }}>👤</span>
+            <span style={{ fontSize: "22px", color: "#ffffff" }}>🐴</span>
           ) : (
             <span style={{ fontSize: "22px" }}>🌶️</span>
           )}
         </div>
 
         <div
-          className={`max-w-xs lg:max-w-md relative ${
-            isUser ? "order-1" : "order-2"
+          className={`relative ${
+            isUser
+              ? "order-1 max-w-md lg:max-w-lg"
+              : "order-2 max-w-xs lg:max-w-md"
           }`}
         >
           <div
             className={`px-4 py-3 text-sm leading-5 relative ${
-              isUser ? "text-white" : "text-black"
+              message.from === "user" ? "text-white" : "text-black"
             }`}
             style={{
-              backgroundColor: isUser ? "#2c2c2e" : "#ffffff",
-              borderRadius: isUser
-                ? "18px 18px 4px 18px"
-                : "18px 18px 18px 4px",
+              backgroundColor: message.from === "user" ? "#2c2c2e" : "#ffffff",
+              borderRadius:
+                message.from === "user"
+                  ? "18px 18px 4px 18px"
+                  : "18px 18px 18px 4px",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               fontFamily:
                 "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -385,64 +473,55 @@ const ChatInterface = ({
           >
             <div
               dangerouslySetInnerHTML={{
-                __html: formatMessageText(message.text),
+                __html:
+                  message.from === "user"
+                    ? formatMessageText(message.text)
+                    : formatResponse(message.text),
               }}
             />
 
-            {/* Document Preview for bot messages with documentTemplate */}
-            {message.from === "bot" && message.documentTemplate && message.htmlTemplate && (
-              <div className="mt-3 max-w-full">
-                <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                  {/* Document Header */}
-                  <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">
-                        Preview Dokumen - {message.documentType}
-                      </span>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          const newWindow = window.open();
-                          newWindow.document.write(message.htmlTemplate);
-                          newWindow.document.close();
-                        }}
-                        className="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
-                      >
-                        Buka di Tab
-                      </button>
-                      <button
-                        onClick={() => {
-                          const blob = new Blob([message.htmlTemplate], { type: 'text/html' });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `${message.documentType || 'document'}.html`;
-                          a.click();
-                          URL.revokeObjectURL(url);
-                        }}
-                        className="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded transition-colors"
-                      >
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Document Content */}
-                  <div className="p-4 max-h-96 overflow-y-auto">
-                    <div 
-                      dangerouslySetInnerHTML={{ __html: message.htmlTemplate }}
-                      className="document-preview"
-                      style={{
-                        fontFamily: "'Times New Roman', serif",
-                        fontSize: '12px',
-                        lineHeight: '1.4'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* WhatsApp-style PDF Preview Card */}
+            {message.documentTemplate && message.htmlTemplate && (
+              <PDFCardPreview
+                fileName={generateFileName(message.documentType || "Dokumen")}
+                onPreview={() => {
+                  setModalDocHtml(message.htmlTemplate);
+                  setModalDocIndex(index);
+                  setShowDocModal(true);
+                }}
+                onDownload={async () => {
+                  const iframe =
+                    document.getElementById(`doc-iframe-modal-${index}`) ||
+                    document.getElementById(`doc-iframe-${index}`);
+                  let pdf;
+                  if (iframe) {
+                    pdf = await generatePDFfromIframe(
+                      iframe,
+                      message.documentType
+                    );
+                  } else {
+                    // fallback: create temp iframe
+                    const tempIframe = document.createElement("iframe");
+                    tempIframe.style.display = "none";
+                    document.body.appendChild(tempIframe);
+                    tempIframe.srcdoc = message.htmlTemplate;
+                    tempIframe.onload = async () => {
+                      pdf = await generatePDFfromIframe(
+                        tempIframe,
+                        message.documentType
+                      );
+                      pdf.save(
+                        generateFileName(message.documentType || "document")
+                      );
+                      document.body.removeChild(tempIframe);
+                    };
+                    return;
+                  }
+                  pdf.save(
+                    generateFileName(message.documentType || "document")
+                  );
+                }}
+              />
             )}
 
             {/* WHATSAPP STYLE TAIL */}
@@ -463,6 +542,37 @@ const ChatInterface = ({
             />
           </div>
 
+          {/* Modal untuk preview dokumen (iframe) */}
+          {showDocModal && modalDocIndex === index && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white rounded-xl shadow-lg p-6 max-w-2xl w-full relative">
+                <button
+                  className="absolute top-4 right-4 text-xs bg-gray-900 hover:bg-gray-800 text-white px-3 py-1 rounded-full transition-colors font-medium"
+                  onClick={() => setShowDocModal(false)}
+                  aria-label="Tutup Preview"
+                >
+                  Close
+                </button>
+                <div className="w-full h-[70vh] overflow-auto rounded-lg border border-gray-200 bg-gray-50">
+                  <iframe
+                    id={`doc-iframe-modal-${index}`}
+                    srcDoc={modalDocHtml}
+                    title="Document Preview"
+                    sandbox="allow-same-origin"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      border: "none",
+                      background: "white",
+                      borderRadius: "8px",
+                    }}
+                    onLoad={(e) => fitIframeContent(e.target, 600)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          {/* End Modal */}
           <div
             className={`text-xs mt-1 ${
               message.from === "user"
@@ -483,20 +593,26 @@ const ChatInterface = ({
   };
 
   return (
-    <div className="flex-1 bg-gray-50 h-full w-full max-w-none">
-      <div className="bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col h-full w-full max-w-none">
+    <div className="flex-1 bg-gray-50 h-full w-full max-w-full overflow-hidden">
+      <div className="bg-white border-l border-gray-200 flex flex-col h-full w-full rounded-none max-w-full overflow-hidden shadow-sm mb-6">
         {/* Chat Messages */}
         <div
           ref={chatContainerRef}
-          className="flex-1 flex flex-col overflow-y-auto space-y-4 p-6 w-full overflow-x-hidden"
+          className="flex-1 flex flex-col overflow-y-auto space-y-4 px-8 py-6 w-full overflow-x-hidden max-w-full min-w-0"
           style={{
             background: "#f2f2f7",
             overflowX: "hidden",
-            borderRadius: "0 0 1.25rem 1.25rem",
+            borderRadius: "0",
             minHeight: 0,
             height: "auto",
           }}
         >
+          {/* Date Header */}
+          <div className="flex justify-center mt-2 mb-2">
+            <span className="bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100 mx-auto inline-block text-xs font-medium text-gray-500">
+              {formatDate(new Date())}
+            </span>
+          </div>
           {messages.map((message, index) => renderMessage(message, index))}
           {isTyping && <TypingIndicator />}
 
@@ -508,7 +624,7 @@ const ChatInterface = ({
           <>
             {/* Suggestions Bar */}
             <div
-              className="border-t border-gray-100 bg-gray-50 px-6 py-4 w-full overflow-x-hidden"
+              className="border-t border-gray-100 bg-white px-8 py-4 w-full overflow-x-hidden max-w-full min-w-0"
               aria-label="Pertanyaan Umum"
             >
               <div className="flex items-center space-x-2 mb-2">
@@ -540,8 +656,7 @@ const ChatInterface = ({
                       onClick={() => handleSuggestionClick(suggestion)}
                       className="flex-shrink-0 text-xs bg-white hover:bg-blue-50 hover:text-blue-700 border border-gray-200 hover:border-blue-300 rounded-full px-4 py-2 transition-all whitespace-nowrap shadow-sm text-gray-700"
                       style={{
-                        fontFamily:
-                          "'Google Sans Text', 'Roboto', sans-serif",
+                        fontFamily: "'Google Sans Text', 'Roboto', sans-serif",
                         fontWeight: 400,
                         minWidth: "fit-content",
                       }}
@@ -558,8 +673,8 @@ const ChatInterface = ({
             </div>
 
             {/* Input Section */}
-            <div className="border-t border-gray-100 px-6 py-5 bg-white w-full overflow-x-hidden">
-              <div className="flex space-x-3">
+            <div className="border-t border-gray-100 px-8 py-5 bg-white w-full overflow-x-hidden max-w-full min-w-0">
+              <div className="flex space-x-3 min-w-0">
                 <input
                   type="text"
                   value={input}
@@ -570,7 +685,7 @@ const ChatInterface = ({
                     }
                   }}
                   placeholder="Tulis pesan..."
-                  className="flex-1 border border-gray-200 rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black"
+                  className="flex-1 border border-gray-200 rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black min-w-0"
                   style={{
                     fontFamily:
                       "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -607,7 +722,7 @@ const ChatInterface = ({
       )}
 
       {/* CSS untuk hide scrollbar */}
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
@@ -625,35 +740,105 @@ const ChatInterface = ({
             opacity: 0;
           }
         }
-        
+
         /* Document Preview Styles */
         .document-preview {
-          font-family: 'Times New Roman', serif;
+          font-family: "Times New Roman", serif;
           font-size: 12px;
           line-height: 1.4;
           color: #333;
+          contain: layout style paint;
+          isolation: isolate;
+          max-width: 100%;
+          overflow: hidden;
+          word-wrap: break-word;
+          background: transparent !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+          outline: none !important;
         }
-        
-        .document-preview h1, .document-preview h2, .document-preview h3 {
+
+        .document-preview h1,
+        .document-preview h2,
+        .document-preview h3 {
           font-weight: bold;
           margin-bottom: 8px;
+          max-width: 100%;
+          overflow: hidden;
+          background: transparent !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
         }
-        
+
         .document-preview table {
           border-collapse: collapse;
           width: 100%;
           margin: 8px 0;
+          max-width: 100%;
+          table-layout: fixed;
+          background: transparent !important;
         }
-        
-        .document-preview table, .document-preview th, .document-preview td {
+
+        .document-preview table,
+        .document-preview th,
+        .document-preview td {
           border: 1px solid #ddd;
           padding: 4px 8px;
+          max-width: 100%;
+          overflow: hidden;
+          word-wrap: break-word;
+          background: transparent !important;
+          margin: 0 !important;
         }
-        
+
         .document-preview th {
           background-color: #f8f9fa;
           font-weight: bold;
         }
+
+        /* Prevent document preview from affecting parent layout */
+        .document-preview * {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          background: transparent !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          position: relative !important;
+          float: none !important;
+          clear: none !important;
+        }
+
+        /* Reset any problematic styles from HTML template */
+        .document-preview body,
+        .document-preview html {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: transparent !important;
+          color: inherit !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow: hidden !important;
+          position: relative !important;
+        }
+
+       /* Additional reset for any remaining problematic elements */
+       .document-preview div,
+       .document-preview p,
+       .document-preview span {
+         background: transparent !important;
+         margin-left: 0 !important;
+         margin-right: 0 !important;
+         padding-left: 0 !important;
+         padding-right: 0 !important;
+         max-width: 100% !important;
+         overflow: hidden !important;
+         word-wrap: break-word !important;
+       }
       `}</style>
     </div>
   );
