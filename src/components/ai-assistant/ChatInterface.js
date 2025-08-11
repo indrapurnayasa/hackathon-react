@@ -1,8 +1,8 @@
 // src/components/ai-assistant/ChatInterface.js
 import { useState } from "react";
-import { Send, Lightbulb, CheckCircle, FileText } from "lucide-react";
+import { Send, Lightbulb, CheckCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import jsPDF from "jspdf";
+// jsPDF is dynamically imported where needed
 
 // TAMBAH FUNGSI FORMAT TANGGAL
 const formatDate = (date) => {
@@ -480,8 +480,24 @@ const ChatInterface = ({
               }}
             />
 
-            {/* WhatsApp-style PDF Preview Card */}
-            {message.documentTemplate && message.htmlTemplate && (
+            {/* HTML safe preview for document templates */}
+            {message.documentTemplate === true && message.htmlTemplate && (
+              <div className="mt-3 mb-2 w-full max-w-sm">
+                <div className="rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                  <iframe
+                    id={`doc-iframe-${index}`}
+                    srcDoc={message.htmlTemplate}
+                    title="Document Preview"
+                    sandbox="allow-same-origin"
+                    style={{ width: '100%', height: 220, border: 'none', background: 'white' }}
+                    onLoad={(e) => fitIframeContent(e.target, 220)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* WhatsApp-style PDF Preview Card - only when API explicitly set documentTemplate=true */}
+            {message.documentTemplate === true && message.htmlTemplate && (
               <PDFCardPreview
                 fileName={generateFileName(message.documentType || "Dokumen")}
                 onPreview={() => {
@@ -675,22 +691,30 @@ const ChatInterface = ({
             {/* Input Section */}
             <div className="border-t border-gray-100 px-8 py-5 bg-white w-full overflow-x-hidden max-w-full min-w-0">
               <div className="flex space-x-3 min-w-0">
-                <input
-                  type="text"
+                <textarea
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    // auto resize
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
                       handleSend();
                     }
                   }}
-                  placeholder="Tulis pesan..."
-                  className="flex-1 border border-gray-200 rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black min-w-0"
+                  placeholder="Tulis pesan... (Shift+Enter untuk baris baru)"
+                  rows={1}
+                  className="flex-1 border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm shadow-sm text-black min-w-0 resize-none"
                   style={{
                     fontFamily:
                       "'Google Sans Text', 'Product Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif",
                     fontSize: "16px",
                     fontWeight: 400,
+                    maxHeight: '180px',
+                    overflowY: 'auto',
                   }}
                   disabled={isTyping}
                 />

@@ -64,6 +64,33 @@ export default function AIAssistantPage() {
     testAPI();
   }, []);
 
+  // Clear chatbot session on hard reload (and on unload to be safe)
+  useEffect(() => {
+    try {
+      const navEntries =
+        typeof performance !== "undefined" &&
+        performance.getEntriesByType
+          ? performance.getEntriesByType("navigation")
+          : null;
+      const isReload =
+        (navEntries && navEntries[0] && navEntries[0].type === "reload") ||
+        (window.performance &&
+          window.performance.navigation &&
+          window.performance.navigation.type === 1);
+      if (isReload) {
+        chatbotAPI.clearSession();
+      }
+    } catch (_) {}
+
+    const handleBeforeUnload = () => {
+      try {
+        chatbotAPI.clearSession();
+      } catch (_) {}
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -156,14 +183,6 @@ export default function AIAssistantPage() {
       chatbotAPI.logSessionState();
 
       if (apiResponse.success) {
-        // Check if this is a document-related query and create mock document if needed
-        const isDocumentQuery =
-          userInput.toLowerCase().includes("dokumen") ||
-          userInput.toLowerCase().includes("document") ||
-          userInput.toLowerCase().includes("peb") ||
-          userInput.toLowerCase().includes("invoice") ||
-          userInput.toLowerCase().includes("template");
-
         // Add bot response with smooth typing animation
         const responseLength = apiResponse.answer.length;
         const typingDelay = Math.min(Math.max(responseLength * 15, 1000), 3000); // Smooth typing speed
@@ -177,62 +196,24 @@ export default function AIAssistantPage() {
               hour: "2-digit",
               minute: "2-digit",
             }),
-            // Add document template data if present in API response or create mock for document queries
-            documentTemplate: apiResponse.documentTemplate || isDocumentQuery,
+            // Only show/download PDF when API explicitly indicates documentTemplate=true
+            documentTemplate:
+              apiResponse.documentTemplate === true || apiResponse.generateProposal === true,
             htmlTemplate:
-              apiResponse.htmlTemplate ||
-              (isDocumentQuery
-                ? `
-              <div style="font-family: 'Times New Roman', serif; font-size: 10px; line-height: 1.2; padding: 10px;">
-                <h3 style="text-align: center; margin-bottom: 10px; font-size: 12px;">PEMBERITAHUAN EKSPOR BARANG (PEB)</h3>
-                
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 8px;">
-                  <tr>
-                    <td style="border: 1px solid #000; padding: 4px; font-weight: bold; width: 30%;">Nomor PEB</td>
-                    <td style="border: 1px solid #000; padding: 4px;">PEB-2024-001234</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 1px solid #000; padding: 4px; font-weight: bold;">Tanggal</td>
-                    <td style="border: 1px solid #000; padding: 4px;">15 Januari 2024</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 1px solid #000; padding: 4px; font-weight: bold;">Eksportir</td>
-                    <td style="border: 1px solid #000; padding: 4px;">PT. Contoh Eksportir Indonesia</td>
-                  </tr>
-                  <tr>
-                    <td style="border: 1px solid #000; padding: 4px; font-weight: bold;">Penerima</td>
-                    <td style="border: 1px solid #000; padding: 4px;">ABC Trading Co., Ltd.</td>
-                  </tr>
-                </table>
-                
-                <h4 style="margin-bottom: 5px; font-size: 10px;">Detail Barang:</h4>
-                <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
-                  <thead>
-                    <tr style="background-color: #f0f0f0;">
-                      <th style="border: 1px solid #000; padding: 3px;">Deskripsi</th>
-                      <th style="border: 1px solid #000; padding: 3px;">Kode HS</th>
-                      <th style="border: 1px solid #000; padding: 3px;">Jumlah</th>
-                      <th style="border: 1px solid #000; padding: 3px;">Nilai</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td style="border: 1px solid #000; padding: 3px;">Kopi Robusta</td>
-                      <td style="border: 1px solid #000; padding: 3px;">0901.11.00</td>
-                      <td style="border: 1px solid #000; padding: 3px;">1,000 kg</td>
-                      <td style="border: 1px solid #000; padding: 3px;">USD 5,000</td>
-                    </tr>
-                  </tbody>
-                </table>
-                
-                <div style="margin-top: 10px; text-align: center;">
-                  <p style="font-style: italic; font-size: 8px;">Dokumen ini dibuat secara otomatis oleh AI Assistant</p>
-                </div>
-              </div>
-            `
-                : null),
+              apiResponse.documentTemplate === true || apiResponse.generateProposal === true
+                ? apiResponse.htmlTemplate || null
+                : null,
             documentType:
-              apiResponse.documentType || (isDocumentQuery ? "PEB" : null),
+              apiResponse.documentTemplate === true || apiResponse.generateProposal === true
+                ? apiResponse.documentType || (apiResponse.generateProposal ? "Proposal" : null)
+                : null,
+            // surface optional metadata for UI
+            similarity: apiResponse.similarity,
+            similarityPercentage: apiResponse.similarityPercentage,
+            templateName: apiResponse.templateName,
+            executionTime: apiResponse.executionTime,
+            promptId: apiResponse.promptId,
+            generateProposal: apiResponse.generateProposal === true,
           };
           setMessages((prev) => [...prev, botMessage]);
 

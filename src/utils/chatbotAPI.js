@@ -1,9 +1,10 @@
 // src/utils/chatbotAPI.js
-// API integration for chatbot functionality
+// API integration for chatbot functionality (server-managed sessions)
 
 import apiConfig from '../config/api';
 
 const API_BASE_URL = apiConfig.chatbotBaseUrl;
+const LOCAL_STORAGE_KEY = 'chatbot.session_id';
 
 export const chatbotAPI = {
   // Session management
@@ -11,24 +12,39 @@ export const chatbotAPI = {
   isNewSession: true,
 
   /**
-   * Generate a new session ID
-   * @returns {string} - New session ID
+   * Load a previously saved session_id from localStorage
    */
-  generateSessionId() {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 10000);
-    return `session_${timestamp}_${random}`;
+  loadPersistedSession() {
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (stored) {
+        this.currentSessionId = stored;
+        this.isNewSession = false;
+        console.log('♻️ Restored session_id from storage:', stored);
+        return stored;
+      }
+    } catch (_e) {}
+    return null;
   },
 
   /**
-   * Start a new chat session
-   * @returns {string} - New session ID
+   * Persist session_id to localStorage
+   */
+  persistSession(sessionId) {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, sessionId);
+    } catch (_e) {}
+  },
+
+  /**
+   * Start a new chat session (omit session_id on next request so server issues one)
    */
   startNewSession() {
-    this.currentSessionId = this.generateSessionId();
+    const prev = this.currentSessionId;
+    this.currentSessionId = null;
     this.isNewSession = true;
-    console.log('🆕 Starting new session:', this.currentSessionId);
-    return this.currentSessionId;
+    try { localStorage.removeItem(LOCAL_STORAGE_KEY); } catch (_e) {}
+    console.log('🆕 Starting new session. Previous session_id:', prev);
   },
 
   /**
@@ -38,6 +54,7 @@ export const chatbotAPI = {
     const oldSessionId = this.currentSessionId;
     this.currentSessionId = null;
     this.isNewSession = true;
+    try { localStorage.removeItem(LOCAL_STORAGE_KEY); } catch (_e) {}
     console.log('🗑️ Session cleared:', oldSessionId);
   },
 
@@ -47,7 +64,7 @@ export const chatbotAPI = {
    */
   getCurrentSessionId() {
     if (!this.currentSessionId) {
-      this.startNewSession();
+      this.loadPersistedSession();
     }
     return this.currentSessionId;
   },
@@ -57,13 +74,23 @@ export const chatbotAPI = {
    * @returns {Promise<boolean>} - True if connection is successful
    */
   async testConnection() {
+    // Do a lightweight ping without affecting session
     try {
-      const testQuery = "test connection";
-      const response = await this.sendQuery(testQuery);
-      console.log("API connection test successful:", response);
-      return true;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), apiConfig.timeout);
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json',
+        },
+        body: JSON.stringify({ query: 'ping' }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response.ok;
     } catch (error) {
-      console.error("API connection test failed:", error);
+      console.warn('API connectivity check failed:', error?.message || error);
       return false;
     }
   },
@@ -74,7 +101,7 @@ export const chatbotAPI = {
    */
   getSessionInfo() {
     return {
-      sessionId: this.currentSessionId,
+      session_id: this.currentSessionId,
       isNewSession: this.isNewSession,
       hasActiveSession: !!this.currentSessionId
     };
@@ -122,31 +149,53 @@ export const chatbotAPI = {
         });
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), apiConfig.timeout);
+      const doRequest = async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), apiConfig.timeout);
+        try {
+          const response = await fetch(API_BASE_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'accept': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (!response.ok) {
+            if (response.status === 429) throw new Error('429');
+            if (response.status === 504) throw new Error('504');
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return await response.json();
+        } catch (err) {
+          clearTimeout(timeoutId);
+          throw err;
+        }
+      };
 
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Simple retry for 429/504
+      let data;
+      try {
+        data = await doRequest();
+      } catch (err) {
+        if (err.message === '429' || err.message === '504') {
+          const wait = err.message === '429' ? 1500 : 2500;
+          console.warn(`Received ${err.message}. Retrying in ${wait}ms...`);
+          await new Promise((r) => setTimeout(r, wait));
+          data = await doRequest();
+        } else {
+          throw err;
+        }
       }
-
-      const data = await response.json();
       
-      // Mark session as established after first successful request
-      if (this.isNewSession) {
+      // If server returned session_id, remember and persist it
+      if (data && data.session_id) {
+        this.currentSessionId = data.session_id;
         this.isNewSession = false;
-        console.log('✅ Session established:', this.currentSessionId);
+        this.persistSession(data.session_id);
+        console.log('✅ Session established (server):', this.currentSessionId);
       }
 
       return data;
@@ -174,18 +223,29 @@ export const chatbotAPI = {
 
       const apiResponse = await this.sendQuery(userInput);
       
-      // Extract the answer and document template fields from the API response
+      // Extract the answer and document/proposal template fields from the API response
       const answer = apiResponse.answer || 'Maaf, saya tidak dapat memproses permintaan Anda saat ini.';
-      
+      const hasDocument =
+        apiResponse && (apiResponse.documentTemplate === true || apiResponse.generateProposal === true);
+
       return {
         success: true,
         answer: answer,
-        sessionId: this.currentSessionId,
+        session_id: this.currentSessionId,
         originalResponse: apiResponse,
-        // Pass through document template fields if present
-        documentTemplate: apiResponse.documentTemplate || false,
-        htmlTemplate: apiResponse.htmlTemplate || null,
-        documentType: apiResponse.documentType || null,
+        // Only pass through document fields when API explicitly sets documentTemplate to true
+        documentTemplate: hasDocument,
+        htmlTemplate: hasDocument ? (apiResponse.htmlTemplate || null) : null,
+        documentType: hasDocument ? (apiResponse.documentType || (apiResponse.generateProposal ? 'Proposal' : null)) : null,
+        // passthrough of new optional fields
+        templateName: apiResponse.templateName || null,
+        similarity: typeof apiResponse.similarity === 'number' ? apiResponse.similarity : undefined,
+        similarityPercentage: typeof apiResponse.similarityPercentage === 'number' ? apiResponse.similarityPercentage : undefined,
+        promptId: typeof apiResponse.promptId === 'number' ? apiResponse.promptId : undefined,
+        executionTime: typeof apiResponse.executionTime === 'number' ? apiResponse.executionTime : undefined,
+        optimized: typeof apiResponse.optimized === 'boolean' ? apiResponse.optimized : undefined,
+        // proposal flag passthrough
+        generateProposal: apiResponse.generateProposal === true,
       };
     } catch (error) {
       console.error('Error processing user input:', error);
@@ -195,7 +255,7 @@ export const chatbotAPI = {
         success: false,
         answer: 'Maaf, terjadi kesalahan dalam memproses permintaan Anda. Silakan coba lagi nanti.',
         error: error.message,
-        sessionId: this.currentSessionId
+        session_id: this.currentSessionId
       };
     }
   }
